@@ -9,11 +9,12 @@
 # Repeated here so this module is self-sufficient.
 persist.vendor.service.bt.a2dp.sink=true
 
-# AdapterProperties reads this exact key (MAX_CONNECTED_AUDIO_DEVICES_PROPERTY).
-# The dump reports MaxConnectedAudioDevices: 5 today. Two is enough for one
-# car (A2DP source side) plus one phone (HFP/A2DP sink side) and keeps the
-# stack from parking extra ACL links on the single 1x1 radio.
-persist.bluetooth.maxconnectedaudiodevices=2
+# AdapterProperties reads persist.bluetooth.maxconnectedaudiodevices (stock 5).
+# v1.0.1 set it to 2; on the device a failed dual test then left stale btif_av
+# slots and the iPhone sink link could not reconnect until a Bluetooth restart.
+# Left at the firmware default (5) from v1.0.2 on to keep head-room for stale
+# slots; the slot leak itself is a native-stack issue (docs/STACK_NOTES.md).
+# persist.bluetooth.maxconnectedaudiodevices=2
 
 # Codec capability advertised by the split-A2DP (DSP offload) encoder for the
 # car link. Stock: sbc-aac-aptx-aptxhd-ldac. Restricting to SBC+AAC keeps the

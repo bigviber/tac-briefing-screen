@@ -67,18 +67,24 @@ class FocusRoutingEngine(
             return status
         }
 
-        // Focus request path through the Bluetooth process' own MediaSession.
-        // On R this is the ONLY thing that sets the sink-side active peer:
-        // AvrcpControllerStateMachine.onPrepare() -> A2dpSinkService.requestAudioFocus()
-        // -> setActiveDevice() -> BtifAvSink::SetActivePeer(). It needs a *connected*
-        // AVRCP Controller state machine for the iPhone (see docs/STACK_NOTES.md, Q1).
+        // Device-verified (v1.0.1 run): decoding starts from the overlay's auto-focus
+        // alone; the sink does NOT need an active peer. prepare()/play() through the
+        // BluetoothMediaBrowserService session is only needed to make the *iPhone*
+        // start playing. On this firmware that session has stayed in STATE_ERROR (7)
+        // with actions=0 and never dispatched onPlay (docs/STACK_NOTES.md, Q1), so
+        // report that condition instead of pretending the command was delivered.
         nowPlaying.connect()
         nowPlaying.prepare()
 
-        if (snap.avrcpControllerIphone != BtConstants.STATE_CONNECTED || !nowPlaying.state.value.connected) {
+        val np = nowPlaying.state.value
+        if (snap.avrcpControllerIphone != BtConstants.STATE_CONNECTED) {
+            status = EngineStatus.Degraded("A2DP sink up but AVRCP CT not connected - press Play on the iPhone")
+            return status
+        }
+        if (!np.connected || np.error != null) {
             status = EngineStatus.Degraded(
-                "A2DP sink up but no AVRCP CT state machine for the iPhone - sink active peer cannot be set " +
-                    "(bta_av_co 'peer index out of bounds'); native rc role dispatch, see STACK_NOTES Q1"
+                "audio path armed; AVRCP browser session in error state (${np.error ?: "not connected"}) - " +
+                    "remote Play unavailable, press Play on the iPhone (STACK_NOTES Q1)"
             )
             return status
         }

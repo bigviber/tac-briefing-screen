@@ -56,7 +56,7 @@ coordinator reports that and relies on AVRCP CT following the sink link.
 ```powershell
 # needs ANDROID_HOME with build-tools, platforms/android-30 (or newer),
 # ndk;26.3.11579264, cmake;3.22.1 (sdkmanager ids) and JDK 17
-.\build_and_package.ps1            # -> dist\carrelay_ivi-v1.0.1.zip
+.\build_and_package.ps1            # -> dist\carrelay_ivi-v1.0.2.zip
 .\build_and_package.ps1 -Deploy    # + adb push, magisk --install-module, optional reboot
 ```
 
