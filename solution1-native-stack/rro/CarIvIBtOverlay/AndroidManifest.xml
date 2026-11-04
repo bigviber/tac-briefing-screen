@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  CarIvIBtOverlay - runtime resource overlay for com.android.bluetooth on
+  Lenovo TB-J606F / Android 11 (SDK 30).
+
+  Why a second overlay: the existing com.local.btsink.overlay (BtSinkOverlay.apk,
+  static, declared priority 100, reported mPriority 10) only flips
+  profile_supported_a2dp_sink / _hfpclient / _pbapclient. It leaves
+  a2dp_sink_automatically_request_audio_focus at the stock value (false), so
+  the A2dpSinkStreamHandler never asks for audio focus on SRC_STR_START and the
+  decoded iPhone PCM stays silent until a MediaSession "play" arrives.
+  This overlay is static with a higher priority so it wins the resource lookup
+  for every key it defines, while staying compatible with the old overlay.
+
+  Built with aapt2 (no code) by build_and_package.ps1 and installed to
+  /product/overlay/CarIvIBtOverlay.apk via the Magisk module.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.carivi.bt.overlay"
+    android:versionCode="1"
+    android:versionName="1.0">
+
+    <uses-sdk
+        android:minSdkVersion="30"
+        android:targetSdkVersion="30" />
+
+    <overlay
+        android:targetPackage="com.android.bluetooth"
+        android:priority="200"
+        android:isStatic="true" />
+
+    <application
+        android:hasCode="false"
+        android:label="Car IVI Bluetooth overlay" />
+</manifest>

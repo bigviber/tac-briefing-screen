@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Privileged-permission whitelist for the Car IVI relay companion app.
+  Mounted by Magisk at /system/etc/permissions/privapp-permissions-carrelay.xml
+  (the dump shows /system/etc/permissions is already a Magisk tmpfs overlay that
+  carries privapp-permissions-com.local.carhome.xml the same way).
+
+  Android 11 enforces this list (ro.control_privapp_permissions=enforce on
+  user builds): every signature|privileged permission the APK requests MUST
+  appear here or PackageManager refuses to grant it and logs a privapp violation.
+-->
+<permissions>
+    <privapp-permissions package="com.carivi.relay">
+        <!-- setConnectionPolicy / connect / setActiveDevice on BluetoothA2dp,
+             BluetoothA2dpSink, BluetoothHeadsetClient (SDK 30 @SystemApi + hidden). -->
+        <permission name="android.permission.BLUETOOTH_PRIVILEGED"/>
+        <!-- AudioSystem.createAudioPatch, setDeviceConnectionState, AudioPolicy mixes. -->
+        <permission name="android.permission.MODIFY_AUDIO_ROUTING"/>
+        <!-- AudioPolicy loop-back capture of the Bluetooth process' sink AudioTrack. -->
+        <permission name="android.permission.CAPTURE_AUDIO_OUTPUT"/>
+        <!-- hidden_api_policy / blacklist exemptions written from the app itself. -->
+        <permission name="android.permission.WRITE_SECURE_SETTINGS"/>
+    </privapp-permissions>
+</permissions>

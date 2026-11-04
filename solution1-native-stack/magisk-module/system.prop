@@ -1,0 +1,44 @@
+# ---------------------------------------------------------------------------
+# Car IVI BT Relay - WCN3980 (cherokee) dual A2DP link tuning for TB-J606F
+# Build S320311_230810_ROW, Android 11 (SDK 30), Qualcomm libbluetooth_qti.so
+# Applied by Magisk via resetprop at post-fs-data.
+# ---------------------------------------------------------------------------
+
+# Qualcomm stack switch for the A2DP sink role. The dump shows the stock
+# firmware leaves this unset; the earlier btsink_overlay_prop module set it.
+# Repeated here so this module is self-sufficient.
+persist.vendor.service.bt.a2dp.sink=true
+
+# AdapterProperties reads this exact key (MAX_CONNECTED_AUDIO_DEVICES_PROPERTY).
+# The dump reports MaxConnectedAudioDevices: 5 today. Two is enough for one
+# car (A2DP source side) plus one phone (HFP/A2DP sink side) and keeps the
+# stack from parking extra ACL links on the single 1x1 radio.
+persist.bluetooth.maxconnectedaudiodevices=2
+
+# Codec capability advertised by the split-A2DP (DSP offload) encoder for the
+# car link. Stock: sbc-aac-aptx-aptxhd-ldac. Restricting to SBC+AAC keeps the
+# outbound bitrate <= ~320 kbit/s so the inbound iPhone A2DP sink link (AAC,
+# ~256 kbit/s) and the outbound car link fit the BR/EDR air time of one WCN3980
+# without the LDAC/aptX-HD 660-990 kbit/s bursts that starve the sink side.
+persist.vendor.qcom.bluetooth.a2dp_offload_cap=sbc-aac
+persist.bluetooth.a2dp_offload.cap=sbc-aac
+
+# AAC: variable bitrate + frame control on the car link so the encoder backs
+# off under RF contention instead of queuing/dropping.
+persist.vendor.qcom.bluetooth.aac_vbr_ctl.enabled=true
+persist.vendor.bt.aac_frm_ctl.enabled=true
+
+# Keep split-A2DP (encoder in ADSP) - this is what the stock HAL stack
+# (vendor.qti.hardware.bluetooth_audio@2.1 + audio.primary.bengal AFE proxy)
+# is built around. Software encode would double CPU + bus load.
+persist.vendor.qcom.bluetooth.enable.splita2dp=true
+
+# Scrambler / TWS+ state machines are irrelevant for a car head unit and add
+# per-packet work on the controller; keep them off (already off on stock).
+persist.vendor.qcom.bluetooth.scram.enabled=false
+persist.vendor.qcom.bluetooth.twsp_state.enabled=false
+
+# Sink-side audio focus: decoded iPhone PCM is played by the Bluetooth process
+# as a media AudioTrack; let the A2dpSinkStreamHandler duck other media by 25%
+# (stock resource integer/a2dp_sink_duck_percent = 25) rather than pause it.
+# (Informational - the value itself is an RRO resource, see CarIvIBtOverlay.)

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Resource names must match the com.android.bluetooth resource table of build
+  S320311_230810_ROW exactly (see work/res_live.txt in the context bundle):
+
+    0x7f020000 bool/a2dp_sink_automatically_request_audio_focus  stock=false
+    0x7f020005 bool/hfp_client_connection_service_enabled        stock=false
+    0x7f020009 bool/profile_supported_a2dp                       stock=true
+    0x7f02000a bool/profile_supported_a2dp_sink                  stock=false (old overlay -> true)
+    0x7f02000b bool/profile_supported_avrcp_controller           stock=true
+    0x7f02000c bool/profile_supported_avrcp_target               stock=false
+    0x7f02000f bool/profile_supported_hfpclient                  stock=false (old overlay -> true)
+    0x7f020012 bool/profile_supported_hs_hfp                     stock=true
+    0x7f020018 bool/profile_supported_pbapclient                 stock=false (old overlay -> true)
+
+  Keys that do NOT exist on this build and therefore must not be overlaid
+  (cmd overlay lookup failed for them): avrcp_controller_enable_cover_art,
+  a2dp_sink_audio_focus_request_delay_ms.
+-->
+<resources>
+    <!-- Ingress (iPhone) side: tablet acts as A2DP Sink + AVRCP Controller + HFP HF. -->
+    <bool name="profile_supported_a2dp_sink">true</bool>
+    <bool name="profile_supported_avrcp_controller">true</bool>
+    <bool name="profile_supported_hfpclient">true</bool>
+    <bool name="profile_supported_pbapclient">true</bool>
+
+    <!-- Egress (car) side: tablet stays an A2DP Source + HFP AG. -->
+    <bool name="profile_supported_a2dp">true</bool>
+    <bool name="profile_supported_hs_hfp">true</bool>
+
+    <!-- Local AVRCP target off: the car is the target of our source link. -->
+    <bool name="profile_supported_avrcp_target">false</bool>
+
+    <!-- The decisive change for Mode 1: A2dpSinkStreamHandler.requestAudioFocusIfNone()
+         on SRC_STR_START, so the decoded iPhone stream is rendered the moment the
+         iPhone starts streaming - no MediaSession round-trip required. -->
+    <bool name="a2dp_sink_automatically_request_audio_focus">true</bool>
+
+    <!-- Keep HFP-client calls out of Telecom's InCallUI for now; the relay app
+         exposes call state itself. Flip to true to route iPhone calls through the
+         stock Dialer. -->
+    <bool name="hfp_client_connection_service_enabled">false</bool>
+</resources>

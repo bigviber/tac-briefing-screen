@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Car Relay</string>
+    <string name="notif_channel_name">Bluetooth relay</string>
+    <string name="notif_channel_desc">iPhone → tablet → car audio relay status</string>
+    <string name="notif_title">Car Relay active</string>
+</resources>
