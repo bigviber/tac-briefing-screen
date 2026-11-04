@@ -68,8 +68,20 @@ class FocusRoutingEngine(
         }
 
         // Focus request path through the Bluetooth process' own MediaSession.
+        // On R this is the ONLY thing that sets the sink-side active peer:
+        // AvrcpControllerStateMachine.onPrepare() -> A2dpSinkService.requestAudioFocus()
+        // -> setActiveDevice() -> BtifAvSink::SetActivePeer(). It needs a *connected*
+        // AVRCP Controller state machine for the iPhone (see docs/STACK_NOTES.md, Q1).
         nowPlaying.connect()
         nowPlaying.prepare()
+
+        if (snap.avrcpControllerIphone != BtConstants.STATE_CONNECTED || !nowPlaying.state.value.connected) {
+            status = EngineStatus.Degraded(
+                "A2DP sink up but no AVRCP CT state machine for the iPhone - sink active peer cannot be set " +
+                    "(bta_av_co 'peer index out of bounds'); native rc role dispatch, see STACK_NOTES Q1"
+            )
+            return status
+        }
 
         if (status !is EngineStatus.Degraded) {
             status = EngineStatus.Running("sink AudioTrack → APM media → $carName")

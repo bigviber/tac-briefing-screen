@@ -26,8 +26,8 @@ android {
         // BLUETOOTH_ADMIN manifest permissions (no BLUETOOTH_CONNECT runtime flow).
         minSdk = 30
         targetSdk = 30
-        versionCode = 1
-        versionName = "1.0.0"
+        versionCode = 2
+        versionName = "1.0.1"
 
         ndk {
             abiFilters += listOf("arm64-v8a")
@@ -109,10 +109,7 @@ dependencies {
     // Authorized libraries
     implementation(libs.oboe)
     implementation(libs.joor)
-    implementation(libs.libsu.core)
-    implementation(libs.libsu.service)
     implementation(libs.media3.session)
-    implementation(libs.media3.ui)
     implementation(libs.media3.common)
     implementation(libs.guava)
     implementation(libs.coroutines.android)

@@ -201,6 +201,32 @@ class BtRoleCoordinator(
         return log
     }
 
+    /**
+     * Inverse of [pinRoles] for module removal: every profile whose service UUID the
+     * remote advertises goes back to ALLOWED (PhonePolicy's default after bonding);
+     * profiles the remote does not offer are left FORBIDDEN, which is also what the
+     * stock policy would have done. There is no shell API for this on SDK 30, so it
+     * has to run from the app before the module is uninstalled.
+     */
+    suspend fun restoreDefaultPolicies(endpoints: RelayEndpoints): List<String> {
+        val log = ArrayList<String>()
+        for (addr in listOf(endpoints.iphoneAddress, endpoints.carAddress)) {
+            val dev = proxies.device(addr) ?: continue
+            val uuids = dev.uuids?.map { it.uuid.toString().lowercase() } ?: emptyList()
+            fun has(uuid: String) = uuids.contains(uuid)
+            log += "— restore ${dev.address} (${uuids.size} UUIDs) —"
+            // Remote AudioSink -> we may be a source;  remote AudioSource -> we may be a sink.
+            log += proxies.setConnectionPolicy(PROFILE_A2DP, dev, if (has(UUID_AUDIO_SINK)) CONNECTION_POLICY_ALLOWED else CONNECTION_POLICY_FORBIDDEN)
+            log += proxies.setConnectionPolicy(PROFILE_A2DP_SINK, dev, if (has(UUID_AUDIO_SOURCE)) CONNECTION_POLICY_ALLOWED else CONNECTION_POLICY_FORBIDDEN)
+            // Remote Handsfree (HF) -> we may be AG;  remote HandsfreeAudioGateway -> we may be HF client.
+            log += proxies.setConnectionPolicy(PROFILE_HEADSET, dev, if (has(UUID_HFP_HF) || has(UUID_HSP_HS)) CONNECTION_POLICY_ALLOWED else CONNECTION_POLICY_FORBIDDEN)
+            log += proxies.setConnectionPolicy(PROFILE_HEADSET_CLIENT, dev, if (has(UUID_HFP_AG)) CONNECTION_POLICY_ALLOWED else CONNECTION_POLICY_FORBIDDEN)
+        }
+        log.forEach { emit(it) }
+        refresh()
+        return log
+    }
+
     // ---------------------------------------------------------------------
     // Connection sequencer
     // ---------------------------------------------------------------------
@@ -319,5 +345,12 @@ class BtRoleCoordinator(
     companion object {
         const val SETTLE_MS = 2_500L
         private const val POLL_MS = 250L
+
+        // Bluetooth SIG service class UUIDs (BluetoothUuid constants are hidden on SDK 30)
+        private const val UUID_AUDIO_SINK = "0000110b-0000-1000-8000-00805f9b34fb"
+        private const val UUID_AUDIO_SOURCE = "0000110a-0000-1000-8000-00805f9b34fb"
+        private const val UUID_HFP_HF = "0000111e-0000-1000-8000-00805f9b34fb"
+        private const val UUID_HFP_AG = "0000111f-0000-1000-8000-00805f9b34fb"
+        private const val UUID_HSP_HS = "00001108-0000-1000-8000-00805f9b34fb"
     }
 }

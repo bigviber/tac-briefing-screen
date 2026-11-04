@@ -353,15 +353,20 @@ private fun SystemColumn(state: DashboardState, controller: RelayController, mod
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
         DashCard(title = "System") {
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                FlagChip("root", state.rootAvailable)
                 FlagChip("priv-app", state.privileged)
                 FlagChip("adapter", state.profiles.adapterOn)
+                FlagChip("avrcp browser", state.nowPlaying.connected)
             }
             Spacer(Modifier.height(8.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                FilledTonalButton(onClick = { controller.applyBootstrap() }, modifier = Modifier.weight(1f)) { Text("Activate stack") }
                 OutlinedButton(onClick = { controller.refreshDiagnostics() }, modifier = Modifier.weight(1f)) { Text("Diagnostics") }
+                FilledTonalButton(onClick = { controller.unpinRoles() }, modifier = Modifier.weight(1f)) { Text("Unpin roles") }
             }
+            Text(
+                "Unpin roles before removing the Magisk module (restores stock connection policies).",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
         DashCard(title = "Log", modifier = Modifier.weight(1f)) {
             val listState = rememberLazyListState()

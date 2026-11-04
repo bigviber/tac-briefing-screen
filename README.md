@@ -27,7 +27,13 @@ dumps is in [`docs/HARDWARE_AUDIT.md`](docs/HARDWARE_AUDIT.md).
 
 Gradle modules: `:carrelay-core`, `:solution3-audiopatch-bridge`,
 `:solution2-oboe-bridge-app:app` (Kotlin 2.0.20, AGP 8.6.1, Gradle 8.9, JDK 17,
-NDK 26.3, CMake 3.22.1).
+**NDK 26.3.11579264**, **CMake 3.22.1**). Libraries: Oboe 1.11.0 (Prefab), jOOR
+0.9.15, Media3 1.4.1 (`media3-session`/`media3-common`), Compose BOM 2024.09.03.
+No root library: the app needs none (priv-app + whitelist); everything
+privileged runs through hidden/`@SystemApi` framework calls.
+
+Stack-level findings (why the sink peer never becomes active, why both roles
+at once is a native-stack question): [`docs/STACK_NOTES.md`](docs/STACK_NOTES.md).
 
 ## The three architectures
 
@@ -48,8 +54,9 @@ coordinator reports that and relies on AVRCP CT following the sink link.
 ## Build & package (Windows PowerShell)
 
 ```powershell
-# needs ANDROID_HOME with build-tools, platforms/android-30 (or newer), NDK 26.3.11579264, CMake 3.22.1, JDK 17
-.\build_and_package.ps1            # -> dist\carrelay_ivi-v1.0.0.zip
+# needs ANDROID_HOME with build-tools, platforms/android-30 (or newer),
+# ndk;26.3.11579264, cmake;3.22.1 (sdkmanager ids) and JDK 17
+.\build_and_package.ps1            # -> dist\carrelay_ivi-v1.0.1.zip
 .\build_and_package.ps1 -Deploy    # + adb push, magisk --install-module, optional reboot
 ```
 
@@ -61,8 +68,11 @@ zips the module with forward-slash entry names.
 
 ## After flashing
 
-1. Reboot. `service.sh` enables both overlays, `pm enable`s the sink-side
-   services, relaxes `hidden_api_policy`, grants `RECORD_AUDIO`, starts
+1. Install from the Magisk app (`$BOOTMODE=true`): `customize.sh` pins the
+   sink-side component states **once** (this is the only time Bluetooth is
+   restarted). Reboot. `service.sh` is read-only: it reports overlay state
+   (`cmd overlay list`; both RROs are static so they cannot be toggled),
+   resource lookups and component states, grants `RECORD_AUDIO` and starts
    `RelayForegroundService`. Logs: `/data/adb/carrelay/{post-fs-data,service}.log`,
    `boot_snapshot.txt`.
 2. Open **Car Relay**: pick the iPhone and the car in the two role cards, press
@@ -72,6 +82,16 @@ zips the module with forward-slash entry names.
 4. Optional experiment: `touch /data/adb/carrelay/a2dp_in_primary` and reboot to
    move `BT A2DP In` into the primary HAL module (see `post-fs-data.sh`).
 
-Remove the Magisk module to undo everything; the pre-existing
-`btsink_overlay_prop`, `btdual_patch`, `carhome_priv` and `hfp_audio` modules
-are left untouched.
+## Removing
+
+1. In Car Relay tap **Unpin roles** (restores per-device connection policies —
+   there is no shell API for them on SDK 30).
+2. Remove the module in Magisk and reboot. `uninstall.sh` drops a one-shot
+   `/data/adb/service.d/carrelay_cleanup.sh` that, once the framework is up,
+   removes v1.0.0's global `hidden_api_policy`/exemption leftovers, resets
+   `AvrcpTargetService` to default-state, drops the Doze whitelist entry and
+   deletes `/data/adb/carrelay`, then deletes itself. The sink-side component
+   states that pre-date this module are intentionally kept.
+
+The pre-existing `btsink_overlay_prop`, `btdual_patch`, `carhome_priv` and
+`hfp_audio` modules are never touched.

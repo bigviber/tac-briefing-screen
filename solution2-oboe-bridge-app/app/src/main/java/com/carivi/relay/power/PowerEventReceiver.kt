@@ -20,8 +20,7 @@ class PowerEventReceiver : BroadcastReceiver() {
         val serviceAction = when (action) {
             Intent.ACTION_POWER_CONNECTED -> RelayForegroundService.ACTION_POWER_CONNECTED
             Intent.ACTION_POWER_DISCONNECTED -> RelayForegroundService.ACTION_POWER_DISCONNECTED
-            Intent.ACTION_BOOT_COMPLETED,
-            Intent.ACTION_LOCKED_BOOT_COMPLETED -> RelayForegroundService.ACTION_BOOT
+            Intent.ACTION_BOOT_COMPLETED -> RelayForegroundService.ACTION_BOOT
             BluetoothAdapter.ACTION_STATE_CHANGED -> {
                 if (intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, -1) == BluetoothAdapter.STATE_ON)
                     RelayForegroundService.ACTION_ADAPTER_ON else return

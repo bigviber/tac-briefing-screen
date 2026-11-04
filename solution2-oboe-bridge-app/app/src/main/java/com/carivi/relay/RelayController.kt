@@ -15,8 +15,7 @@ import com.carivi.relay.core.RelayMode
 import com.carivi.relay.engine.FocusRoutingEngine
 import com.carivi.relay.engine.OboeBridgeEngine
 import com.carivi.relay.media.NowPlayingController
-import com.carivi.relay.root.RootShell
-import com.carivi.relay.root.SystemBootstrap
+import android.content.pm.PackageManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -47,7 +46,6 @@ class RelayController(private val context: Context) {
     val coordinator = BtRoleCoordinator(context, proxies, prefs, scope)
     val nowPlaying = NowPlayingController(context)
     private val resolver = AudioDeviceResolver(context)
-    private val bootstrap = SystemBootstrap(context)
 
     private val audioPatchBridge = AudioPatchBridge(context)
     private val engines: Map<RelayMode, RelayEngine> = mapOf(
@@ -75,7 +73,6 @@ class RelayController(private val context: Context) {
         val autoSequenceOnPower: Boolean = true,
         val hfpClientEnabled: Boolean = true,
         val carHfpAgEnabled: Boolean = false,
-        val rootAvailable: Boolean = false,
         val privileged: Boolean = false,
         val sequencerBusy: Boolean = false,
         val audioDevices: List<String> = emptyList(),
@@ -95,7 +92,6 @@ class RelayController(private val context: Context) {
         val autoSequenceOnPower: Boolean,
         val hfpClientEnabled: Boolean,
         val carHfpAgEnabled: Boolean,
-        val rootAvailable: Boolean = false,
         val privileged: Boolean = false,
         val sequencerBusy: Boolean = false,
         val audioDevices: List<String> = emptyList(),
@@ -124,7 +120,7 @@ class RelayController(private val context: Context) {
             profiles = snap, nowPlaying = np, patchStrategy = i.patchStrategy,
             forceLoopback = i.forceLoopback, autoSequenceOnPower = i.autoSequenceOnPower,
             hfpClientEnabled = i.hfpClientEnabled, carHfpAgEnabled = i.carHfpAgEnabled,
-            rootAvailable = i.rootAvailable, privileged = i.privileged,
+            privileged = i.privileged,
             sequencerBusy = i.sequencerBusy || coordinator.sequencerBusy,
             audioDevices = i.audioDevices, log = i.log
         )
@@ -146,13 +142,18 @@ class RelayController(private val context: Context) {
         resolver.registerCallback { refreshAudioDevices() }
         refreshBonded()
         refreshAudioDevices()
-        scope.launch {
-            val root = RootShell.isRootAvailable()
-            val priv = bootstrap.isPrivileged()
-            internal.update { it.copy(rootAvailable = root, privileged = priv) }
-            log("controller up · root=$root · privileged=$priv · mode=${prefs.mode.title}")
-            if (!priv) log("! BLUETOOTH_PRIVILEGED/MODIFY_AUDIO_ROUTING not granted - install via the Magisk module (priv-app + whitelist)")
-        }
+        val priv = isPrivileged()
+        internal.update { it.copy(privileged = priv) }
+        log("controller up · privileged=$priv · mode=${prefs.mode.title}")
+        if (!priv) log("! BLUETOOTH_PRIVILEGED/MODIFY_AUDIO_ROUTING not granted - install via the Magisk module (priv-app + whitelist)")
+    }
+
+    /** True when PackageManager granted the signature|privileged permissions (priv-app + whitelist OK). */
+    private fun isPrivileged(): Boolean {
+        val pm = context.packageManager
+        val pkg = context.packageName
+        return pm.checkPermission("android.permission.BLUETOOTH_PRIVILEGED", pkg) == PackageManager.PERMISSION_GRANTED &&
+            pm.checkPermission("android.permission.MODIFY_AUDIO_ROUTING", pkg) == PackageManager.PERMISSION_GRANTED
     }
 
     fun shutdown() {
@@ -255,20 +256,34 @@ class RelayController(private val context: Context) {
         }
     }
 
-    fun applyBootstrap() {
+    /**
+     * Pre-uninstall step: put every profile policy for both pinned devices back to
+     * ALLOWED where the remote advertises the matching service UUID (what the
+     * stock PhonePolicy would have chosen), so removing the module leaves no
+     * FORBIDDEN entries behind in the Bluetooth config.
+     */
+    fun unpinRoles() {
+        val ep = endpointsOrNull() ?: run { log("! pick both devices first"); return }
         scope.launch {
-            log("applying Solution 1 runtime activation…")
-            bootstrap.apply().forEach { log(it) }
-            internal.update { it.copy(privileged = bootstrap.isPrivileged(), rootAvailable = RootShell.isRootAvailable()) }
+            stopEngineLocked()
+            internal.update { it.copy(relayArmed = false) }
+            coordinator.restoreDefaultPolicies(ep)
         }
     }
 
+    /** Root-free diagnostics: audio devices, profile states and effective permissions. */
     fun refreshDiagnostics() {
         scope.launch {
             refreshBonded()
             refreshAudioDevices()
             coordinator.refresh()
-            bootstrap.diagnostics().forEach { log(it) }
+            val priv = isPrivileged()
+            internal.update { it.copy(privileged = priv) }
+            log("privileged=$priv (BLUETOOTH_PRIVILEGED + MODIFY_AUDIO_ROUTING)")
+            resolver.describe().forEach { log(it) }
+            val s = coordinator.snapshot.value
+            log("A2DP src(car)=${com.carivi.relay.core.BtConstants.stateName(s.a2dpSourceCar)} sink(iPhone)=${com.carivi.relay.core.BtConstants.stateName(s.a2dpSinkIphone)} avrcpCT=${com.carivi.relay.core.BtConstants.stateName(s.avrcpControllerIphone)} hfpClient=${com.carivi.relay.core.BtConstants.stateName(s.hfpClientIphone)} active=${s.activeA2dpAddress ?: "none"} codec=${s.carCodec ?: "?"}@${s.carCodecSampleRate}")
+            log("now playing: connected=${nowPlaying.state.value.connected} state=${nowPlaying.state.value.playbackState} err=${nowPlaying.state.value.error ?: "-"}")
         }
     }
 

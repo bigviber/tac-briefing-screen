@@ -4,7 +4,6 @@ import android.app.Application
 import android.content.Context
 import android.content.Intent
 import android.util.Log
-import com.carivi.relay.root.RootShell
 import com.carivi.relay.service.RelayForegroundService
 
 class CarRelayApp : Application() {
@@ -20,11 +19,6 @@ class CarRelayApp : Application() {
     }
 
     companion object {
-        init {
-            // libsu must be configured before the first Shell use (static init as recommended).
-            RootShell.configure(BuildConfig.DEBUG)
-        }
-
         @Volatile private var instance: RelayController? = null
 
         fun controller(context: Context): RelayController =
