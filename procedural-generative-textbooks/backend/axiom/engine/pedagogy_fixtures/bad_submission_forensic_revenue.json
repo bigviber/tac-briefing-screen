@@ -1,0 +1,50 @@
+{
+  "fixture": "bad_submission_forensic_revenue",
+  "archetype": "forensic_revenue",
+  "difficulty": "practitioner",
+  "seed": 1,
+  "notes": "A weak submission: accepts the 'seasonality + new sales team' red herring, computes revenue growth from a fan-out join (invoice_lines joined to shipments without dedup) so the headline metric is out of tolerance, no cutoff test, generic recommendation. The harness overwrites `metrics` with values deliberately outside tolerance (e.g. expected * 1.35) before grading.",
+  "submission": {
+    "case_id": "FIXTURE",
+    "memo_markdown": "Revenue growth of 31% in Q4 looks strong and is consistent with the new enterprise sales team ramping and normal Q4 seasonality. Gross margin is stable so there is no sign of pricing pressure.\n\nWe looked at total invoiced amounts by quarter and the trend is up and to the right. Some customers have higher balances than usual but that is expected with larger enterprise deals.\n\nRecommendation: continue investing in the sales team and improve collections processes so that cash catches up with bookings. We should also consider a more conservative returns policy.\n\nRisks: macro conditions could slow enterprise purchasing.",
+    "metrics": {
+      "revenue_growth_q4_pct": 0.31,
+      "q4_revenue_cents": 2400000000,
+      "returns_rate_q1_next": 0.02
+    },
+    "sql_evidence": [
+      {
+        "name": "revenue_by_quarter",
+        "sql": "SELECT date_trunc('quarter', i.issued_at) AS q, SUM(il.amount_cents) AS revenue\nFROM invoices i\nJOIN invoice_lines il ON il.invoice_id = i.invoice_id\nJOIN shipments s ON s.invoice_id = i.invoice_id\nGROUP BY 1 ORDER BY 1;",
+        "result_preview": "q | revenue\n2024Q3 | 1830000000\n2024Q4 | 2400000000"
+      }
+    ],
+    "python_evidence": [],
+    "design_mermaid": null,
+    "financial_model": null
+  },
+  "fake_rubric": {
+    "dimensions": {
+      "technical_execution": {"score": 3, "evidence": ["JOIN shipments s ON s.invoice_id = i.invoice_id"], "gaps": ["joins invoice_lines to shipments without deduplication, multiplying revenue by shipment count", "no period cutoff test on ship_date vs issued_at", "no deduplication of invoice rows"]},
+      "business_judgment": {"score": 2, "evidence": ["consistent with the new enterprise sales team ramping and normal Q4 seasonality"], "gaps": ["accepts the seasonality/sales-team red herring as the cause", "does not examine returns reversals in the following period", "does not examine terms_days change on late-quarter invoices"]},
+      "communication": {"score": 4, "evidence": ["Revenue growth of 31% in Q4 looks strong"], "gaps": ["no explicit answer to the board's question", "claims not linked to queries"]},
+      "risk_awareness": {"score": 2, "evidence": ["macro conditions could slow enterprise purchasing"], "gaps": ["no alternative explanation considered", "no data-quality limitations noted"]}
+    },
+    "overall": 2.7,
+    "misdiagnosis": true,
+    "stated_root_cause": "Q4 revenue growth is organic, driven by a new sales team and seasonality.",
+    "strongest_point": "Notes that gross margin is stable, which is a legitimate observation.",
+    "weakest_point": "Computes revenue through a fan-out join and never tests period-end cutoff, so the headline number is wrong and the diagnosis follows the red herring.",
+    "next_drill_nodes": ["sql.joins", "accounting_finance.revenue_recognition", "accounting_finance.forensic_detection"]
+  },
+  "expected_deterministic": {"det_pass_max": 0.34},
+  "expected_rubric_range": {"overall_min": 0.0, "overall_max": 4.0, "misdiagnosis": true},
+  "expected_observations": {
+    "accounting_finance.forensic_detection": "incorrect",
+    "accounting_finance.revenue_recognition": "incorrect",
+    "sql.date_time_handling": "incorrect",
+    "sql.window_functions": "incorrect",
+    "python.statistical_testing": "incorrect"
+  },
+  "expected_node_score_max": 0.45
+}

@@ -1,0 +1,60 @@
+{
+  "fixture": "good_submission_outbox",
+  "archetype": "outbox_pattern",
+  "difficulty": "practitioner",
+  "seed": 1,
+  "notes": "A strong system-design submission with a correct diagnosis (dual-write losing billing events), a correct fix (transactional outbox + relay + idempotent consumer), and a reconciliation query that finds unbilled usage. The accounting tie-out is only partially done (no ageing of the breaks), which should land accounting_finance.subledger_reconciliation in the borderline band 0.50-0.65. The harness sets `metrics` so that system_design and sql tagged items pass and exactly one accounting_finance tagged metric fails.",
+  "submission": {
+    "case_id": "FIXTURE",
+    "memo_markdown": "**Answer.** We are under-billing because the billing service writes the usage row and then publishes the `usage.recorded` event in a second, non-transactional step. When the broker publish fails or the pod restarts between the two writes, the row exists but the event never reaches invoicing. Over the last two quarters 3.8% of usage rows have no matching invoice line.\n\n**Evidence.** `unbilled_usage` is a FULL OUTER JOIN of `usage_events` to `invoice_lines` on `(customer_id, usage_id)`; rows present on the left only are the unbilled set, and they cluster on deploy days and on the two broker incidents in the timeline. `webhook_gap_by_day` shows the gap rate spikes to 9-11% on those days versus a 0.3% baseline.\n\n**Why it is not the invoicing consumer.** The consumer's dead-letter queue is empty and its processed-count equals the events received, so the loss is upstream of the broker, not downstream.\n\n**Fix.** Write the usage row and an `outbox` row in the same database transaction; a relay process polls `outbox` and publishes with the outbox id as the idempotency key; the consumer upserts by that key. Backfill: replay the unbilled set through the same path. Rollout: shadow-publish for one week and reconcile counts before cutting over.\n\n**Business impact.** Unbilled usage is revenue we have earned under the contracts but never invoiced; booking the backfill will raise revenue and unbilled receivables in the current quarter. I have not yet aged the breaks by period, so the split between current-quarter and prior-quarter revenue is still open.\n\n**Risks.** The replay could double-bill if any event did reach invoicing through a retry; the idempotent upsert mitigates this. Customers will see catch-up invoices; finance should pre-notify the top accounts.\n\n**Monitoring.** Daily `unbilled_usage` count with threshold 0.5% of usage rows; outbox lag p99 under 60 seconds.",
+    "metrics": {
+      "unbilled_usage_rate": 0.038,
+      "unbilled_usage_cents": 412000000,
+      "gap_rate_incident_days": 0.10,
+      "gap_rate_baseline": 0.003,
+      "dlq_depth": 0
+    },
+    "sql_evidence": [
+      {
+        "name": "unbilled_usage",
+        "sql": "WITH u AS (\n  SELECT customer_id, usage_id, quantity, recorded_at\n  FROM usage_events\n  QUALIFY ROW_NUMBER() OVER (PARTITION BY usage_id ORDER BY recorded_at DESC) = 1\n), l AS (\n  SELECT customer_id, usage_id, amount_cents FROM invoice_lines WHERE usage_id IS NOT NULL\n)\nSELECT COUNT(*) FILTER (WHERE l.usage_id IS NULL) AS unbilled,\n       COUNT(*) FILTER (WHERE u.usage_id IS NULL) AS billed_without_usage,\n       COUNT(*) AS total,\n       COUNT(*) FILTER (WHERE l.usage_id IS NULL) * 1.0 / COUNT(*) AS unbilled_rate\nFROM u FULL OUTER JOIN l ON u.customer_id = l.customer_id AND u.usage_id = l.usage_id;",
+        "result_preview": "unbilled | billed_without_usage | total | unbilled_rate\n18412 | 0 | 484521 | 0.038"
+      },
+      {
+        "name": "webhook_gap_by_day",
+        "sql": "SELECT CAST(recorded_at AS DATE) AS d,\n       AVG(CASE WHEN l.usage_id IS NULL THEN 1 ELSE 0 END) AS gap_rate\nFROM usage_events u LEFT JOIN invoice_lines l USING (usage_id)\nGROUP BY 1 ORDER BY gap_rate DESC LIMIT 10;",
+        "result_preview": "d | gap_rate\n2024-08-14 | 0.11\n2024-10-02 | 0.09"
+      }
+    ],
+    "python_evidence": [],
+    "design_mermaid": "flowchart LR\n  API[Usage API] -->|tx: insert usage + insert outbox| DB[(Postgres)]\n  Relay[Outbox Relay] -->|poll outbox| DB\n  Relay -->|publish key=outbox_id| MQ[(Broker)]\n  MQ --> Inv[Invoicing Consumer]\n  Inv -->|upsert by idempotency key| DB\n  subgraph before\n    API0[Usage API] -->|1. insert usage| DB0[(Postgres)]\n    API0 -.->|2. publish, may fail| MQ0[(Broker)]\n  end",
+    "financial_model": null
+  },
+  "fake_rubric": {
+    "dimensions": {
+      "technical_execution": {"score": 9, "evidence": ["QUALIFY ROW_NUMBER() OVER (PARTITION BY usage_id", "FULL OUTER JOIN l ON u.customer_id = l.customer_id AND u.usage_id = l.usage_id"], "gaps": ["gap-by-day query does not deduplicate usage_events"]},
+      "business_judgment": {"score": 8, "evidence": ["writes the usage row and then publishes the `usage.recorded` event in a second, non-transactional step", "the loss is upstream of the broker, not downstream"], "gaps": ["revenue impact not split by period"]},
+      "communication": {"score": 8, "evidence": ["**Answer.** We are under-billing because"], "gaps": []},
+      "risk_awareness": {"score": 8, "evidence": ["The replay could double-bill if any event did reach invoicing through a retry", "Daily `unbilled_usage` count with threshold 0.5%"], "gaps": ["no pre-mortem on the shadow-publish cutover"]}
+    },
+    "overall": 8.4,
+    "misdiagnosis": false,
+    "stated_root_cause": "Dual-write between the usage table and the broker drops billing events; fix with a transactional outbox.",
+    "strongest_point": "Rules out the consumer with DLQ and processed-count evidence before blaming the producer.",
+    "weakest_point": "Does not age the unbilled breaks by period, leaving the accounting tie-out incomplete.",
+    "next_drill_nodes": ["accounting_finance.subledger_reconciliation"]
+  },
+  "expected_deterministic": {
+    "det_pass_min": 0.7,
+    "tagged_failures": {"accounting_finance": 1}
+  },
+  "expected_rubric_range": {"overall_min": 7.5, "overall_max": 9.5, "misdiagnosis": false},
+  "expected_observations": {
+    "system_design.outbox_saga": "correct",
+    "system_design.event_driven": "correct",
+    "system_design.observability": "correct",
+    "sql.reconciliation_queries": "correct",
+    "accounting_finance.subledger_reconciliation": "borderline"
+  },
+  "expected_node_score_band": {"accounting_finance.subledger_reconciliation": [0.50, 0.65]}
+}

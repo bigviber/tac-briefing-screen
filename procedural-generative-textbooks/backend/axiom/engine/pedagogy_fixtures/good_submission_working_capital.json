@@ -1,0 +1,67 @@
+{
+  "fixture": "good_submission_working_capital",
+  "archetype": "working_capital_crunch",
+  "difficulty": "practitioner",
+  "seed": 1,
+  "notes": "A strong submission: correct root cause first, metrics derived from deduplicated invoices, red herring rejected with a number, owner + monitoring plan. Metric values are placeholders; the test harness overwrites `metrics` with the generated world's expected values (within tolerance) before grading so the fixture stays seed-independent.",
+  "submission": {
+    "case_id": "FIXTURE",
+    "memo_markdown": "**Answer.** The cash squeeze is not a demand problem; it is a collections problem created by the Q3 move to 90-day terms for the top-20 accounts. DSO rose from 41 to 68 days (+27) while revenue grew only 9%, so receivables absorbed roughly one full month of sales in cash.\n\n**Evidence.** Query `dso_by_period` computes DSO on deduplicated invoices (ROW_NUMBER over invoice_id) and shows the step change begins in 2024Q3, the quarter terms changed. Query `ar_aging_terms` shows 61% of open AR is on 90-day terms versus 14% a year earlier. Inventory days are flat at 38, so the 'overstocking' theory in the COO's note does not hold: DIO moved 1 day, DSO moved 27.\n\n**Mechanism.** Each incremental day of DSO ties up revenue/365 of cash. At current run-rate that is about $0.21M per day, so +27 days is roughly $5.7M of cash now sitting in receivables rather than the bank.\n\n**Recommendation.** (1) Revert new customers to 45-day terms immediately; owner: VP Sales, effective next invoice cycle. (2) Offer a 1.5% early-pay discount to the top-20 for 60 days; owner: Controller. (3) Draw $3M on the revolver as a bridge; this keeps the minimum liquidity covenant headroom above $1M through Q1.\n\n**Second-order effect.** Tightening terms will cost some volume: at the case's observed elasticity a 45-day revert plausibly costs 2-3% of top-20 revenue next quarter, which is far cheaper than a covenant breach.\n\n**What would change my mind.** If the aging shows the 90-day accounts are actually paying late beyond terms, the problem is credit quality, not policy, and the fix is collections staffing rather than terms.\n\n**Monitoring.** Weekly DSO on a 13-week rolling basis, threshold 50 days; AR > 60 days as % of AR, threshold 20%.",
+    "metrics": {
+      "dso_latest": 68.0,
+      "dso_baseline": 41.0,
+      "dso_delta_days": 27.0,
+      "cash_trapped_in_ar_cents": 570000000,
+      "dio_latest": 38.0,
+      "covenant_headroom_cents": 100000000
+    },
+    "sql_evidence": [
+      {
+        "name": "dso_by_period",
+        "sql": "WITH inv AS (\n  SELECT *, ROW_NUMBER() OVER (PARTITION BY invoice_id ORDER BY updated_at DESC) AS rn\n  FROM invoices\n), clean AS (SELECT * FROM inv WHERE rn = 1),\nq AS (\n  SELECT date_trunc('quarter', CAST(issued_at AS TIMESTAMP)) AS period,\n         SUM(amount_cents) AS revenue_cents,\n         SUM(CASE WHEN paid_at IS NULL THEN amount_cents ELSE 0 END) AS open_ar_cents\n  FROM clean GROUP BY 1\n)\nSELECT period, revenue_cents, open_ar_cents,\n       open_ar_cents * 91.0 / NULLIF(revenue_cents, 0) AS dso_days\nFROM q ORDER BY period;",
+        "result_preview": "period | revenue_cents | open_ar_cents | dso_days\n2024Q1 | ... | ... | 41.2\n2024Q3 | ... | ... | 59.8\n2024Q4 | ... | ... | 68.1"
+      },
+      {
+        "name": "ar_aging_terms",
+        "sql": "SELECT terms_days, COUNT(*) AS n, SUM(amount_cents) AS open_cents,\n       SUM(amount_cents) * 1.0 / SUM(SUM(amount_cents)) OVER () AS share\nFROM invoices WHERE paid_at IS NULL GROUP BY terms_days ORDER BY terms_days;",
+        "result_preview": "terms_days | n | open_cents | share\n30 | ... | ... | 0.11\n45 | ... | ... | 0.28\n90 | ... | ... | 0.61"
+      }
+    ],
+    "python_evidence": [
+      {
+        "name": "cash_bridge",
+        "code": "import pandas as pd\ninv = pd.read_sql('SELECT * FROM invoices', con)\ninv = inv.sort_values('updated_at').drop_duplicates('invoice_id', keep='last')\ninv['issued_at'] = pd.to_datetime(inv['issued_at'], utc=True, errors='coerce')\nrev_per_day = inv.groupby(inv['issued_at'].dt.to_period('Q'))['amount_cents'].sum().iloc[-1] / 91\nprint({'rev_per_day_cents': int(rev_per_day), 'cash_trapped_cents': int(rev_per_day * 27)})",
+        "stdout_tail": "{'rev_per_day_cents': 21100000, 'cash_trapped_cents': 569700000}",
+        "result_json": {"rev_per_day_cents": 21100000, "cash_trapped_cents": 569700000}
+      }
+    ],
+    "design_mermaid": null,
+    "financial_model": {
+      "thirteen_week_min_cash_cents": 180000000,
+      "revolver_draw_cents": 300000000
+    }
+  },
+  "fake_rubric": {
+    "dimensions": {
+      "technical_execution": {"score": 9, "evidence": ["ROW_NUMBER over invoice_id", "pd.to_datetime(inv['issued_at'], utc=True"], "gaps": ["no row-count check after dedup"]},
+      "business_judgment": {"score": 9, "evidence": ["the Q3 move to 90-day terms for the top-20 accounts", "+27 days is roughly $5.7M of cash"], "gaps": []},
+      "communication": {"score": 8, "evidence": ["**Answer.** The cash squeeze is not a demand problem"], "gaps": ["no single summary table"]},
+      "risk_awareness": {"score": 9, "evidence": ["the 'overstocking' theory in the COO's note does not hold", "Weekly DSO on a 13-week rolling basis, threshold 50 days"], "gaps": []}
+    },
+    "overall": 8.8,
+    "misdiagnosis": false,
+    "stated_root_cause": "Extended 90-day terms to top-20 accounts drove DSO up 27 days and trapped cash in AR.",
+    "strongest_point": "Separates DSO from DIO with numbers to kill the inventory red herring.",
+    "weakest_point": "Does not validate invoice row counts before and after deduplication.",
+    "next_drill_nodes": ["accounting_finance.cash_flow_forecasting"]
+  },
+  "expected_deterministic": {"det_pass_min": 0.9},
+  "expected_rubric_range": {"overall_min": 8.0, "overall_max": 10.0, "misdiagnosis": false},
+  "expected_observations": {
+    "accounting_finance.working_capital": "correct",
+    "accounting_finance.cash_flow_forecasting": "correct",
+    "accounting_finance.covenant_compliance": "correct",
+    "sql.running_balances": "correct",
+    "python.time_series_forecasting": "correct"
+  }
+}

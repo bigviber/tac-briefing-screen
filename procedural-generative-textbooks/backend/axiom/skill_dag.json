@@ -1,0 +1,2005 @@
+{
+  "meta": {
+    "version": "1.0.0",
+    "generated": "2026-11-05",
+    "description": "Axiom skill DAG: 5 pillars, prerequisite edges, per-node BKT priors, archetype coverage.",
+    "bkt_presets": {
+      "foundation": {
+        "p_init": 0.35,
+        "p_transit": 0.25,
+        "p_slip": 0.1,
+        "p_guess": 0.15
+      },
+      "core": {
+        "p_init": 0.2,
+        "p_transit": 0.15,
+        "p_slip": 0.15,
+        "p_guess": 0.12
+      },
+      "advanced": {
+        "p_init": 0.1,
+        "p_transit": 0.1,
+        "p_slip": 0.2,
+        "p_guess": 0.08
+      }
+    },
+    "mastery_threshold": 0.95,
+    "prereq_unlock_threshold": 0.6,
+    "notes": "tier selects the BKT preset; see docs/research/pedagogy.md \u00a72 for justification."
+  },
+  "pillars": [
+    {
+      "id": "accounting_finance",
+      "title": "Accounting & Corporate Finance",
+      "color": "#F5A623"
+    },
+    {
+      "id": "operations_strategy",
+      "title": "Operations & Strategy",
+      "color": "#50E3C2"
+    },
+    {
+      "id": "system_design",
+      "title": "System Design & Architecture",
+      "color": "#B388FF"
+    },
+    {
+      "id": "sql",
+      "title": "SQL",
+      "color": "#4A90E2"
+    },
+    {
+      "id": "python",
+      "title": "Python",
+      "color": "#7ED321"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "accounting_finance.double_entry",
+      "pillar": "accounting_finance",
+      "title": "Double-Entry & the Accounting Equation",
+      "tier": "foundation",
+      "prereqs": [],
+      "summary": "Debits, credits, normal balances, and why Assets = Liabilities + Equity holds after every journal entry.",
+      "mental_models": [
+        "accounting equation as conservation law",
+        "every transaction touches two sides",
+        "normal balance"
+      ],
+      "bkt": {
+        "p_init": 0.35,
+        "p_transit": 0.25,
+        "p_slip": 0.1,
+        "p_guess": 0.15
+      },
+      "archetypes": []
+    },
+    {
+      "id": "accounting_finance.three_statements",
+      "pillar": "accounting_finance",
+      "title": "Three-Statement Linkage",
+      "tier": "core",
+      "prereqs": [
+        "accounting_finance.double_entry"
+      ],
+      "summary": "How the income statement, balance sheet and cash flow statement tie together: net income to retained earnings, cash flow to cash balance, non-cash items.",
+      "mental_models": [
+        "retained earnings roll-forward",
+        "indirect-method bridge",
+        "cash is a balance sheet account"
+      ],
+      "bkt": {
+        "p_init": 0.2,
+        "p_transit": 0.15,
+        "p_slip": 0.15,
+        "p_guess": 0.12
+      },
+      "archetypes": []
+    },
+    {
+      "id": "accounting_finance.accrual_vs_cash",
+      "pillar": "accounting_finance",
+      "title": "Accrual vs. Cash Dynamics",
+      "tier": "core",
+      "prereqs": [
+        "accounting_finance.double_entry"
+      ],
+      "summary": "Timing differences between economic activity and cash: deferred revenue, prepaid expenses, accrued liabilities, and the accrual ratio.",
+      "mental_models": [
+        "revenue is not cash",
+        "accruals reverse",
+        "Sloan accrual ratio"
+      ],
+      "bkt": {
+        "p_init": 0.2,
+        "p_transit": 0.15,
+        "p_slip": 0.15,
+        "p_guess": 0.12
+      },
+      "archetypes": [
+        "cohort_collapse"
+      ]
+    },
+    {
+      "id": "accounting_finance.revenue_recognition",
+      "pillar": "accounting_finance",
+      "title": "Revenue Recognition & Cutoff",
+      "tier": "core",
+      "prereqs": [
+        "accounting_finance.accrual_vs_cash"
+      ],
+      "summary": "ASC 606 five-step model, cutoff at period end, shipping terms, bill-and-hold, right of return and channel inventory.",
+      "mental_models": [
+        "control transfer, not invoice",
+        "cutoff is where fraud hides",
+        "returns reserve as a leading indicator"
+      ],
+      "bkt": {
+        "p_init": 0.2,
+        "p_transit": 0.15,
+        "p_slip": 0.15,
+        "p_guess": 0.12
+      },
+      "archetypes": [
+        "forensic_revenue"
+      ]
+    },
+    {
+      "id": "accounting_finance.working_capital",
+      "pillar": "accounting_finance",
+      "title": "Working Capital & the Cash Conversion Cycle",
+      "tier": "core",
+      "prereqs": [
+        "accounting_finance.three_statements",
+        "accounting_finance.accrual_vs_cash"
+      ],
+      "summary": "DSO, DIO, DPO, cash conversion cycle, and how growth consumes cash even when a company is profitable.",
+      "mental_models": [
+        "CCC = DSO + DIO - DPO",
+        "growth eats cash",
+        "stretching payables is borrowing from suppliers"
+      ],
+      "bkt": {
+        "p_init": 0.2,
+        "p_transit": 0.15,
+        "p_slip": 0.15,
+        "p_guess": 0.12
+      },
+      "archetypes": [
+        "bullwhip",
+        "working_capital_crunch"
+      ]
+    },
+    {
+      "id": "accounting_finance.cost_allocation_abc",
+      "pillar": "accounting_finance",
+      "title": "Activity-Based vs. Volume Cost Allocation",
+      "tier": "core",
+      "prereqs": [
+        "accounting_finance.three_statements"
+      ],
+      "summary": "Cost pools, cost drivers, and how volume-based overhead allocation subsidises complex low-volume products.",
+      "mental_models": [
+        "cost drivers not volume",
+        "cross-subsidy",
+        "death spiral of overhead"
+      ],
+      "bkt": {
+        "p_init": 0.2,
+        "p_transit": 0.15,
+        "p_slip": 0.15,
+        "p_guess": 0.12
+      },
+      "archetypes": [
+        "abc_cost_distortion"
+      ]
+    },
+    {
+      "id": "accounting_finance.variance_analysis",
+      "pillar": "accounting_finance",
+      "title": "Variance Analysis: Price / Volume / Mix",
+      "tier": "core",
+      "prereqs": [
+        "accounting_finance.cost_allocation_abc"
+      ],
+      "summary": "Decomposing margin change into price, volume, mix and cost variances; flexible budgets.",
+      "mental_models": [
+        "hold one thing constant at a time",
+        "mix hides inside volume",
+        "variance = (actual - standard) x quantity"
+      ],
+      "bkt": {
+        "p_init": 0.2,
+        "p_transit": 0.15,
+        "p_slip": 0.15,
+        "p_guess": 0.12
+      },
+      "archetypes": [
+        "abc_cost_distortion",
+        "pricing_elasticity"
+      ]
+    },
+    {
+      "id": "accounting_finance.ratio_analysis",
+      "pillar": "accounting_finance",
+      "title": "Ratio & Common-Size Analysis",
+      "tier": "core",
+      "prereqs": [
+        "accounting_finance.three_statements"
+      ],
+      "summary": "Liquidity, leverage, efficiency and profitability ratios; common-size statements; trend and peer comparison.",
+      "mental_models": [
+        "ratios are only meaningful in context",
+        "DuPont decomposition",
+        "peer benchmark distribution"
+      ],
+      "bkt": {
+        "p_init": 0.2,
+        "p_transit": 0.15,
+        "p_slip": 0.15,
+        "p_guess": 0.12
+      },
+      "archetypes": []
+    },
+    {
+      "id": "accounting_finance.subledger_reconciliation",
+      "pillar": "accounting_finance",
+      "title": "Sub-Ledger to General Ledger Tie-Out",
+      "tier": "core",
+      "prereqs": [
+        "accounting_finance.double_entry"
+      ],
+      "summary": "Reconciling AR, AP, inventory and revenue sub-ledgers to GL control accounts; classifying and ageing differences.",
+      "mental_models": [
+        "control account",
+        "unexplained difference is a finding",
+        "age the break, don't plug it"
+      ],
+      "bkt": {
+        "p_init": 0.2,
+        "p_transit": 0.15,
+        "p_slip": 0.15,
+        "p_guess": 0.12
+      },
+      "archetypes": [
+        "outbox_pattern",
+        "window_reconciliation"
+      ]
+    },
+    {
+      "id": "accounting_finance.dcf_valuation",
+      "pillar": "accounting_finance",
+      "title": "DCF & Capital Budgeting",
+      "tier": "core",
+      "prereqs": [
+        "accounting_finance.three_statements",
+        "accounting_finance.accrual_vs_cash"
+      ],
+      "summary": "Free cash flow derivation, WACC, NPV/IRR, terminal value and sensitivity analysis.",
+      "mental_models": [
+        "value is discounted cash, not earnings",
+        "terminal value dominates",
+        "WACC as opportunity cost"
+      ],
+      "bkt": {
+        "p_init": 0.2,
+        "p_transit": 0.15,
+        "p_slip": 0.15,
+        "p_guess": 0.12
+      },
+      "archetypes": [
+        "ma_synergies"
+      ]
+    },
+    {
+      "id": "accounting_finance.cash_flow_forecasting",
+      "pillar": "accounting_finance",
+      "title": "13-Week Cash Flow & Liquidity Forecasting",
+      "tier": "advanced",
+      "prereqs": [
+        "accounting_finance.working_capital"
+      ],
+      "summary": "Direct-method short-term cash forecasting, receipts/disbursements timing, minimum cash and runway.",
+      "mental_models": [
+        "direct method for the short run",
+        "runway = cash / net burn",
+        "timing beats totals"
+      ],
+      "bkt": {
+        "p_init": 0.1,
+        "p_transit": 0.1,
+        "p_slip": 0.2,
+        "p_guess": 0.08
+      },
+      "archetypes": [
+        "monte_carlo_cash",
+        "working_capital_crunch"
+      ]
+    },
+    {
+      "id": "accounting_finance.covenant_compliance",
+      "pillar": "accounting_finance",
+      "title": "Debt Covenants & Liquidity Risk",
+      "tier": "advanced",
+      "prereqs": [
+        "accounting_finance.ratio_analysis",
+        "accounting_finance.working_capital"
+      ],
+      "summary": "Maintenance vs. incurrence covenants, leverage and coverage tests, headroom and cure rights.",
+      "mental_models": [
+        "headroom is the real metric",
+        "covenant breach as a cliff",
+        "borrowing base"
+      ],
+      "bkt": {
+        "p_init": 0.1,
+        "p_transit": 0.1,
+        "p_slip": 0.2,
+        "p_guess": 0.08
+      },
+      "archetypes": [
+        "monte_carlo_cash",
+        "working_capital_crunch"
+      ]
+    },
+    {
+      "id": "accounting_finance.forensic_detection",
+      "pillar": "accounting_finance",
+      "title": "Forensic Anomaly Detection",
+      "tier": "advanced",
+      "prereqs": [
+        "accounting_finance.revenue_recognition",
+        "accounting_finance.ratio_analysis"
+      ],
+      "summary": "Beneish M-score, Sloan accruals, Benford's law, journal-entry red flags and the standard financial shenanigans catalogue.",
+      "mental_models": [
+        "accruals revert",
+        "red flags cluster at period end",
+        "the ratio that moved first"
+      ],
+      "bkt": {
+        "p_init": 0.1,
+        "p_transit": 0.1,
+        "p_slip": 0.2,
+        "p_guess": 0.08
+      },
+      "archetypes": [
+        "forensic_revenue"
+      ]
+    },
+    {
+      "id": "accounting_finance.ma_valuation",
+      "pillar": "accounting_finance",
+      "title": "M&A Valuation, Synergies & Accretion",
+      "tier": "advanced",
+      "prereqs": [
+        "accounting_finance.dcf_valuation"
+      ],
+      "summary": "Standalone vs. pro-forma value, cost and revenue synergies, integration costs, accretion/dilution and purchase accounting.",
+      "mental_models": [
+        "synergies must be funded",
+        "pay for the standalone, not the synergy",
+        "integration cost is a synergy tax"
+      ],
+      "bkt": {
+        "p_init": 0.1,
+        "p_transit": 0.1,
+        "p_slip": 0.2,
+        "p_guess": 0.08
+      },
+      "archetypes": [
+        "ma_synergies"
+      ]
+    },
+    {
+      "id": "operations_strategy.process_flow",
+      "pillar": "operations_strategy",
+      "title": "Process Flow, Throughput & Capacity",
+      "tier": "foundation",
+      "prereqs": [],
+      "summary": "Mapping a process into stations, measuring throughput, cycle time, utilization and work-in-process.",
+      "mental_models": [
+        "flow unit",
+        "capacity = min over stations",
+        "utilization = demand / capacity"
+      ],
+      "bkt": {
+        "p_init": 0.35,
+        "p_transit": 0.25,
+        "p_slip": 0.1,
+        "p_guess": 0.15
+      },
+      "archetypes": []
+    },
+    {
+      "id": "operations_strategy.littles_law",
+      "pillar": "operations_strategy",
+      "title": "Little's Law",
+      "tier": "core",
+      "prereqs": [
+        "operations_strategy.process_flow"
+      ],
+      "summary": "L = lambda x W and its uses: inventory from throughput and flow time, backlog from arrival rate and wait.",
+      "mental_models": [
+        "L = \u03bbW",
+        "any two determine the third",
+        "stable system assumption"
+      ],
+      "bkt": {
+        "p_init": 0.2,
+        "p_transit": 0.15,
+        "p_slip": 0.15,
+        "p_guess": 0.12
+      },
+      "archetypes": [
+        "toc_bottleneck"
+      ]
+    },
+    {
+      "id": "operations_strategy.queueing_theory",
+      "pillar": "operations_strategy",
+      "title": "Queueing & Variability",
+      "tier": "core",
+      "prereqs": [
+        "operations_strategy.littles_law"
+      ],
+      "summary": "M/M/1 behaviour, the utilization hockey stick, Kingman's formula and why variability at high utilization explodes wait time.",
+      "mental_models": [
+        "utilization hockey stick",
+        "Kingman VUT",
+        "variability pooling"
+      ],
+      "bkt": {
+        "p_init": 0.2,
+        "p_transit": 0.15,
+        "p_slip": 0.15,
+        "p_guess": 0.12
+      },
+      "archetypes": [
+        "toc_bottleneck"
+      ]
+    },
+    {
+      "id": "operations_strategy.theory_of_constraints",
+      "pillar": "operations_strategy",
+      "title": "Theory of Constraints & Bottleneck Migration",
+      "tier": "core",
+      "prereqs": [
+        "operations_strategy.littles_law"
+      ],
+      "summary": "Goldratt's five focusing steps, drum-buffer-rope, and how relieving one constraint moves it elsewhere.",
+      "mental_models": [
+        "an hour lost at the bottleneck is lost forever",
+        "subordinate everything",
+        "the constraint migrates"
+      ],
+      "bkt": {
+        "p_init": 0.2,
+        "p_transit": 0.15,
+        "p_slip": 0.15,
+        "p_guess": 0.12
+      },
+      "archetypes": [
+        "toc_bottleneck"
+      ]
+    },
+    {
+      "id": "operations_strategy.inventory_optimization",
+      "pillar": "operations_strategy",
+      "title": "Inventory: EOQ, Safety Stock, Service Level",
+      "tier": "core",
+      "prereqs": [
+        "operations_strategy.process_flow"
+      ],
+      "summary": "EOQ trade-off, reorder points, safety stock from demand and lead-time variability, fill rate vs. cycle service level.",
+      "mental_models": [
+        "safety stock scales with sigma x sqrt(L)",
+        "service level is a cost decision",
+        "EOQ is flat near the optimum"
+      ],
+      "bkt": {
+        "p_init": 0.2,
+        "p_transit": 0.15,
+        "p_slip": 0.15,
+        "p_guess": 0.12
+      },
+      "archetypes": [
+        "bullwhip",
+        "replica_lag"
+      ]
+    },
+    {
+      "id": "operations_strategy.bullwhip_effect",
+      "pillar": "operations_strategy",
+      "title": "The Bullwhip Effect",
+      "tier": "advanced",
+      "prereqs": [
+        "operations_strategy.inventory_optimization",
+        "operations_strategy.queueing_theory"
+      ],
+      "summary": "Demand-signal amplification up the supply chain from order batching, forecast updating, price promotions and rationing.",
+      "mental_models": [
+        "variance amplifies by tier",
+        "order batching",
+        "information sharing collapses the whip"
+      ],
+      "bkt": {
+        "p_init": 0.1,
+        "p_transit": 0.1,
+        "p_slip": 0.2,
+        "p_guess": 0.08
+      },
+      "archetypes": [
+        "bullwhip"
+      ]
+    },
+    {
+      "id": "operations_strategy.unit_economics",
+      "pillar": "operations_strategy",
+      "title": "Unit Economics",
+      "tier": "foundation",
+      "prereqs": [
+        "accounting_finance.three_statements"
+      ],
+      "summary": "Contribution margin, CAC, LTV, payback period and how they roll up to the P&L.",
+      "mental_models": [
+        "contribution per unit",
+        "CAC payback",
+        "LTV / CAC > 3 heuristic"
+      ],
+      "bkt": {
+        "p_init": 0.35,
+        "p_transit": 0.25,
+        "p_slip": 0.1,
+        "p_guess": 0.15
+      },
+      "archetypes": [
+        "cohort_collapse"
+      ]
+    },
+    {
+      "id": "operations_strategy.cohort_retention",
+      "pillar": "operations_strategy",
+      "title": "Cohort Retention & Net Revenue Retention",
+      "tier": "core",
+      "prereqs": [
+        "operations_strategy.unit_economics"
+      ],
+      "summary": "Logo vs. revenue retention, cohort curves, NRR decomposition into expansion/contraction/churn, survivorship bias.",
+      "mental_models": [
+        "cohorts not averages",
+        "NRR decomposition",
+        "blended churn hides collapse"
+      ],
+      "bkt": {
+        "p_init": 0.2,
+        "p_transit": 0.15,
+        "p_slip": 0.15,
+        "p_guess": 0.12
+      },
+      "archetypes": [
+        "cohort_collapse",
+        "cohort_matrix"
+      ]
+    },
+    {
+      "id": "operations_strategy.pricing_power",
+      "pillar": "operations_strategy",
+      "title": "Pricing Power & Elasticity",
+      "tier": "core",
+      "prereqs": [
+        "operations_strategy.unit_economics"
+      ],
+      "summary": "Price elasticity of demand, price ladders, discounting leakage, willingness-to-pay segmentation.",
+      "mental_models": [
+        "elasticity by segment",
+        "discount leakage",
+        "price is the highest-leverage lever"
+      ],
+      "bkt": {
+        "p_init": 0.2,
+        "p_transit": 0.15,
+        "p_slip": 0.15,
+        "p_guess": 0.12
+      },
+      "archetypes": [
+        "abc_cost_distortion",
+        "pricing_elasticity"
+      ]
+    },
+    {
+      "id": "operations_strategy.competitive_moats",
+      "pillar": "operations_strategy",
+      "title": "Competitive Moats & Positioning",
+      "tier": "core",
+      "prereqs": [
+        "operations_strategy.unit_economics"
+      ],
+      "summary": "Switching costs, network effects, scale economies, brand and regulatory moats; how moats show up in retention and margin.",
+      "mental_models": [
+        "moat as persistent excess return",
+        "switching cost",
+        "moats erode"
+      ],
+      "bkt": {
+        "p_init": 0.2,
+        "p_transit": 0.15,
+        "p_slip": 0.15,
+        "p_guess": 0.12
+      },
+      "archetypes": []
+    },
+    {
+      "id": "operations_strategy.ma_synergies",
+      "pillar": "operations_strategy",
+      "title": "M&A Synergy Identification & Integration",
+      "tier": "advanced",
+      "prereqs": [
+        "operations_strategy.competitive_moats",
+        "accounting_finance.ma_valuation"
+      ],
+      "summary": "Separating real cost and revenue synergies from hope, integration sequencing, and dis-synergies.",
+      "mental_models": [
+        "synergy realisation curve",
+        "dis-synergies",
+        "integration cost precedes benefit"
+      ],
+      "bkt": {
+        "p_init": 0.1,
+        "p_transit": 0.1,
+        "p_slip": 0.2,
+        "p_guess": 0.08
+      },
+      "archetypes": [
+        "ma_synergies"
+      ]
+    },
+    {
+      "id": "operations_strategy.decision_under_uncertainty",
+      "pillar": "operations_strategy",
+      "title": "Decisions & Allocation Under Uncertainty",
+      "tier": "core",
+      "prereqs": [
+        "operations_strategy.unit_economics"
+      ],
+      "summary": "Expected value, scenario analysis, option value, portfolio allocation and the cost of being wrong in each direction.",
+      "mental_models": [
+        "expected value with asymmetric payoff",
+        "option value of waiting",
+        "allocate to the constraint"
+      ],
+      "bkt": {
+        "p_init": 0.2,
+        "p_transit": 0.15,
+        "p_slip": 0.15,
+        "p_guess": 0.12
+      },
+      "archetypes": [
+        "monte_carlo_cash"
+      ]
+    },
+    {
+      "id": "operations_strategy.capacity_planning",
+      "pillar": "operations_strategy",
+      "title": "Capacity Planning & Resource Allocation",
+      "tier": "advanced",
+      "prereqs": [
+        "operations_strategy.theory_of_constraints",
+        "operations_strategy.decision_under_uncertainty"
+      ],
+      "summary": "Sizing capacity against uncertain demand, lead-time of capacity additions, and sequencing investments.",
+      "mental_models": [
+        "capacity lead time",
+        "buy capacity at the constraint",
+        "chase vs. level strategy"
+      ],
+      "bkt": {
+        "p_init": 0.1,
+        "p_transit": 0.1,
+        "p_slip": 0.2,
+        "p_guess": 0.08
+      },
+      "archetypes": []
+    },
+    {
+      "id": "system_design.data_modeling",
+      "pillar": "system_design",
+      "title": "Data Modeling & Normalization",
+      "tier": "foundation",
+      "prereqs": [],
+      "summary": "Entities, keys, normal forms, and the trade-offs of denormalization.",
+      "mental_models": [
+        "one fact in one place",
+        "natural vs surrogate keys",
+        "denormalize for reads, pay on writes"
+      ],
+      "bkt": {
+        "p_init": 0.35,
+        "p_transit": 0.25,
+        "p_slip": 0.1,
+        "p_guess": 0.15
+      },
+      "archetypes": []
+    },
+    {
+      "id": "system_design.oltp_vs_olap",
+      "pillar": "system_design",
+      "title": "OLTP vs. OLAP & Read Replicas",
+      "tier": "core",
+      "prereqs": [
+        "system_design.data_modeling"
+      ],
+      "summary": "Transactional vs. analytical workloads, row vs. columnar storage, read replicas and star schemas.",
+      "mental_models": [
+        "workload shapes storage",
+        "replicas trade freshness for throughput",
+        "star schema"
+      ],
+      "bkt": {
+        "p_init": 0.2,
+        "p_transit": 0.15,
+        "p_slip": 0.15,
+        "p_guess": 0.12
+      },
+      "archetypes": [
+        "replica_lag"
+      ]
+    },
+    {
+      "id": "system_design.idempotency",
+      "pillar": "system_design",
+      "title": "Idempotency & At-Least-Once Delivery",
+      "tier": "core",
+      "prereqs": [
+        "system_design.data_modeling"
+      ],
+      "summary": "Idempotency keys, deduplication windows, retries and why at-least-once delivery forces idempotent consumers.",
+      "mental_models": [
+        "at-least-once implies duplicates",
+        "idempotency key",
+        "dedup window"
+      ],
+      "bkt": {
+        "p_init": 0.2,
+        "p_transit": 0.15,
+        "p_slip": 0.15,
+        "p_guess": 0.12
+      },
+      "archetypes": [
+        "idempotent_webhooks"
+      ]
+    },
+    {
+      "id": "system_design.event_driven",
+      "pillar": "system_design",
+      "title": "Event-Driven Architecture",
+      "tier": "core",
+      "prereqs": [
+        "system_design.idempotency"
+      ],
+      "summary": "Events vs. commands, queues and pub/sub, ordering guarantees, consumer groups and dead-letter queues.",
+      "mental_models": [
+        "events are facts",
+        "ordering is per key",
+        "dead-letter queue"
+      ],
+      "bkt": {
+        "p_init": 0.2,
+        "p_transit": 0.15,
+        "p_slip": 0.15,
+        "p_guess": 0.12
+      },
+      "archetypes": [
+        "idempotent_webhooks",
+        "outbox_pattern"
+      ]
+    },
+    {
+      "id": "system_design.outbox_saga",
+      "pillar": "system_design",
+      "title": "Transactional Outbox & Sagas",
+      "tier": "advanced",
+      "prereqs": [
+        "system_design.event_driven"
+      ],
+      "summary": "Dual-write problem, transactional outbox with relay, sagas with compensating actions.",
+      "mental_models": [
+        "dual write is a bug",
+        "outbox makes the DB the source of truth",
+        "compensate, don't roll back"
+      ],
+      "bkt": {
+        "p_init": 0.1,
+        "p_transit": 0.1,
+        "p_slip": 0.2,
+        "p_guess": 0.08
+      },
+      "archetypes": [
+        "outbox_pattern"
+      ]
+    },
+    {
+      "id": "system_design.replication_consistency",
+      "pillar": "system_design",
+      "title": "Replication, Lag & Consistency Models",
+      "tier": "core",
+      "prereqs": [
+        "system_design.oltp_vs_olap"
+      ],
+      "summary": "Async replication lag, read-your-writes, monotonic reads, and routing reads by freshness requirement.",
+      "mental_models": [
+        "replica lag is a business risk",
+        "read-your-writes",
+        "route by freshness"
+      ],
+      "bkt": {
+        "p_init": 0.2,
+        "p_transit": 0.15,
+        "p_slip": 0.15,
+        "p_guess": 0.12
+      },
+      "archetypes": [
+        "replica_lag"
+      ]
+    },
+    {
+      "id": "system_design.caching",
+      "pillar": "system_design",
+      "title": "Caching Strategies",
+      "tier": "core",
+      "prereqs": [
+        "system_design.replication_consistency"
+      ],
+      "summary": "Cache-aside, write-through, TTL, invalidation and stampedes; where stale reads are acceptable.",
+      "mental_models": [
+        "cache invalidation is a consistency problem",
+        "TTL as freshness budget",
+        "stampede"
+      ],
+      "bkt": {
+        "p_init": 0.2,
+        "p_transit": 0.15,
+        "p_slip": 0.15,
+        "p_guess": 0.12
+      },
+      "archetypes": [
+        "replica_lag"
+      ]
+    },
+    {
+      "id": "system_design.rate_limiting",
+      "pillar": "system_design",
+      "title": "Rate Limiting & Backpressure",
+      "tier": "core",
+      "prereqs": [
+        "system_design.event_driven"
+      ],
+      "summary": "Token bucket, leaky bucket, backpressure, load shedding and retry storms.",
+      "mental_models": [
+        "token bucket",
+        "retry storm",
+        "shed load early"
+      ],
+      "bkt": {
+        "p_init": 0.2,
+        "p_transit": 0.15,
+        "p_slip": 0.15,
+        "p_guess": 0.12
+      },
+      "archetypes": []
+    },
+    {
+      "id": "system_design.pipeline_idempotency",
+      "pillar": "system_design",
+      "title": "Data Pipeline Idempotency",
+      "tier": "advanced",
+      "prereqs": [
+        "system_design.idempotency",
+        "system_design.oltp_vs_olap"
+      ],
+      "summary": "Idempotent loads, watermarks, late-arriving data, reprocessing and exactly-once semantics in ETL.",
+      "mental_models": [
+        "replayable pipeline",
+        "watermark",
+        "late-arriving data"
+      ],
+      "bkt": {
+        "p_init": 0.1,
+        "p_transit": 0.1,
+        "p_slip": 0.2,
+        "p_guess": 0.08
+      },
+      "archetypes": []
+    },
+    {
+      "id": "system_design.failure_mode_analysis",
+      "pillar": "system_design",
+      "title": "Failure-Mode Analysis",
+      "tier": "core",
+      "prereqs": [
+        "system_design.event_driven"
+      ],
+      "summary": "FMEA for systems: timeouts, retries, partial failure, blast radius and circuit breakers.",
+      "mental_models": [
+        "partial failure is the default",
+        "blast radius",
+        "timeouts everywhere"
+      ],
+      "bkt": {
+        "p_init": 0.2,
+        "p_transit": 0.15,
+        "p_slip": 0.15,
+        "p_guess": 0.12
+      },
+      "archetypes": [
+        "idempotent_webhooks"
+      ]
+    },
+    {
+      "id": "system_design.observability",
+      "pillar": "system_design",
+      "title": "Observability & Diagnosis",
+      "tier": "advanced",
+      "prereqs": [
+        "system_design.failure_mode_analysis"
+      ],
+      "summary": "Metrics, logs, traces, SLOs and how to find a silent failure from the data it leaves behind.",
+      "mental_models": [
+        "SLO error budget",
+        "trace the money",
+        "absence of events is a signal"
+      ],
+      "bkt": {
+        "p_init": 0.1,
+        "p_transit": 0.1,
+        "p_slip": 0.2,
+        "p_guess": 0.08
+      },
+      "archetypes": [
+        "outbox_pattern"
+      ]
+    },
+    {
+      "id": "system_design.cost_of_architecture",
+      "pillar": "system_design",
+      "title": "Architecture Failures as P&L Lines",
+      "tier": "advanced",
+      "prereqs": [
+        "system_design.failure_mode_analysis",
+        "accounting_finance.three_statements"
+      ],
+      "summary": "Translating duplicate charges, lost events and stale reads into refunds, chargebacks, unbilled revenue and oversold inventory.",
+      "mental_models": [
+        "every bug has a GL account",
+        "chargeback ratio",
+        "unbilled usage"
+      ],
+      "bkt": {
+        "p_init": 0.1,
+        "p_transit": 0.1,
+        "p_slip": 0.2,
+        "p_guess": 0.08
+      },
+      "archetypes": [
+        "idempotent_webhooks"
+      ]
+    },
+    {
+      "id": "sql.select_filter_aggregate",
+      "pillar": "sql",
+      "title": "SELECT, Filtering & Aggregation",
+      "tier": "foundation",
+      "prereqs": [],
+      "summary": "Projections, predicates, GROUP BY / HAVING, conditional aggregation and NULL semantics.",
+      "mental_models": [
+        "WHERE before GROUP BY",
+        "NULL is not a value",
+        "COUNT(*) vs COUNT(col)"
+      ],
+      "bkt": {
+        "p_init": 0.35,
+        "p_transit": 0.25,
+        "p_slip": 0.1,
+        "p_guess": 0.15
+      },
+      "archetypes": [
+        "pricing_elasticity"
+      ]
+    },
+    {
+      "id": "sql.joins",
+      "pillar": "sql",
+      "title": "Joins & Fan-Out Traps",
+      "tier": "core",
+      "prereqs": [
+        "sql.select_filter_aggregate"
+      ],
+      "summary": "Inner, outer, semi and anti joins; cardinality and the many-to-many fan-out that double counts revenue.",
+      "mental_models": [
+        "check row counts after every join",
+        "anti-join for missing",
+        "fan-out double counting"
+      ],
+      "bkt": {
+        "p_init": 0.2,
+        "p_transit": 0.15,
+        "p_slip": 0.15,
+        "p_guess": 0.12
+      },
+      "archetypes": [
+        "toc_bottleneck"
+      ]
+    },
+    {
+      "id": "sql.ctes",
+      "pillar": "sql",
+      "title": "CTEs & Subqueries",
+      "tier": "core",
+      "prereqs": [
+        "sql.joins"
+      ],
+      "summary": "Structuring multi-step logic with common table expressions and correlated subqueries.",
+      "mental_models": [
+        "one CTE per concept",
+        "correlated subquery as per-row lookup",
+        "materialize vs inline"
+      ],
+      "bkt": {
+        "p_init": 0.2,
+        "p_transit": 0.15,
+        "p_slip": 0.15,
+        "p_guess": 0.12
+      },
+      "archetypes": [
+        "cohort_matrix"
+      ]
+    },
+    {
+      "id": "sql.window_functions",
+      "pillar": "sql",
+      "title": "Window Functions",
+      "tier": "core",
+      "prereqs": [
+        "sql.ctes"
+      ],
+      "summary": "ROW_NUMBER, RANK, LAG/LEAD, SUM() OVER with frames, partitioning and ordering.",
+      "mental_models": [
+        "partition then order then frame",
+        "LAG for period-over-period",
+        "ROW_NUMBER for dedup"
+      ],
+      "bkt": {
+        "p_init": 0.2,
+        "p_transit": 0.15,
+        "p_slip": 0.15,
+        "p_guess": 0.12
+      },
+      "archetypes": [
+        "bullwhip",
+        "forensic_revenue",
+        "window_reconciliation"
+      ]
+    },
+    {
+      "id": "sql.recursive_queries",
+      "pillar": "sql",
+      "title": "Recursive CTEs",
+      "tier": "advanced",
+      "prereqs": [
+        "sql.ctes"
+      ],
+      "summary": "Hierarchies, bill-of-materials explosion, path enumeration and cycle guards.",
+      "mental_models": [
+        "anchor plus recursive member",
+        "BOM explosion",
+        "cycle guard"
+      ],
+      "bkt": {
+        "p_init": 0.1,
+        "p_transit": 0.1,
+        "p_slip": 0.2,
+        "p_guess": 0.08
+      },
+      "archetypes": []
+    },
+    {
+      "id": "sql.date_time_handling",
+      "pillar": "sql",
+      "title": "Dates, Times & Time Zones",
+      "tier": "core",
+      "prereqs": [
+        "sql.select_filter_aggregate"
+      ],
+      "summary": "Truncation, intervals, timezone conversion, fiscal periods and the cutoff bugs they cause.",
+      "mental_models": [
+        "store UTC, display local",
+        "half-open intervals",
+        "period boundaries are where errors live"
+      ],
+      "bkt": {
+        "p_init": 0.2,
+        "p_transit": 0.15,
+        "p_slip": 0.15,
+        "p_guess": 0.12
+      },
+      "archetypes": [
+        "forensic_revenue",
+        "replica_lag"
+      ]
+    },
+    {
+      "id": "sql.data_quality",
+      "pillar": "sql",
+      "title": "Data Quality in SQL",
+      "tier": "core",
+      "prereqs": [
+        "sql.window_functions",
+        "sql.date_time_handling"
+      ],
+      "summary": "Finding nulls, duplicates, orphans, mixed formats and units; deduplicating with windows.",
+      "mental_models": [
+        "profile before you trust",
+        "dedup by business key",
+        "orphan rows"
+      ],
+      "bkt": {
+        "p_init": 0.2,
+        "p_transit": 0.15,
+        "p_slip": 0.15,
+        "p_guess": 0.12
+      },
+      "archetypes": [
+        "window_reconciliation"
+      ]
+    },
+    {
+      "id": "sql.temporal_cohorts",
+      "pillar": "sql",
+      "title": "Temporal Cohort Analysis",
+      "tier": "advanced",
+      "prereqs": [
+        "sql.window_functions",
+        "sql.date_time_handling"
+      ],
+      "summary": "Building cohort-by-period matrices, retention triangles and survival from event tables.",
+      "mental_models": [
+        "cohort = first-event period",
+        "triangle, not rectangle",
+        "right-censoring"
+      ],
+      "bkt": {
+        "p_init": 0.1,
+        "p_transit": 0.1,
+        "p_slip": 0.2,
+        "p_guess": 0.08
+      },
+      "archetypes": [
+        "cohort_collapse",
+        "cohort_matrix"
+      ]
+    },
+    {
+      "id": "sql.reconciliation_queries",
+      "pillar": "sql",
+      "title": "Reconciliation Queries",
+      "tier": "advanced",
+      "prereqs": [
+        "sql.joins",
+        "sql.data_quality"
+      ],
+      "summary": "Full-outer-join tie-outs, sub-ledger vs. GL comparisons, tolerance matching and break classification.",
+      "mental_models": [
+        "FULL OUTER JOIN shows both sides",
+        "classify every break",
+        "tolerance is a policy"
+      ],
+      "bkt": {
+        "p_init": 0.1,
+        "p_transit": 0.1,
+        "p_slip": 0.2,
+        "p_guess": 0.08
+      },
+      "archetypes": [
+        "outbox_pattern",
+        "window_reconciliation"
+      ]
+    },
+    {
+      "id": "sql.running_balances",
+      "pillar": "sql",
+      "title": "Running Balances & Period-over-Period",
+      "tier": "core",
+      "prereqs": [
+        "sql.window_functions"
+      ],
+      "summary": "Cumulative sums for ledger balances, roll-forwards, and period-over-period deltas.",
+      "mental_models": [
+        "SUM() OVER (ORDER BY)",
+        "roll-forward = open + in - out",
+        "LAG for delta"
+      ],
+      "bkt": {
+        "p_init": 0.2,
+        "p_transit": 0.15,
+        "p_slip": 0.15,
+        "p_guess": 0.12
+      },
+      "archetypes": [
+        "working_capital_crunch"
+      ]
+    },
+    {
+      "id": "sql.query_optimization",
+      "pillar": "sql",
+      "title": "Query Optimization & Indexing",
+      "tier": "advanced",
+      "prereqs": [
+        "sql.joins"
+      ],
+      "summary": "Reading EXPLAIN plans, indexes, predicate pushdown, join order and avoiding row explosions.",
+      "mental_models": [
+        "read the plan",
+        "index the predicate",
+        "filter early"
+      ],
+      "bkt": {
+        "p_init": 0.1,
+        "p_transit": 0.1,
+        "p_slip": 0.2,
+        "p_guess": 0.08
+      },
+      "archetypes": []
+    },
+    {
+      "id": "sql.pivot_and_reporting",
+      "pillar": "sql",
+      "title": "Pivoting & Report Building",
+      "tier": "core",
+      "prereqs": [
+        "sql.ctes"
+      ],
+      "summary": "Conditional aggregation, pivot/unpivot, and assembling financial statements from a GL table.",
+      "mental_models": [
+        "CASE inside SUM",
+        "long to wide",
+        "statement = mapped sum of accounts"
+      ],
+      "bkt": {
+        "p_init": 0.2,
+        "p_transit": 0.15,
+        "p_slip": 0.15,
+        "p_guess": 0.12
+      },
+      "archetypes": [
+        "abc_cost_distortion"
+      ]
+    },
+    {
+      "id": "sql.sessionization_events",
+      "pillar": "sql",
+      "title": "Event Sessionization & Gaps-and-Islands",
+      "tier": "advanced",
+      "prereqs": [
+        "sql.window_functions"
+      ],
+      "summary": "Grouping event streams into sessions, finding duplicate deliveries, gaps and islands.",
+      "mental_models": [
+        "gaps and islands",
+        "duplicate detection by key + window",
+        "ordering within partition"
+      ],
+      "bkt": {
+        "p_init": 0.1,
+        "p_transit": 0.1,
+        "p_slip": 0.2,
+        "p_guess": 0.08
+      },
+      "archetypes": [
+        "idempotent_webhooks"
+      ]
+    },
+    {
+      "id": "python.dataframe_wrangling",
+      "pillar": "python",
+      "title": "DataFrame Wrangling",
+      "tier": "foundation",
+      "prereqs": [],
+      "summary": "Loading, selecting, filtering and joining data with pandas/polars; indexes and dtypes.",
+      "mental_models": [
+        "dtypes first",
+        "merge validate=",
+        "vectorize"
+      ],
+      "bkt": {
+        "p_init": 0.35,
+        "p_transit": 0.25,
+        "p_slip": 0.1,
+        "p_guess": 0.15
+      },
+      "archetypes": [
+        "monte_carlo_cash"
+      ]
+    },
+    {
+      "id": "python.groupby_reshape",
+      "pillar": "python",
+      "title": "GroupBy, Pivot & Resample",
+      "tier": "core",
+      "prereqs": [
+        "python.dataframe_wrangling"
+      ],
+      "summary": "Split-apply-combine, pivot/melt, time resampling and rolling windows.",
+      "mental_models": [
+        "split-apply-combine",
+        "long vs wide",
+        "resample on a DatetimeIndex"
+      ],
+      "bkt": {
+        "p_init": 0.2,
+        "p_transit": 0.15,
+        "p_slip": 0.15,
+        "p_guess": 0.12
+      },
+      "archetypes": [
+        "abc_cost_distortion"
+      ]
+    },
+    {
+      "id": "python.data_cleaning",
+      "pillar": "python",
+      "title": "Data Cleaning & Type Coercion",
+      "tier": "core",
+      "prereqs": [
+        "python.dataframe_wrangling"
+      ],
+      "summary": "Parsing mixed formats, timezone normalization, deduplication, missingness patterns and unit fixes.",
+      "mental_models": [
+        "coerce then validate",
+        "missingness has a pattern",
+        "normalize units before math"
+      ],
+      "bkt": {
+        "p_init": 0.2,
+        "p_transit": 0.15,
+        "p_slip": 0.15,
+        "p_guess": 0.12
+      },
+      "archetypes": []
+    },
+    {
+      "id": "python.statistical_testing",
+      "pillar": "python",
+      "title": "Hypothesis Testing & Confidence Intervals",
+      "tier": "core",
+      "prereqs": [
+        "python.groupby_reshape"
+      ],
+      "summary": "t-tests, chi-square, bootstrap CIs, power and multiple-comparison awareness.",
+      "mental_models": [
+        "effect size over p-value",
+        "bootstrap when in doubt",
+        "multiple comparisons"
+      ],
+      "bkt": {
+        "p_init": 0.2,
+        "p_transit": 0.15,
+        "p_slip": 0.15,
+        "p_guess": 0.12
+      },
+      "archetypes": [
+        "forensic_revenue",
+        "pricing_elasticity"
+      ]
+    },
+    {
+      "id": "python.monte_carlo",
+      "pillar": "python",
+      "title": "Monte Carlo Simulation",
+      "tier": "core",
+      "prereqs": [
+        "python.groupby_reshape"
+      ],
+      "summary": "Sampling from fitted distributions, seeding, convergence, percentiles and probability-of-ruin style outputs.",
+      "mental_models": [
+        "seed everything",
+        "report percentiles not means",
+        "correlate the inputs"
+      ],
+      "bkt": {
+        "p_init": 0.2,
+        "p_transit": 0.15,
+        "p_slip": 0.15,
+        "p_guess": 0.12
+      },
+      "archetypes": [
+        "ma_synergies",
+        "monte_carlo_cash"
+      ]
+    },
+    {
+      "id": "python.linear_programming",
+      "pillar": "python",
+      "title": "Linear Programming & Optimization",
+      "tier": "advanced",
+      "prereqs": [
+        "python.groupby_reshape"
+      ],
+      "summary": "Formulating objective and constraints, scipy.optimize.linprog / milp, shadow prices.",
+      "mental_models": [
+        "shadow price = value of relaxing a constraint",
+        "binding constraints",
+        "LP relaxation"
+      ],
+      "bkt": {
+        "p_init": 0.1,
+        "p_transit": 0.1,
+        "p_slip": 0.2,
+        "p_guess": 0.08
+      },
+      "archetypes": []
+    },
+    {
+      "id": "python.reconciliation_pipelines",
+      "pillar": "python",
+      "title": "Automated Reconciliation Pipelines",
+      "tier": "advanced",
+      "prereqs": [
+        "python.data_cleaning"
+      ],
+      "summary": "Matching engines, tolerance logic, exception queues and idempotent re-runs.",
+      "mental_models": [
+        "match, then explain, then escalate",
+        "tolerance bands",
+        "idempotent re-run"
+      ],
+      "bkt": {
+        "p_init": 0.1,
+        "p_transit": 0.1,
+        "p_slip": 0.2,
+        "p_guess": 0.08
+      },
+      "archetypes": [
+        "window_reconciliation"
+      ]
+    },
+    {
+      "id": "python.time_series_forecasting",
+      "pillar": "python",
+      "title": "Time Series & Forecasting",
+      "tier": "core",
+      "prereqs": [
+        "python.groupby_reshape"
+      ],
+      "summary": "Seasonality decomposition, rolling statistics, simple exponential smoothing and forecast error.",
+      "mental_models": [
+        "decompose before forecasting",
+        "forecast error is the product",
+        "holdout"
+      ],
+      "bkt": {
+        "p_init": 0.2,
+        "p_transit": 0.15,
+        "p_slip": 0.15,
+        "p_guess": 0.12
+      },
+      "archetypes": [
+        "bullwhip",
+        "working_capital_crunch"
+      ]
+    },
+    {
+      "id": "python.financial_modeling",
+      "pillar": "python",
+      "title": "Financial Modeling in Code",
+      "tier": "advanced",
+      "prereqs": [
+        "python.groupby_reshape",
+        "accounting_finance.three_statements"
+      ],
+      "summary": "Building linked statements, DCFs and scenario tables programmatically with explicit assumptions.",
+      "mental_models": [
+        "assumptions as a dict",
+        "statements as functions",
+        "scenario table"
+      ],
+      "bkt": {
+        "p_init": 0.1,
+        "p_transit": 0.1,
+        "p_slip": 0.2,
+        "p_guess": 0.08
+      },
+      "archetypes": [
+        "ma_synergies"
+      ]
+    },
+    {
+      "id": "python.api_ingestion",
+      "pillar": "python",
+      "title": "API Ingestion & Idempotent Loads",
+      "tier": "core",
+      "prereqs": [
+        "python.data_cleaning"
+      ],
+      "summary": "Pagination, retries with backoff, rate limits, schema validation and idempotent upserts.",
+      "mental_models": [
+        "backoff with jitter",
+        "cursor pagination",
+        "upsert by natural key"
+      ],
+      "bkt": {
+        "p_init": 0.2,
+        "p_transit": 0.15,
+        "p_slip": 0.15,
+        "p_guess": 0.12
+      },
+      "archetypes": []
+    },
+    {
+      "id": "python.cohort_analysis",
+      "pillar": "python",
+      "title": "Cohort Analysis & Survival",
+      "tier": "advanced",
+      "prereqs": [
+        "python.groupby_reshape"
+      ],
+      "summary": "Cohort matrices, retention curves, Kaplan-Meier style survival and LTV from retention.",
+      "mental_models": [
+        "triangle matrix",
+        "survival curve",
+        "LTV = sum of discounted survival x margin"
+      ],
+      "bkt": {
+        "p_init": 0.1,
+        "p_transit": 0.1,
+        "p_slip": 0.2,
+        "p_guess": 0.08
+      },
+      "archetypes": [
+        "cohort_collapse",
+        "cohort_matrix"
+      ]
+    },
+    {
+      "id": "python.visualization",
+      "pillar": "python",
+      "title": "Diagnostic Visualization",
+      "tier": "core",
+      "prereqs": [
+        "python.groupby_reshape"
+      ],
+      "summary": "Charts that expose anomalies: small multiples, log scales, cumulative plots and control charts.",
+      "mental_models": [
+        "small multiples",
+        "log scale for ratios",
+        "control limits"
+      ],
+      "bkt": {
+        "p_init": 0.2,
+        "p_transit": 0.15,
+        "p_slip": 0.15,
+        "p_guess": 0.12
+      },
+      "archetypes": [
+        "toc_bottleneck"
+      ]
+    },
+    {
+      "id": "python.elasticity_regression",
+      "pillar": "python",
+      "title": "Elasticity & Regression",
+      "tier": "advanced",
+      "prereqs": [
+        "python.statistical_testing"
+      ],
+      "summary": "Log-log demand regression, controls for seasonality, endogeneity of price, and confidence on elasticity.",
+      "mental_models": [
+        "log-log slope = elasticity",
+        "price is endogenous",
+        "control for seasonality"
+      ],
+      "bkt": {
+        "p_init": 0.1,
+        "p_transit": 0.1,
+        "p_slip": 0.2,
+        "p_guess": 0.08
+      },
+      "archetypes": [
+        "pricing_elasticity"
+      ]
+    }
+  ],
+  "edges": [
+    [
+      "accounting_finance.double_entry",
+      "accounting_finance.three_statements"
+    ],
+    [
+      "accounting_finance.double_entry",
+      "accounting_finance.accrual_vs_cash"
+    ],
+    [
+      "accounting_finance.accrual_vs_cash",
+      "accounting_finance.revenue_recognition"
+    ],
+    [
+      "accounting_finance.three_statements",
+      "accounting_finance.working_capital"
+    ],
+    [
+      "accounting_finance.accrual_vs_cash",
+      "accounting_finance.working_capital"
+    ],
+    [
+      "accounting_finance.three_statements",
+      "accounting_finance.cost_allocation_abc"
+    ],
+    [
+      "accounting_finance.cost_allocation_abc",
+      "accounting_finance.variance_analysis"
+    ],
+    [
+      "accounting_finance.three_statements",
+      "accounting_finance.ratio_analysis"
+    ],
+    [
+      "accounting_finance.double_entry",
+      "accounting_finance.subledger_reconciliation"
+    ],
+    [
+      "accounting_finance.three_statements",
+      "accounting_finance.dcf_valuation"
+    ],
+    [
+      "accounting_finance.accrual_vs_cash",
+      "accounting_finance.dcf_valuation"
+    ],
+    [
+      "accounting_finance.working_capital",
+      "accounting_finance.cash_flow_forecasting"
+    ],
+    [
+      "accounting_finance.ratio_analysis",
+      "accounting_finance.covenant_compliance"
+    ],
+    [
+      "accounting_finance.working_capital",
+      "accounting_finance.covenant_compliance"
+    ],
+    [
+      "accounting_finance.revenue_recognition",
+      "accounting_finance.forensic_detection"
+    ],
+    [
+      "accounting_finance.ratio_analysis",
+      "accounting_finance.forensic_detection"
+    ],
+    [
+      "accounting_finance.dcf_valuation",
+      "accounting_finance.ma_valuation"
+    ],
+    [
+      "operations_strategy.process_flow",
+      "operations_strategy.littles_law"
+    ],
+    [
+      "operations_strategy.littles_law",
+      "operations_strategy.queueing_theory"
+    ],
+    [
+      "operations_strategy.littles_law",
+      "operations_strategy.theory_of_constraints"
+    ],
+    [
+      "operations_strategy.process_flow",
+      "operations_strategy.inventory_optimization"
+    ],
+    [
+      "operations_strategy.inventory_optimization",
+      "operations_strategy.bullwhip_effect"
+    ],
+    [
+      "operations_strategy.queueing_theory",
+      "operations_strategy.bullwhip_effect"
+    ],
+    [
+      "accounting_finance.three_statements",
+      "operations_strategy.unit_economics"
+    ],
+    [
+      "operations_strategy.unit_economics",
+      "operations_strategy.cohort_retention"
+    ],
+    [
+      "operations_strategy.unit_economics",
+      "operations_strategy.pricing_power"
+    ],
+    [
+      "operations_strategy.unit_economics",
+      "operations_strategy.competitive_moats"
+    ],
+    [
+      "operations_strategy.competitive_moats",
+      "operations_strategy.ma_synergies"
+    ],
+    [
+      "accounting_finance.ma_valuation",
+      "operations_strategy.ma_synergies"
+    ],
+    [
+      "operations_strategy.unit_economics",
+      "operations_strategy.decision_under_uncertainty"
+    ],
+    [
+      "operations_strategy.theory_of_constraints",
+      "operations_strategy.capacity_planning"
+    ],
+    [
+      "operations_strategy.decision_under_uncertainty",
+      "operations_strategy.capacity_planning"
+    ],
+    [
+      "system_design.data_modeling",
+      "system_design.oltp_vs_olap"
+    ],
+    [
+      "system_design.data_modeling",
+      "system_design.idempotency"
+    ],
+    [
+      "system_design.idempotency",
+      "system_design.event_driven"
+    ],
+    [
+      "system_design.event_driven",
+      "system_design.outbox_saga"
+    ],
+    [
+      "system_design.oltp_vs_olap",
+      "system_design.replication_consistency"
+    ],
+    [
+      "system_design.replication_consistency",
+      "system_design.caching"
+    ],
+    [
+      "system_design.event_driven",
+      "system_design.rate_limiting"
+    ],
+    [
+      "system_design.idempotency",
+      "system_design.pipeline_idempotency"
+    ],
+    [
+      "system_design.oltp_vs_olap",
+      "system_design.pipeline_idempotency"
+    ],
+    [
+      "system_design.event_driven",
+      "system_design.failure_mode_analysis"
+    ],
+    [
+      "system_design.failure_mode_analysis",
+      "system_design.observability"
+    ],
+    [
+      "system_design.failure_mode_analysis",
+      "system_design.cost_of_architecture"
+    ],
+    [
+      "accounting_finance.three_statements",
+      "system_design.cost_of_architecture"
+    ],
+    [
+      "sql.select_filter_aggregate",
+      "sql.joins"
+    ],
+    [
+      "sql.joins",
+      "sql.ctes"
+    ],
+    [
+      "sql.ctes",
+      "sql.window_functions"
+    ],
+    [
+      "sql.ctes",
+      "sql.recursive_queries"
+    ],
+    [
+      "sql.select_filter_aggregate",
+      "sql.date_time_handling"
+    ],
+    [
+      "sql.window_functions",
+      "sql.data_quality"
+    ],
+    [
+      "sql.date_time_handling",
+      "sql.data_quality"
+    ],
+    [
+      "sql.window_functions",
+      "sql.temporal_cohorts"
+    ],
+    [
+      "sql.date_time_handling",
+      "sql.temporal_cohorts"
+    ],
+    [
+      "sql.joins",
+      "sql.reconciliation_queries"
+    ],
+    [
+      "sql.data_quality",
+      "sql.reconciliation_queries"
+    ],
+    [
+      "sql.window_functions",
+      "sql.running_balances"
+    ],
+    [
+      "sql.joins",
+      "sql.query_optimization"
+    ],
+    [
+      "sql.ctes",
+      "sql.pivot_and_reporting"
+    ],
+    [
+      "sql.window_functions",
+      "sql.sessionization_events"
+    ],
+    [
+      "python.dataframe_wrangling",
+      "python.groupby_reshape"
+    ],
+    [
+      "python.dataframe_wrangling",
+      "python.data_cleaning"
+    ],
+    [
+      "python.groupby_reshape",
+      "python.statistical_testing"
+    ],
+    [
+      "python.groupby_reshape",
+      "python.monte_carlo"
+    ],
+    [
+      "python.groupby_reshape",
+      "python.linear_programming"
+    ],
+    [
+      "python.data_cleaning",
+      "python.reconciliation_pipelines"
+    ],
+    [
+      "python.groupby_reshape",
+      "python.time_series_forecasting"
+    ],
+    [
+      "python.groupby_reshape",
+      "python.financial_modeling"
+    ],
+    [
+      "accounting_finance.three_statements",
+      "python.financial_modeling"
+    ],
+    [
+      "python.data_cleaning",
+      "python.api_ingestion"
+    ],
+    [
+      "python.groupby_reshape",
+      "python.cohort_analysis"
+    ],
+    [
+      "python.groupby_reshape",
+      "python.visualization"
+    ],
+    [
+      "python.statistical_testing",
+      "python.elasticity_regression"
+    ]
+  ],
+  "archetype_nodes": {
+    "working_capital_crunch": [
+      "accounting_finance.working_capital",
+      "accounting_finance.cash_flow_forecasting",
+      "accounting_finance.covenant_compliance",
+      "sql.running_balances",
+      "python.time_series_forecasting"
+    ],
+    "abc_cost_distortion": [
+      "accounting_finance.cost_allocation_abc",
+      "accounting_finance.variance_analysis",
+      "operations_strategy.pricing_power",
+      "sql.pivot_and_reporting",
+      "python.groupby_reshape"
+    ],
+    "ma_synergies": [
+      "accounting_finance.ma_valuation",
+      "accounting_finance.dcf_valuation",
+      "operations_strategy.ma_synergies",
+      "python.financial_modeling",
+      "python.monte_carlo"
+    ],
+    "forensic_revenue": [
+      "accounting_finance.forensic_detection",
+      "accounting_finance.revenue_recognition",
+      "sql.date_time_handling",
+      "sql.window_functions",
+      "python.statistical_testing"
+    ],
+    "toc_bottleneck": [
+      "operations_strategy.theory_of_constraints",
+      "operations_strategy.littles_law",
+      "operations_strategy.queueing_theory",
+      "sql.joins",
+      "python.visualization"
+    ],
+    "cohort_collapse": [
+      "operations_strategy.cohort_retention",
+      "operations_strategy.unit_economics",
+      "sql.temporal_cohorts",
+      "python.cohort_analysis",
+      "accounting_finance.accrual_vs_cash"
+    ],
+    "bullwhip": [
+      "operations_strategy.bullwhip_effect",
+      "operations_strategy.inventory_optimization",
+      "sql.window_functions",
+      "python.time_series_forecasting",
+      "accounting_finance.working_capital"
+    ],
+    "pricing_elasticity": [
+      "operations_strategy.pricing_power",
+      "python.elasticity_regression",
+      "python.statistical_testing",
+      "sql.select_filter_aggregate",
+      "accounting_finance.variance_analysis"
+    ],
+    "idempotent_webhooks": [
+      "system_design.idempotency",
+      "system_design.event_driven",
+      "system_design.failure_mode_analysis",
+      "sql.sessionization_events",
+      "system_design.cost_of_architecture"
+    ],
+    "outbox_pattern": [
+      "system_design.outbox_saga",
+      "system_design.event_driven",
+      "system_design.observability",
+      "sql.reconciliation_queries",
+      "accounting_finance.subledger_reconciliation"
+    ],
+    "replica_lag": [
+      "system_design.replication_consistency",
+      "system_design.oltp_vs_olap",
+      "system_design.caching",
+      "sql.date_time_handling",
+      "operations_strategy.inventory_optimization"
+    ],
+    "window_reconciliation": [
+      "sql.reconciliation_queries",
+      "sql.window_functions",
+      "sql.data_quality",
+      "accounting_finance.subledger_reconciliation",
+      "python.reconciliation_pipelines"
+    ],
+    "cohort_matrix": [
+      "sql.temporal_cohorts",
+      "sql.ctes",
+      "python.cohort_analysis",
+      "operations_strategy.cohort_retention"
+    ],
+    "monte_carlo_cash": [
+      "python.monte_carlo",
+      "accounting_finance.cash_flow_forecasting",
+      "operations_strategy.decision_under_uncertainty",
+      "accounting_finance.covenant_compliance",
+      "python.dataframe_wrangling"
+    ]
+  }
+}
