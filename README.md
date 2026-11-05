@@ -1,97 +1,36 @@
-# Car IVI Bluetooth Relay — Lenovo TB-J606F (Android 11 / SDK 30)
+# tac-briefing-screen — dual-role Bluetooth (iPhone A2DP sink → car A2DP source) on Lenovo TB-J606F
 
-Reference head-unit platform that takes an **iPhone's A2DP stream in** (tablet =
-A2DP Sink + AVRCP Controller + HFP Client) and pushes it **out to the car
-stereo** (tablet = A2DP Source), with three switchable routing architectures and
-a landscape Jetpack Compose dashboard.
+Target device: Lenovo TB-J606F, Android 11 / SDK 30, stock firmware S320311_230810_ROW, Qualcomm SM6115 with a WCN3980 Bluetooth/Wi-Fi chip, running the QTI Bluetooth stack (`libbluetooth_qti.so`), rooted with Magisk. Goal: receive the iPhone's A2DP stream on the tablet and send it to the car stereo at the same time.
 
-Hardware: Lenovo Tab P11 `TB-J606F`, Snapdragon 662 (SM6115), WCN3980, stock
-`S320311_230810_ROW`, kernel 4.19.157, Magisk 30.7. The audit of the live device
-dumps is in [`docs/HARDWARE_AUDIT.md`](docs/HARDWARE_AUDIT.md).
+## Approach 1 — overlay + props + privileged companion app (status: does not achieve dual role)
+
+What was built (details in [`approach-1/README.md`](approach-1/README.md)):
+
+- A Magisk module with the `CarIvIBtOverlay` RRO (on `com.android.bluetooth`) and system props.
+- A Jetpack Compose companion app (privileged, in `/system/priv-app`) with three routing modes: native focus, Oboe duplex, and AudioPatch.
+- An AudioFlinger-side bridge library (`AudioSystem.createAudioPatch` and UID-scoped AudioPolicy mixes).
+
+Verified working on the device ([`approach-1/docs/STACK_NOTES.md`](approach-1/docs/STACK_NOTES.md), [`approach-1/docs/HARDWARE_AUDIT.md`](approach-1/docs/HARDWARE_AUDIT.md)):
+
+- Phone → tablet A2DP sink plays with 0 underruns when the iPhone presses Play.
+- Clean boot.
+- The overlay, props and privileged app take effect.
+
+What blocks it:
+
+- The tablet cannot start iPhone playback: the `BluetoothMediaBrowserService` session is stuck in `STATE_ERROR` (7) with `actions=0`.
+- The A2DP source link to the car opens natively but is reported through the sink JNI, so `A2dpService` never sees CONNECTED. This is a native-stack limitation of `libbluetooth_qti` + `btdual_patch` v5, not a routing problem.
+
+## Approach 2 — device-export driven (pending)
+
+Approach 2 will start from a direct folder export of the device plus Android's native logs (logcat, btsnoop, dumpsys), supplied by the owner. It will live under `approach-2/`; nothing is built yet (see [`approach-2/README.md`](approach-2/README.md)).
+
+Two candidate directions were identified in Approach 1's notes. Neither is built; the choice will be made from the export data.
+
+- (a) Move the car link off the tablet radio: USB-C audio to an external A2DP transmitter.
+- (b) Replace the QTI stack with AOSP Fluoride, which keeps separate source and sink peer pools.
 
 ## Layout
 
-```
-.
-├── build_and_package.ps1                 # RRO (aapt2) + app (Gradle/CMake) + Magisk zip
-├── carrelay-core/                        # shared contracts, jOOR hidden-API helpers, A2DP-in publisher
-├── solution1-native-stack/
-│   ├── magisk-module/                    # module.prop, system.prop, post-fs-data.sh, service.sh,
-│   │                                     # customize.sh, META-INF, privapp-permissions-carrelay.xml
-│   └── rro/CarIvIBtOverlay/              # static RRO on com.android.bluetooth (bools.xml)
-├── solution2-oboe-bridge-app/app/        # privileged companion app
-│   └── src/main/cpp/                     # OboeAudioBridge.cpp (FullDuplexStream), RingBuffer.h, jni_bridge.cpp
-├── solution3-audiopatch-bridge/          # AudioSystem.createAudioPatch + uid AudioPolicy bridges
-└── docs/HARDWARE_AUDIT.md
-```
-
-Gradle modules: `:carrelay-core`, `:solution3-audiopatch-bridge`,
-`:solution2-oboe-bridge-app:app` (Kotlin 2.0.20, AGP 8.6.1, Gradle 8.9, JDK 17,
-**NDK 26.3.11579264**, **CMake 3.22.1**). Libraries: Oboe 1.11.0 (Prefab), jOOR
-0.9.15, Media3 1.4.1 (`media3-session`/`media3-common`), Compose BOM 2024.09.03.
-No root library: the app needs none (priv-app + whitelist); everything
-privileged runs through hidden/`@SystemApi` framework calls.
-
-Stack-level findings (why the sink peer never becomes active, why both roles
-at once is a native-stack question): [`docs/STACK_NOTES.md`](docs/STACK_NOTES.md).
-
-## The three architectures
-
-| Mode | Where the PCM moves | Requirements |
-|---|---|---|
-| **1 · Native focus** (`FocusRoutingEngine`) | Nowhere in our process. `libbluetooth_qti` decodes the sink stream and plays it as a media AudioTrack; APM routes media to the active A2DP device = car. | `CarIvIBtOverlay` (`a2dp_sink_automatically_request_audio_focus=true`) or a Media3 `prepare()` on `BluetoothMediaBrowserService`; `setActiveDevice(car)`. |
-| **2 · Oboe duplex** (`OboeBridgeEngine` + `OboeAudioBridge.cpp`) | `oboe::FullDuplexStream`, LowLatency/Shared, input = `TYPE_BLUETOOTH_A2DP` input device, output = car `TYPE_BLUETOOTH_A2DP` device id. Ring buffer with single-frame slip drift compensation, `LatencyTuner`, automatic restart on `ErrorDisconnected`. Fallback/forced: uid-1002 AudioPolicy **loop-back** mix → `AudioRecord` → Oboe push mode. | priv-app with `MODIFY_AUDIO_ROUTING`, `CAPTURE_AUDIO_OUTPUT`, `RECORD_AUDIO`. |
-| **3 · AudioPatch** (`AudioPatchBridge`) | `AudioSystem.createAudioPatch(BT A2DP In → BT A2DP Out)`: AudioFlinger PatchPanel software bridge (ports are on different HW modules). Alternative strategy: uid-1002 AudioPolicy **render** mix pinned to the car device. | `MODIFY_AUDIO_ROUTING`; device patch additionally needs the HAL "a2dp input" to carry PCM. |
-
-All three share `BtRoleCoordinator`: strict role pinning via SDK 30
-`setConnectionPolicy(device, 100|0)` on `BluetoothA2dp` / `BluetoothA2dpSink` /
-`BluetoothHeadsetClient` / `BluetoothHeadset` (jOOR), and the sequencer *car
-A2DP source → 2500 ms settle → iPhone A2DP sink (+HFP client) → active device =
-car*, triggered by `ACTION_POWER_CONNECTED` or the dashboard.
-`BluetoothAvrcpController` has no connection-policy API on SDK 30; the
-coordinator reports that and relies on AVRCP CT following the sink link.
-
-## Build & package (Windows PowerShell)
-
-```powershell
-# needs ANDROID_HOME with build-tools, platforms/android-30 (or newer),
-# ndk;26.3.11579264, cmake;3.22.1 (sdkmanager ids) and JDK 17
-.\build_and_package.ps1            # -> dist\carrelay_ivi-v1.0.2.zip
-.\build_and_package.ps1 -Deploy    # + adb push, magisk --install-module, optional reboot
-```
-
-The script generates `keys/carrelay.jks` (self-signed is enough for
-`/system/priv-app` + `/product/overlay`), builds `CarIvIBtOverlay.apk` with
-aapt2, runs `gradlew :solution2-oboe-bridge-app:app:assembleRelease`, extracts
-`lib/arm64-v8a/*.so` next to the APK (system apps are never extracted), and
-zips the module with forward-slash entry names.
-
-## After flashing
-
-1. Install from the Magisk app (`$BOOTMODE=true`): `customize.sh` pins the
-   sink-side component states **once** (this is the only time Bluetooth is
-   restarted). Reboot. `service.sh` is read-only: it reports overlay state
-   (`cmd overlay list`; both RROs are static so they cannot be toggled),
-   resource lookups and component states, grants `RECORD_AUDIO` and starts
-   `RelayForegroundService`. Logs: `/data/adb/carrelay/{post-fs-data,service}.log`,
-   `boot_snapshot.txt`.
-2. Open **Car Relay**: pick the iPhone and the car in the two role cards, press
-   **Pin roles**, then **Connect sequence + relay**.
-3. Switch architectures live with the radio group; the counters card shows
-   sample rates, Oboe XRuns, ring fill, slips, latency and restarts.
-4. Optional experiment: `touch /data/adb/carrelay/a2dp_in_primary` and reboot to
-   move `BT A2DP In` into the primary HAL module (see `post-fs-data.sh`).
-
-## Removing
-
-1. In Car Relay tap **Unpin roles** (restores per-device connection policies —
-   there is no shell API for them on SDK 30).
-2. Remove the module in Magisk and reboot. `uninstall.sh` drops a one-shot
-   `/data/adb/service.d/carrelay_cleanup.sh` that, once the framework is up,
-   removes v1.0.0's global `hidden_api_policy`/exemption leftovers, resets
-   `AvrcpTargetService` to default-state, drops the Doze whitelist entry and
-   deletes `/data/adb/carrelay`, then deletes itself. The sink-side component
-   states that pre-date this module are intentionally kept.
-
-The pre-existing `btsink_overlay_prop`, `btdual_patch`, `carhome_priv` and
-`hfp_audio` modules are never touched.
+- `approach-1/` — first attempt (Gradle project, Magisk module, docs, packaging script).
+- `approach-2/` — placeholder for the device-export driven attempt.
