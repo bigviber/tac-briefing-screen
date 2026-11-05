@@ -1,4 +1,5 @@
 import type { StateCreator } from "zustand";
+import { parseAsk } from "../lib/asks";
 import { api, apiStatus, errorMessage, HTTP_CONFLICT, HTTP_LLM_NOT_CONFIGURED } from "../api/client";
 import type { GradeReport, SimQuarter, Submission } from "../api/types";
 import { previewTable } from "../lib/csv";
@@ -99,10 +100,9 @@ export const createWorkSlice: StateCreator<CaseStore, [], [], WorkSlice> = (set,
     if (!caseId || !draft || !caseData || get().submitting) return;
     const metrics: Record<string, number> = {};
     for (const ask of caseData.asks) {
-      const raw = (draft.metrics[ask.key] ?? "").replace(/[$,%\s]/g, "");
-      if (raw === "") continue;
-      const n = Number(raw);
-      if (!Number.isNaN(n)) metrics[ask.key] = ask.unit === "pct" && n > 1 ? n / 100 : n;
+      // Dollar entry ("1.2M", "$850,000") for usd and cents asks; cents asks are sent as whole cents.
+      const n = parseAsk(ask, draft.metrics[ask.key] ?? "");
+      if (n !== null) metrics[ask.key] = n;
     }
     const submission: Submission = {
       case_id: caseId,

@@ -48,6 +48,7 @@ from axiom.models import (
     GradeReport,
     Lever,
     MetricResult,
+    Observation,
     PromptTemplate as PromptTemplateRow,
     QuerySignatureMatch,
     RevealedTruth,
@@ -61,7 +62,7 @@ from axiom.models import (
     TextbookChapter,
 )
 from axiom.persistence import Persistence, utc_now_iso
-from axiom.skill_graph import SkillGraph, metric_anomaly_ids, metric_pillar
+from axiom.skill_graph import MISDIAGNOSIS_CAP, SkillGraph, metric_anomaly_ids, metric_pillar
 
 __all__ = [
     "ANTI_HALLUCINATION",
@@ -86,6 +87,8 @@ __all__ = [
     "leak_scan",
     "redact",
     "normalize_sql",
+    "with_usd",
+    "PARTIAL_DIAGNOSIS_CAP",
     "te_ceiling",
     "rubric_overall",
     "rung_for",
@@ -107,6 +110,8 @@ NUMERIC DISCIPLINE
   arithmetic combination of such numbers that you show inline (e.g. "DSO rose from 41 to 68
   days (+27)").
 - If you need a number you do not have, write "[not provided]" and do not estimate it.
+- When both a cents and a dollars figure exist for the same quantity, state dollars with the
+  unit, never raw cents (write "$8.5M", not "852,487,846").
 - Never invent names, dates, tables, columns, customers or events that are not in the input.
 - Output ONLY the JSON object requested. No prose before or after. No markdown fences.
 """
@@ -126,7 +131,13 @@ HARD RULES
 5. The ask is ambiguous at the stated difficulty: foundation names the area, practitioner
    names the symptom, principal asks a one-line board question.
 6. Write in present tense, plain business English, no jargon the company would not use.
-7. Length: 900–1400 words of prose across all sections.
+7. Length budget per section: `situation` <= 250 words; `company_background` <= 300 words;
+   each stakeholder artifact `body` 80-180 words; `the_ask` <= 120 words.
+8. At practitioner and principal, do not quote the multi-quarter trajectory of any metric that
+   is itself an ask or an anomaly symptom; quote the latest value only. (The asks are the
+   metrics listed in DELIVERABLE EXPECTED.)
+9. Stakeholder artifacts must disagree with each other on at least one fact that the data room
+   can settle; make the disagreement explicit.
 """
 
 case_synthesizer_USER: str = """COMPANY
@@ -156,14 +167,14 @@ DELIVERABLE EXPECTED: {deliverable_spec}
 Return JSON:
 {{
   "title": "string (<= 12 words, no company name leak of the mechanism)",
-  "situation": "markdown, 2-3 paragraphs: where the company is today and why this landed on the analyst's desk",
-  "company_background": "markdown, 2 paragraphs grounded in the COMPANY and NARRATIVE HOOKS",
+  "situation": "markdown, 2-3 paragraphs, <= 250 words: where the company is today and why this landed on the analyst's desk",
+  "company_background": "markdown, 2 paragraphs, <= 300 words, grounded in the COMPANY and NARRATIVE HOOKS",
   "stakeholder_artifacts": [
     {{"stakeholder": "name", "role": "role", "format": "email|slack|board_deck|memo",
-      "subject": "string", "body": "markdown in the stakeholder's voice, 80-200 words"}}
+      "subject": "string", "body": "markdown in the stakeholder's voice, 80-180 words"}}
   ],
   "timeline": [{{"period": "2024Q3", "headline": "string", "detail": "string"}}],
-  "the_ask": "markdown: the ambiguous question, scaled to DIFFICULTY",
+  "the_ask": "markdown, <= 120 words: the ambiguous question, scaled to DIFFICULTY",
   "deliverable_spec": "markdown bullet list of what the memo must contain (echo DELIVERABLE EXPECTED)",
   "data_room_index": [{{"table": "name", "note": "one line; at foundation difficulty describe what the table holds, at principal leave note empty"}}],
   "architecture_mermaid": "string or null, passed through unchanged"
@@ -181,11 +192,17 @@ STRUCTURE (markdown, 1200-2000 words)
    run against the tables listed; for business nodes: the spreadsheet/ledger layout.
 5. "Where people go wrong" — 3-5 named failure modes with how to detect them.
 6. "Self-check" — exactly 3 questions; answers in a separate field, never in the chapter body.
+   Question 3 must be numeric: it uses the case's numbers and its answer is a single number
+   with a unit that the reader can check.
 
 RULES
 - Do not mention the case's root cause or any anomaly; teach the skill, not the answer.
 - Use only tables/columns from the provided schema.
 - Every number in the worked example must come from the provided data.
+- Derive each formula from a conservation law or a definition, then show one limiting case where
+  it breaks.
+- For SQL, show the wrong and the right version of one query and name the error (fan-out,
+  timezone, censoring, double counting).
 """
 
 textbook_chapter_USER: str = """SKILL NODE: {node_id} — {node_title}
@@ -206,7 +223,7 @@ Return JSON:
   "node_id": "{node_id}",
   "title": "string",
   "chapter_markdown": "string",
-  "self_check": [{{"question": "string", "answer": "string"}}],
+  "self_check": [{{"question": "string (question 3 numeric, using the case's numbers)", "answer": "string"}}],
   "snippets": [{{"language": "sql|python", "purpose": "string", "code": "string"}}]
 }}"""
 
@@ -218,11 +235,15 @@ PROCESS
 1. Read the DETERMINISTIC GRADE first. It is authoritative for every number. Do not re-derive
    numbers; do not dispute it.
 2. Decide `misdiagnosis`: true if the memo's stated root cause is not the GROUND TRUTH root
-   cause or is one of the RED HERRINGS.
-3. Score each dimension using the anchors. Quote the submission as evidence (exact substrings,
+   cause or is one of the RED HERRINGS. Decide `partial_diagnosis`: true if the memo names the
+   right area (the right account, process, cohort or component) but the wrong mechanism; a
+   partial diagnosis is still a misdiagnosis, so set both. A red herring is never partial.
+3. For each asserted metric, name the evidence item (by its name) that produces it, or mark it
+   unsupported; unsupported metrics cannot earn technical_execution above 5.
+4. Score each dimension using the anchors. Quote the submission as evidence (exact substrings,
    <= 200 chars each). List gaps as concrete, checkable statements.
-4. Name the strongest and weakest point in one sentence each.
-5. Recommend 1-3 `next_drill_nodes` from the CANDIDATE NODES list only.
+5. Name the strongest and weakest point in one sentence each.
+6. Recommend 1-3 `next_drill_nodes` from the CANDIDATE NODES list only.
 
 RUBRIC ANCHORS
 {rubric_anchors}
@@ -270,6 +291,8 @@ Return JSON:
   }},
   "overall": 0.0,
   "misdiagnosis": false,
+  "partial_diagnosis": false,
+  "metric_support": [{{"metric": "key from asserted metrics", "evidence": "name of the sql/python evidence item, or unsupported"}}],
   "stated_root_cause": "string: what the learner claimed, in one sentence",
   "strongest_point": "string",
   "weakest_point": "string",
@@ -284,9 +307,16 @@ you only test the analyst's reasoning. You may be wrong on purpose when you push
 STYLE: 60-140 words per turn, first person, no bullet lists, one challenge per turn, end with a
 question unless you are conceding. Cite specific numbers from the data when you challenge.
 
+MEMORY: Do not repeat a challenge the analyst already answered with evidence; reference their
+evidence by name.
+
 LADDER: follow the escalation ladder; your `challenge_type` must be the current rung unless the
 analyst fully answered the previous rung, in which case advance. At the final rung either
 concede (if the analyst's rebuttals were evidence-backed) or escalate the unresolved gap.
+At rung 3 (counter_evidence), cite one number from the public KPIs that superficially
+contradicts the analyst's thesis.
+When you concede, say so visibly in one line that names what you were wrong about (e.g. "I was
+wrong about seasonality.") and set `concedes` true.
 MAX RUNG FOR THIS DIFFICULTY: {max_rung}
 """
 
@@ -321,6 +351,7 @@ changes to the decisions taken, and flag what the board should watch. You never 
 STRUCTURE (markdown, 250-400 words): headline (one sentence), what we did (the decisions),
 what happened (KPI deltas with before → after), what it cost / what it earned, what we watch
 next quarter.
+State explicitly which decision had no measurable effect this quarter and why (lag).
 """
 
 quarter_narrator_USER: str = """COMPANY: {company_name}
@@ -541,13 +572,23 @@ class GraderDimensionLLM(_LLMOut):
     gaps: list[str] = Field(default_factory=list)
 
 
+class MetricSupportLLM(_LLMOut):
+    """Which evidence item produces an asserted metric (``evidence == "unsupported"`` if none)."""
+
+    metric: str
+    evidence: str = "unsupported"
+
+
 class GraderLLM(_LLMOut):
     """Output schema of ``grader``: all four dimensions, ``misdiagnosis`` and
-    ``next_drill_nodes`` are required (a missing key triggers the repair call)."""
+    ``next_drill_nodes`` are required (a missing key triggers the repair call).
+    ``partial_diagnosis`` (right area, wrong mechanism) and ``metric_support`` are optional."""
 
     dimensions: dict[str, GraderDimensionLLM]
     overall: float | None = None
     misdiagnosis: bool
+    partial_diagnosis: bool = False
+    metric_support: list[MetricSupportLLM] = Field(default_factory=list)
     stated_root_cause: str = ""
     strongest_point: str = ""
     weakest_point: str = ""
@@ -613,6 +654,19 @@ def list_prompts() -> list[PromptTemplateRow]:
 
 
 # =========================================================================== rubric math
+
+#: technical_execution cap when the grader marks an asserted metric as unsupported by evidence.
+UNSUPPORTED_TE_CAP: float = 5.0
+#: Node-score cap for a partial diagnosis: inside the 0.50-0.65 borderline band, vs 0.45 for a miss.
+PARTIAL_DIAGNOSIS_CAP: float = 0.6
+#: Where ``partial_diagnosis`` is carried on :class:`RubricGrade` (``raw_scores[key] == 1.0``).
+PARTIAL_DIAGNOSIS_KEY: str = "partial_diagnosis"
+
+
+def is_partial_diagnosis(rubric: RubricGrade) -> bool:
+    """Read the partial-diagnosis flag from a :class:`RubricGrade` (stored in ``raw_scores``)."""
+    return bool(rubric.raw_scores.get(PARTIAL_DIAGNOSIS_KEY))
+
 
 RUBRIC_WEIGHTS: dict[str, float] = {
     "technical_execution": 0.35,
@@ -722,6 +776,40 @@ def _close(t: float, c: float, sig: int, rel_tol: float) -> bool:
 
 def _is_cents(unit: str, key: str) -> bool:
     return "cent" in unit.lower() or key.lower().endswith("_cents")
+
+
+_USD_FIELDS: tuple[str, ...] = ("value", "min", "max", "default", "expected", "submitted")
+
+
+def _is_number(v: Any) -> bool:
+    return isinstance(v, (int, float)) and not isinstance(v, bool) and math.isfinite(float(v))
+
+
+def with_usd(obj: Any) -> Any:
+    """Prompt-context copy of ``obj`` with dollar renderings next to every cents figure.
+
+    Keys are kept: in every mapping, a numeric ``<name>_cents`` gets a sibling ``<name>_usd``
+    (cents / 100, 2 decimals); a mapping whose ``unit`` mentions cents gets ``<field>_usd`` for
+    each numeric ``value``/``min``/``max``/``default``/``expected``/``submitted``. Lists and
+    nested mappings are walked; everything else is returned unchanged.
+    """
+    if isinstance(obj, Mapping):
+        cents_unit = "cent" in str(obj.get("unit", "")).lower()
+        out: dict[str, Any] = {}
+        for k, v in obj.items():
+            out[k] = with_usd(v)
+            if not isinstance(k, str) or not _is_number(v):
+                continue
+            if k.endswith("_cents"):
+                usd_key = k[: -len("_cents")] + "_usd"
+                if usd_key not in obj:
+                    out[usd_key] = round(float(v) / 100.0, 2)
+            elif cents_unit and k in _USD_FIELDS and f"{k}_usd" not in obj:
+                out[f"{k}_usd"] = round(float(v) / 100.0, 2)
+        return out
+    if isinstance(obj, (list, tuple)):
+        return [with_usd(v) for v in obj]
+    return obj
 
 
 def _is_ratio(unit: str, value: float) -> bool:
@@ -1453,7 +1541,7 @@ class Pedagogy:
             company_json=_j(world.company.model_dump(mode="json")),
             narrative_hooks_json=_j(world.industry.narrative_hooks),
             periods_json=_j(world.periods),
-            kpis_json=_j(self.public_kpis(world)),
+            kpis_json=_j(with_usd(self.public_kpis(world))),
             reveal_json=_j(seed.reveal),
             conceal_json=_j(seed.conceal),
             stakeholders_json=_j([s.model_dump(mode="json") for s in seed.stakeholders]),
@@ -1525,7 +1613,7 @@ class Pedagogy:
             pillar=node.pillar,
             company_json=_j(world.company.model_dump(mode="json")),
             periods_json=_j(world.periods),
-            kpis_json=_j(self.public_kpis(world)),
+            kpis_json=_j(with_usd(self.public_kpis(world))),
             schema_excerpt_json=_j([{"table": t.name, "columns": [{"name": c.name, "type": c.type, "description": c.description} for c in t.columns]} for t in tables]),
             sample_rows_json=_j({t.name: t.sample_rows[:3] for t in tables[:3]}),
         )
@@ -1669,11 +1757,11 @@ class Pedagogy:
             root_cause=gt.root_cause,
             anomalies_json=_j([a.model_dump(mode="json") for a in gt.anomalies]),
             red_herrings_json=_j(gt.red_herrings),
-            expected_metrics_json=_j([m.model_dump(mode="json") for m in gt.expected_metrics]),
-            deterministic_grade_json=_j(det.model_dump(mode="json")),
+            expected_metrics_json=_j(with_usd([m.model_dump(mode="json") for m in gt.expected_metrics])),
+            deterministic_grade_json=_j(with_usd(det.model_dump(mode="json"))),
             ceiling_te=f"{ceiling:g}",
             memo_markdown=submission.memo_markdown,
-            metrics_json=_j(submission.metrics),
+            metrics_json=_j(with_usd(submission.metrics)),
             sql_evidence_json=_j([e.model_dump(mode="json") for e in submission.sql_evidence]),
             python_evidence_json=_j([e.model_dump(mode="json") for e in submission.python_evidence]),
             design_mermaid=submission.design_mermaid or "null",
@@ -1704,18 +1792,30 @@ class Pedagogy:
             te.score = ceiling
         critical = {a.id for a in gt.anomalies if a.severity == "critical"}
         crit_failed = any(not r.within_tolerance and set(r.anomaly_ids) & critical for r in det.metric_results)
+        partial = bool(raw.partial_diagnosis)
+        misdiagnosis = bool(raw.misdiagnosis) or partial  # a partial diagnosis is still a misdiagnosis
+        unsupported = self._unsupported_metrics(raw, submission)
+        if unsupported and te.score > UNSUPPORTED_TE_CAP:
+            clamps.append(f"technical_execution {te.score:g} -> {UNSUPPORTED_TE_CAP:g} (unsupported metric(s): {', '.join(unsupported)})")
+            te.score = UNSUPPORTED_TE_CAP
         bj = dims["business_judgment"]
-        if crit_failed and not raw.misdiagnosis and bj.score > 6:
+        if crit_failed and not misdiagnosis and bj.score > 6:
             clamps.append(f"business_judgment {bj.score:g} -> 6 (a critical anomaly's expected metric failed)")
             bj.score = 6.0
         if dropped:
             clamps.append(f"dropped {dropped} evidence quote(s) not found verbatim in the submission")
+        if partial:
+            # RubricGrade (models.py) has no partial_diagnosis field and ignores extras, so the flag
+            # rides in raw_scores (1.0) plus a clamps note; see _observations for the BKT effect.
+            raw_scores[PARTIAL_DIAGNOSIS_KEY] = 1.0
+            clamps.append(f"{PARTIAL_DIAGNOSIS_KEY}: right area, wrong mechanism; node scores capped at "
+                          f"{PARTIAL_DIAGNOSIS_CAP:g} (borderline) instead of {MISDIAGNOSIS_CAP:g}")
         overall = rubric_overall({k: v.score for k, v in dims.items()})
         if raw.overall is not None and abs(raw.overall - overall) > 0.5:
             logger.info("grader overall drift: llm=%.1f code=%.1f", raw.overall, overall)
         drill = [n for n in raw.next_drill_nodes if n in candidates][:3]
         rubric = RubricGrade(
-            dimensions=dims, overall=overall, misdiagnosis=raw.misdiagnosis, strongest_point=raw.strongest_point,
+            dimensions=dims, overall=overall, misdiagnosis=misdiagnosis, strongest_point=raw.strongest_point,
             weakest_point=raw.weakest_point, next_drill_nodes=drill, stated_root_cause=raw.stated_root_cause,
             raw_scores=raw_scores, ceiling_te=ceiling, llm_overall=raw.overall, clamps=clamps,
         )
@@ -1723,11 +1823,18 @@ class Pedagogy:
             submission_id=sid, deterministic=det, rubric=rubric,
             revealed=RevealedTruth(root_cause=gt.root_cause, anomalies=list(gt.anomalies), reference_solution=gt.reference_solution),
         )
-        report.observations = self.graph.observations_from_grade(report, world)
+        report.observations = self._observations(report, world)
         first = not any(r.grade for r in self.persistence.list_submissions(world.case_id) if r.submission_id != sid)
         report.counted_for_mastery = first
         if first:
-            report.skill_updates = self.graph.apply_grade(report, world)
+            if is_partial_diagnosis(report.rubric):
+                report.skill_updates = [
+                    self.graph.update(o.node, o.correct, slip_adjust=o.slip_adjust, case_id=world.case_id,
+                                      score=o.score, outcome=o.outcome)
+                    for o in report.observations
+                ]
+            else:
+                report.skill_updates = self.graph.apply_grade(report, world)
         if not report.rubric.next_drill_nodes:
             report.rubric.next_drill_nodes = [o.node for o in sorted(report.observations, key=lambda o: o.score) if not o.correct][:3]
 
@@ -1737,6 +1844,33 @@ class Pedagogy:
         self.persistence.set_submission_grade(sid, report.model_dump(mode="json"))
         self.persistence.set_case_status(world.case_id, "graded")
         return report
+
+    @staticmethod
+    def _unsupported_metrics(raw: GraderLLM, submission: Submission) -> list[str]:
+        """Asserted metrics the grader marked unsupported, or tied to an evidence name that does
+        not exist in the submission. Metrics the grader did not list are not judged here."""
+        names = {e.name.strip().lower() for e in submission.sql_evidence} | {e.name.strip().lower() for e in submission.python_evidence}
+        out: list[str] = []
+        for ms in raw.metric_support:
+            if ms.metric not in submission.metrics or ms.metric in out:
+                continue
+            ev = ms.evidence.strip().lower()
+            if ev in ("", "unsupported", "none", "null") or ev not in names:
+                out.append(ms.metric)
+        return out
+
+    def _observations(self, report: GradeReport, world: CaseWorld) -> list[Observation]:
+        """BKT observations for the report. A partial diagnosis (right area, wrong mechanism) is
+        mapped to the borderline band: node scores are computed without the 0.45 misdiagnosis cap
+        and capped at :data:`PARTIAL_DIAGNOSIS_CAP` (0.6) instead, so a strong node becomes a
+        softened miss rather than a full miss. ``skill_graph`` is untouched; this wraps it."""
+        if not is_partial_diagnosis(report.rubric):
+            return self.graph.observations_from_grade(report, world)
+        probe = report.model_copy(deep=True)
+        probe.rubric.misdiagnosis = False
+        scores = self.graph.node_scores_from_grade(probe, world)
+        return [self.graph.observation_for_score(nid, self.graph.pillar_of(nid), round(min(s, PARTIAL_DIAGNOSIS_CAP), 6))
+                for nid, s in scores.items()]
 
     # ------------------------------------------------------------------ adversary
 
@@ -1759,6 +1893,7 @@ class Pedagogy:
         for kpis in self.public_kpis(world).values():
             keys.update(kpis)
         keys.update(lv.key for lv in world.ground_truth.decision_levers)
+        keys.update(k[: -len("_cents")] + "_usd" for k in list(keys) if k.endswith("_cents"))
         return keys
 
     def _adversary(self, world: CaseWorld, sid: str, report: GradeReport, user_message: str | None) -> AdversaryTurn:
@@ -1787,9 +1922,9 @@ class Pedagogy:
             persona_name=persona["name"], persona_role=persona["role"], company_name=world.company.name,
             persona_agenda=persona["agenda"], max_rung=str(max_rung), rung=f"{rung} ({challenge})",
             red_herrings_json=_j(gt.red_herrings), socratic_traps_json=_j(traps),
-            levers_json=_j([lv.model_dump(mode="json") for lv in gt.decision_levers]),
-            expected_metrics_json=_j([{"key": m.key, "value": m.value, "unit": m.unit} for m in gt.expected_metrics]),
-            kpis_json=_j(self.public_kpis(world)), overall=f"{report.rubric.overall:g}",
+            levers_json=_j(with_usd([lv.model_dump(mode="json") for lv in gt.decision_levers])),
+            expected_metrics_json=_j(with_usd([{"key": m.key, "value": m.value, "unit": m.unit} for m in gt.expected_metrics])),
+            kpis_json=_j(with_usd(self.public_kpis(world))), overall=f"{report.rubric.overall:g}",
             misdiagnosis=str(report.rubric.misdiagnosis).lower(), weakest_point=report.rubric.weakest_point,
             memo_markdown=memo, history_json=_j(history),
             latest_reply=user_message if user_message is not None else "(none yet: open the meeting)",
@@ -1863,6 +1998,21 @@ class Pedagogy:
                 out_lines.append(" ".join(kept) if kept else line)
         return re.sub(r"\n{3,}", "\n\n", "\n".join(out_lines)).strip(), stripped
 
+    @staticmethod
+    def _lever_context(world: CaseWorld, levers: Sequence[Lever], info: Mapping[str, Any]) -> list[dict[str, Any]]:
+        """Lever definitions for the narrator, each with the ``lag_periods`` of its effects (from
+        ``simulation.model.lever_effects``) and the KPIs it actually moved this quarter, so the
+        narrator can say which decision had no measurable effect yet and why."""
+        effects = (world.simulation.model or {}).get("lever_effects") or []
+        applied = info.get("effects") or []
+        out: list[dict[str, Any]] = []
+        for lv in levers:
+            row = lv.model_dump(mode="json")
+            row["lag_periods"] = sorted({int(e.get("lag_periods", 0) or 0) for e in effects if e.get("lever") == lv.key})
+            row["moved_kpis_this_quarter"] = [a["kpi"] for a in applied if a.get("lever") == lv.key]
+            out.append(row)
+        return out
+
     def advance_quarter(self, world: CaseWorld, submission_id: str, decisions: Mapping[str, float]) -> AdvanceResult:
         """Deterministic transition (:func:`simulate_transition`) then the narrator. Appends to
         ``world.simulation.history`` in place, persists the quarter and returns the updated
@@ -1882,9 +2032,9 @@ class Pedagogy:
         heads = self.headlines(world)
         shock = info["shock"]
         messages = PROMPTS["quarter_narrator"].render(
-            company_name=world.company.name, period=quarter.period, decisions_json=_j(quarter.decisions),
-            levers_json=_j([lv.model_dump(mode="json") for lv in levers]), kpis_prev_json=_j(prev),
-            kpis_now_json=_j(now), headlines_json=_j(heads), shock_json=_j(shock),
+            company_name=world.company.name, period=quarter.period, decisions_json=_j(with_usd(quarter.decisions)),
+            levers_json=_j(with_usd(self._lever_context(world, levers, info))), kpis_prev_json=_j(with_usd(prev)),
+            kpis_now_json=_j(with_usd(now)), headlines_json=_j(with_usd(heads)), shock_json=_j(shock),
             anomaly_active=str(not info["resolved"]).lower(),
         )
         watch: list[dict[str, Any]] = []

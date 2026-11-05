@@ -20,6 +20,7 @@ import type {
   SqlRequest,
   Submission,
   ThreadMessage,
+  WorldStats,
 } from "../api/types";
 import { ARCHETYPES } from "./fixtures/archetypes";
 import { buildCase, CASE_ID } from "./fixtures/case";
@@ -113,10 +114,11 @@ function advance(id: string, req: AdvanceRequest): SimQuarter {
   const terms = d.payment_terms_days ?? 60;
   const strict = d.dunning_strictness ?? 0.3;
   const disc = d.early_pay_discount_pct ?? 0;
+  const paydownUsd = (d.revolver_paydown_cents ?? 0) / 100;
   const dso = Math.max(32, prevDso - 4.1 * Math.log1p(Math.max(0, fte - 2)) * 2 - (60 - terms) * 0.35 - strict * 6 - disc * 300);
   const rev = (last?.kpis.revenue_usd ?? 14_300_000) * (1.045 - (60 - terms) * 0.0008 - strict * 0.01);
   const ar = (rev * dso) / 91;
-  const cash = (last?.kpis.cash_usd ?? 2_000_000) + ((last?.kpis.ar_usd ?? 12_200_000) - ar) * 0.9 - fte * 38_000 - rev * disc * 0.4;
+  const cash = (last?.kpis.cash_usd ?? 2_000_000) + ((last?.kpis.ar_usd ?? 12_200_000) - ar) * 0.9 - fte * 38_000 - rev * disc * 0.4 - paydownUsd;
   const q: SimQuarter = {
     period,
     decisions: d,
@@ -127,6 +129,19 @@ function advance(id: string, req: AdvanceRequest): SimQuarter {
   };
   simHistory.set(id, [...hist, q]);
   return q;
+}
+
+/** Mirrors backend WorldService.world_stats. */
+function worldStats(c: CasePublic): WorldStats {
+  const checks = c.finance.invariants;
+  return {
+    tables: c.database.tables.length,
+    rows: c.database.total_rows || c.database.tables.reduce((s, t) => s + t.row_count, 0),
+    periods: c.periods,
+    invariants_passed: checks.filter((x) => x.passed).length,
+    invariants_total: checks.length,
+    generation_ms: 1842.6,
+  };
 }
 
 type Handler = (m: RegExpMatchArray, body: unknown) => unknown;
@@ -145,6 +160,7 @@ const routes: [string, RegExp, Handler][] = [
   ["GET", /^\/cases\/([^/]+)$/, (m) => getCase(m[1])],
   ["GET", /^\/cases\/([^/]+)\/schema$/, (m) => getCase(m[1]).database],
   ["GET", /^\/cases\/([^/]+)\/session$/, (m) => sessionOf(m[1])],
+  ["GET", /^\/cases\/([^/]+)\/world-stats$/, (m) => worldStats(getCase(m[1]))],
   ["POST", /^\/cases\/([^/]+)\/dossier$/, (m) => (getCase(m[1]), requireLlm(), DOSSIER)],
   ["POST", /^\/cases\/([^/]+)\/textbook$/, (m, b) => {
     const c = getCase(m[1]);

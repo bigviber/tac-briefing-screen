@@ -92,7 +92,11 @@ A `GradeReport` (ARCHITECTURE §5) carries:
 - `deterministic.queries[]` — each reference-query signature with `matched: bool`;
 - `rubric.dimensions` — `technical_execution`, `business_judgment`, `communication`,
   `risk_awareness`, each 0–10 with evidence quotes;
-- `rubric.misdiagnosis: bool`.
+- `rubric.misdiagnosis: bool`;
+- `partial_diagnosis: bool` — the grader's "right area, wrong mechanism" flag. `RubricGrade`
+  has no field for it (and ignores unknown fields), so `Pedagogy.grade` carries it as
+  `rubric.raw_scores["partial_diagnosis"] == 1.0` plus a `rubric.clamps` note; read it with
+  `pedagogy.is_partial_diagnosis(rubric)`. A partial diagnosis always also sets `misdiagnosis`.
 
 Each node in the case's `archetype_nodes` list receives **exactly one observation per
 submission**. The observation is derived from a *node score* `s_k ∈ [0,1]` built from the
@@ -110,9 +114,17 @@ where `det_all` is the fraction of all deterministic items that passed.
 Then:
 
 ```
-if rubric.misdiagnosis: s_k = min(s_k, 0.45)        # wrong root cause caps every node
+if partial_diagnosis:   s_k = min(s_k, 0.60)        # right area, wrong mechanism: borderline at best
+elif rubric.misdiagnosis: s_k = min(s_k, 0.45)      # wrong root cause caps every node
 obs_k = correct  if s_k >= 0.65  else incorrect
 ```
+
+The partial-diagnosis branch lives in `Pedagogy._observations` (pedagogy.py), which wraps
+`SkillGraph`: it computes `node_scores_from_grade` on a copy of the report with `misdiagnosis`
+cleared, caps each score at `PARTIAL_DIAGNOSIS_CAP = 0.6`, thresholds with
+`observation_for_score`, and applies those observations with `SkillGraph.update`. A node that
+would otherwise score ≥ 0.60 therefore lands in the borderline band below (miss with softened
+slip) instead of a full miss; a node that scored < 0.50 on its own stays `incorrect`.
 
 **Partial credit.** BKT needs a binary observation. Rather than inventing a fractional update
 (which breaks the generative model), we apply a *confidence-weighted* update only in the band
@@ -343,6 +355,9 @@ ceiling_te = 10 if det_pass >= 0.9
            = 5  if det_pass >= 0.3
            = 3  otherwise
 rubric.technical_execution = min(rubric.technical_execution, ceiling_te)
+if any asserted metric is "unsupported" in the grader's metric_support (or names an evidence
+   item that is not in the submission):
+    rubric.technical_execution = min(rubric.technical_execution, 5)
 if any critical anomaly's expected metric failed and rubric.misdiagnosis == False:
     rubric.business_judgment = min(rubric.business_judgment, 6)
 overall = 0.35*te + 0.35*bj + 0.15*comm + 0.15*risk   (0–10, one decimal)
@@ -357,7 +372,13 @@ LLM score and the clamped score so the learner can see the cap.
 
 All prompts are Python `str.format` templates: placeholders are `{snake_case}` and literal
 braces in JSON examples are doubled (`{{ }}`). Each prompt has a `SYSTEM` and a `USER` part.
-Every prompt ends with the same anti-hallucination block, defined once:
+Every prompt ends with the same anti-hallucination block, defined once. Its cents line is
+backed by the context: every mapping passed to a prompt goes through `pedagogy.with_usd`, which
+keeps each `<name>_cents` key and adds a sibling `<name>_usd` (dollars, 2 decimals), and for
+objects whose `unit` is cents adds `value_usd` / `min_usd` / `max_usd` / `default_usd` /
+`expected_usd` / `submitted_usd`. The narrator's `LEVER DEFINITIONS` also carry each lever's
+`lag_periods` and `moved_kpis_this_quarter`, which is what lets it name the decision that had no
+measurable effect yet.
 
 ```
 ANTI_HALLUCINATION = """
@@ -366,6 +387,8 @@ NUMERIC DISCIPLINE
   arithmetic combination of such numbers that you show inline (e.g. "DSO rose from 41 to 68
   days (+27)").
 - If you need a number you do not have, write "[not provided]" and do not estimate it.
+- When both a cents and a dollars figure exist for the same quantity, state dollars with the
+  unit, never raw cents (write "$8.5M", not "852,487,846").
 - Never invent names, dates, tables, columns, customers or events that are not in the input.
 - Output ONLY the JSON object requested. No prose before or after. No markdown fences.
 """
@@ -391,7 +414,13 @@ HARD RULES
 5. The ask is ambiguous at the stated difficulty: foundation names the area, practitioner
    names the symptom, principal asks a one-line board question.
 6. Write in present tense, plain business English, no jargon the company would not use.
-7. Length: 900–1400 words of prose across all sections.
+7. Length budget per section: `situation` <= 250 words; `company_background` <= 300 words;
+   each stakeholder artifact `body` 80-180 words; `the_ask` <= 120 words.
+8. At practitioner and principal, do not quote the multi-quarter trajectory of any metric that
+   is itself an ask or an anomaly symptom; quote the latest value only. (The asks are the
+   metrics listed in DELIVERABLE EXPECTED.)
+9. Stakeholder artifacts must disagree with each other on at least one fact that the data room
+   can settle; make the disagreement explicit.
 """ + ANTI_HALLUCINATION
 ```
 
@@ -425,14 +454,14 @@ DELIVERABLE EXPECTED: {deliverable_spec}
 Return JSON:
 {{
   "title": "string (<= 12 words, no company name leak of the mechanism)",
-  "situation": "markdown, 2-3 paragraphs: where the company is today and why this landed on the analyst's desk",
-  "company_background": "markdown, 2 paragraphs grounded in the COMPANY and NARRATIVE HOOKS",
+  "situation": "markdown, 2-3 paragraphs, <= 250 words: where the company is today and why this landed on the analyst's desk",
+  "company_background": "markdown, 2 paragraphs, <= 300 words, grounded in the COMPANY and NARRATIVE HOOKS",
   "stakeholder_artifacts": [
     {{"stakeholder": "name", "role": "role", "format": "email|slack|board_deck|memo",
-      "subject": "string", "body": "markdown in the stakeholder's voice, 80-200 words"}}
+      "subject": "string", "body": "markdown in the stakeholder's voice, 80-180 words"}}
   ],
   "timeline": [{{"period": "2024Q3", "headline": "string", "detail": "string"}}],
-  "the_ask": "markdown: the ambiguous question, scaled to DIFFICULTY",
+  "the_ask": "markdown, <= 120 words: the ambiguous question, scaled to DIFFICULTY",
   "deliverable_spec": "markdown bullet list of what the memo must contain (echo DELIVERABLE EXPECTED)",
   "data_room_index": [{{"table": "name", "note": "one line; at foundation difficulty describe what the table holds, at principal leave note empty"}}],
   "architecture_mermaid": "string or null, passed through unchanged"
@@ -458,11 +487,17 @@ STRUCTURE (markdown, 1200-2000 words)
    run against the tables listed; for business nodes: the spreadsheet/ledger layout.
 5. "Where people go wrong" — 3-5 named failure modes with how to detect them.
 6. "Self-check" — exactly 3 questions; answers in a separate field, never in the chapter body.
+   Question 3 must be numeric: it uses the case's numbers and its answer is a single number
+   with a unit that the reader can check.
 
 RULES
 - Do not mention the case's root cause or any anomaly; teach the skill, not the answer.
 - Use only tables/columns from the provided schema.
 - Every number in the worked example must come from the provided data.
+- Derive each formula from a conservation law or a definition, then show one limiting case where
+  it breaks.
+- For SQL, show the wrong and the right version of one query and name the error (fan-out,
+  timezone, censoring, double counting).
 """ + ANTI_HALLUCINATION
 ```
 
@@ -487,7 +522,7 @@ Return JSON:
   "node_id": "{node_id}",
   "title": "string",
   "chapter_markdown": "string",
-  "self_check": [{{"question": "string", "answer": "string"}}],
+  "self_check": [{{"question": "string (question 3 numeric, using the case's numbers)", "answer": "string"}}],
   "snippets": [{{"language": "sql|python", "purpose": "string", "code": "string"}}]
 }}
 ```
@@ -505,11 +540,15 @@ PROCESS
 1. Read the DETERMINISTIC GRADE first. It is authoritative for every number. Do not re-derive
    numbers; do not dispute it.
 2. Decide `misdiagnosis`: true if the memo's stated root cause is not the GROUND TRUTH root
-   cause or is one of the RED HERRINGS.
-3. Score each dimension using the anchors. Quote the submission as evidence (exact substrings,
+   cause or is one of the RED HERRINGS. Decide `partial_diagnosis`: true if the memo names the
+   right area (the right account, process, cohort or component) but the wrong mechanism; a
+   partial diagnosis is still a misdiagnosis, so set both. A red herring is never partial.
+3. For each asserted metric, name the evidence item (by its name) that produces it, or mark it
+   unsupported; unsupported metrics cannot earn technical_execution above 5.
+4. Score each dimension using the anchors. Quote the submission as evidence (exact substrings,
    <= 200 chars each). List gaps as concrete, checkable statements.
-4. Name the strongest and weakest point in one sentence each.
-5. Recommend 1-3 `next_drill_nodes` from the CANDIDATE NODES list only.
+5. Name the strongest and weakest point in one sentence each.
+6. Recommend 1-3 `next_drill_nodes` from the CANDIDATE NODES list only.
 
 RUBRIC ANCHORS
 {rubric_anchors}
@@ -561,6 +600,8 @@ Return JSON:
   }},
   "overall": 0.0,
   "misdiagnosis": false,
+  "partial_diagnosis": false,
+  "metric_support": [{{"metric": "key from asserted metrics", "evidence": "name of the sql/python evidence item, or unsupported"}}],
   "stated_root_cause": "string: what the learner claimed, in one sentence",
   "strongest_point": "string",
   "weakest_point": "string",
@@ -600,9 +641,16 @@ you only test the analyst's reasoning. You may be wrong on purpose when you push
 STYLE: 60-140 words per turn, first person, no bullet lists, one challenge per turn, end with a
 question unless you are conceding. Cite specific numbers from the data when you challenge.
 
+MEMORY: Do not repeat a challenge the analyst already answered with evidence; reference their
+evidence by name.
+
 LADDER: follow the escalation ladder; your `challenge_type` must be the current rung unless the
 analyst fully answered the previous rung, in which case advance. At the final rung either
 concede (if the analyst's rebuttals were evidence-backed) or escalate the unresolved gap.
+At rung 3 (counter_evidence), cite one number from the public KPIs that superficially
+contradicts the analyst's thesis.
+When you concede, say so visibly in one line that names what you were wrong about (e.g. "I was
+wrong about seasonality.") and set `concedes` true.
 MAX RUNG FOR THIS DIFFICULTY: {max_rung}
 """ + ANTI_HALLUCINATION
 ```
@@ -649,6 +697,7 @@ changes to the decisions taken, and flag what the board should watch. You never 
 STRUCTURE (markdown, 250-400 words): headline (one sentence), what we did (the decisions),
 what happened (KPI deltas with before → after), what it cost / what it earned, what we watch
 next quarter.
+State explicitly which decision had no measurable effect this quarter and why (lag).
 """ + ANTI_HALLUCINATION
 ```
 

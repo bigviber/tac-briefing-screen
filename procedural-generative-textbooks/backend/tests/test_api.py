@@ -161,6 +161,11 @@ def test_settings_put_get_masked(env: Env, caplog: pytest.LogCaptureFixture) -> 
         stored = env.services.persistence.get_llm_settings()
         assert stored is not None and stored.api_key == API_KEY and stored.fast_model == "gpt-4.1-mini"
     assert all(API_KEY not in rec.getMessage() for rec in caplog.records)
+    # DELETE forgets the key; the LLM is unconfigured again and a 428 follows on LLM routes.
+    cleared = env.client.delete(f"{API}/settings/llm")
+    assert cleared.status_code == 200 and cleared.json()["configured"] is False
+    assert env.services.persistence.get_llm_settings() is None
+    assert env.client.get(f"{API}/settings/llm").json()["api_key_set"] is False
 
 
 def test_settings_test_usage_prompts(env: Env) -> None:

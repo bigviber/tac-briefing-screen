@@ -6,8 +6,9 @@ import { useUi } from "../../store/uiStore";
 import { fmtNum } from "../../lib/format";
 import { Mermaid } from "../ui/Mermaid";
 import { FinancialsView } from "./FinancialsView";
+import { OperationsView } from "./OperationsView";
 
-type View = "tables" | "erd" | "financials";
+type View = "tables" | "erd" | "financials" | "operations";
 
 function DirtBadge({ rule }: { rule: string }) {
   const [kind, ...rest] = rule.split(":");
@@ -95,13 +96,13 @@ export function DataRoomTab() {
     <div className="flex flex-col">
       <div className="flex items-center gap-2 border-b border-line px-3 py-1.5">
         <div className="flex rounded border border-line" role="radiogroup" aria-label="Data room view">
-          {(["tables", "erd", "financials"] as View[]).map((v) => (
+          {(["tables", "erd", "financials", "operations"] as View[]).map((v) => (
             <button key={v} role="radio" aria-checked={view === v} onClick={() => setView(v)} className={`h-6 px-2.5 text-xs capitalize ${view === v ? "bg-s3 text-fg" : "text-muted hover:text-fg"}`}>
               {v === "erd" ? "ERD" : v}
             </button>
           ))}
         </div>
-        <span className="ml-auto font-mono text-2xs text-muted">{db.engine} · {db.tables.length} tables · {fmtNum(db.total_rows)} rows</span>
+        <span className="ml-auto min-w-0 truncate whitespace-nowrap font-mono text-2xs text-muted">{db.engine} · {db.tables.length} tables · {fmtNum(db.total_rows)} rows</span>
       </div>
       {view === "erd" && (
         // Large schemas (the generator emits ~14 tables) are unreadable when fit to the pane: scroll instead.
@@ -110,6 +111,7 @@ export function DataRoomTab() {
         </div>
       )}
       {view === "financials" && <FinancialsView />}
+      {view === "operations" && <OperationsView />}
       {view === "tables" && (
         <ul>
           {db.tables.map((t) => (

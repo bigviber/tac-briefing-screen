@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import type { SimQuarter } from "../../api/types";
-import { fmtUnit, humanize, unitFromKey } from "../../lib/format";
+import { fmtCents, fmtUnit, humanize, isCents, unitFromKey } from "../../lib/format";
 
 /** One quarter's outcome: KPI table with deltas plus the narrative. */
 export function SimCard({ q, prev }: { q: SimQuarter; prev?: SimQuarter }) {
@@ -10,7 +10,7 @@ export function SimCard({ q, prev }: { q: SimQuarter; prev?: SimQuarter }) {
       <header className="flex items-center gap-2 border-b border-[#1a2029] px-2.5 py-1">
         <span className="num text-sm font-medium text-fg">{q.period}</span>
         <span className="truncate font-mono text-2xs text-muted">
-          {Object.entries(q.decisions).map(([k, v]) => `${k}=${Number.isInteger(v) ? v : v.toFixed(2)}`).join(" ")}
+          {Object.entries(q.decisions).map(([k, v]) => `${k}=${isCents(k) ? fmtCents(v, { compact: true }) : Number.isInteger(v) ? v : v.toFixed(2)}`).join(" ")}
         </span>
       </header>
       <table className="w-full text-xs">

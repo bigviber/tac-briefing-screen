@@ -1,15 +1,20 @@
 import { Fragment, useState } from "react";
 import { ChevronRight } from "lucide-react";
 import type { MetricResult } from "../../api/types";
-import { fmtUnit } from "../../lib/format";
+import { fmtMetric, isCents } from "../../lib/format";
 
 function tolerance(m: MetricResult): string {
-  if (m.tolerance_abs !== null) return `± ${fmtUnit(m.tolerance_abs, m.unit)}`;
+  if (m.tolerance_abs !== null) return `± ${fmtMetric(m.tolerance_abs, m.unit, m.key)}`;
   if (m.tolerance_rel !== null) return `± ${(m.tolerance_rel * 100).toFixed(0)}%`;
   return "exact";
 }
 
-/** Deterministic grade: submitted vs expected per metric, with derivation reveal. */
+/** Raw value tooltip for cents metrics, so the dollar rendering can be checked against the backend. */
+function rawTitle(m: MetricResult, v: number | null): string | undefined {
+  return v !== null && isCents(m.key, m.unit) ? `${v.toLocaleString("en-US")} cents` : undefined;
+}
+
+/** Deterministic grade: submitted vs expected per metric (cents metrics in dollars), with derivation reveal. */
 export function MetricTable({ results }: { results: MetricResult[] }) {
   const [open, setOpen] = useState<string | null>(null);
   return (
@@ -37,8 +42,8 @@ export function MetricTable({ results }: { results: MetricResult[] }) {
                       {m.key}
                     </button>
                   </td>
-                  <td className={`num text-right ${m.submitted === null ? "text-muted" : "text-fg"}`}>{fmtUnit(m.submitted, m.unit)}</td>
-                  <td className="num text-right text-fg">{fmtUnit(m.expected, m.unit)}</td>
+                  <td className={`num text-right ${m.submitted === null ? "text-muted" : "text-fg"}`} title={rawTitle(m, m.submitted)}>{fmtMetric(m.submitted, m.unit, m.key)}</td>
+                  <td className="num text-right text-fg" title={rawTitle(m, m.expected)}>{fmtMetric(m.expected, m.unit, m.key)}</td>
                   <td className="num text-right text-muted">{tolerance(m)}</td>
                   <td className="text-center">
                     <span className={`chip ${m.within_tolerance ? "border-ok/40 text-ok" : "border-bad/40 text-bad"}`}>

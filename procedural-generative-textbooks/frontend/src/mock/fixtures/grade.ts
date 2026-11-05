@@ -3,7 +3,7 @@ import type { GradeReport, MetricResult, QuerySignatureMatch, Submission } from 
 const EXPECTED: Omit<MetricResult, "submitted" | "within_tolerance">[] = [
   { key: "dso_2024q4", expected: 77.6, unit: "days", tolerance_abs: 2, tolerance_rel: null, derivation: "Deduplicated open AR at 2024-12-31 ($12.20M, legacy dollar rows ×100) ÷ 2024Q4 revenue ($14.30M) × 91.", pillar: "accounting_finance", anomaly_ids: ["A1", "A3"] },
   { key: "ar_over_90_pct", expected: 0.31, unit: "pct", tolerance_abs: 0.03, tolerance_rel: null, derivation: "Open AR with due_date < 2024-10-02 ($3.78M) ÷ total open AR ($12.20M).", pillar: "sql", anomaly_ids: ["A1"] },
-  { key: "cash_trapped_usd", expected: 5_130_000, unit: "usd", tolerance_abs: null, tolerance_rel: 0.05, derivation: "$12.20M − (45 ÷ 91 × $14.30M) = $5.13M above a 45-day DSO.", pillar: "accounting_finance", anomaly_ids: ["A1"] },
+  { key: "cash_trapped_in_ar_cents", expected: 513_000_000, unit: "cents", tolerance_abs: null, tolerance_rel: 0.05, derivation: "$12.20M − (45 ÷ 91 × $14.30M) = $5.13M above a 45-day DSO.", pillar: "accounting_finance", anomaly_ids: ["A1"] },
   { key: "ramp_concessions_usd", expected: 1_920_000, unit: "usd", tolerance_abs: null, tolerance_rel: 0.05, derivation: "SUM(credit_memos.amount_cents) where TRIM(LOWER(reason)) = 'ramp concession' and issued_at in 2024H2.", pillar: "sql", anomaly_ids: ["A2"] },
 ];
 

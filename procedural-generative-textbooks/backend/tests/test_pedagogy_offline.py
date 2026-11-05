@@ -19,10 +19,11 @@ from axiom.engine.pedagogy import (
     rung_for,
     simulate_transition,
     te_ceiling,
+    with_usd,
 )
 from axiom.models import CaseWorld, LLMSettings, Submission
 from axiom.persistence import Persistence
-from axiom.skill_graph import SkillGraph, bkt_update
+from axiom.skill_graph import BORDERLINE_SLIP_BUMP, SkillGraph, bkt_update
 from tests.world_factory import load_fixture, make_minimal_world
 
 CONCEAL = "the 2024Q3 move to 90-day payment terms for the top-20 accounts"
@@ -293,6 +294,97 @@ def test_bkt_applied_only_once_per_case() -> None:
     assert env.graph.mastery_all() == after_first
     assert second.observations  # still reported for feedback
     assert len(env.db.list_submissions(world.case_id)) == 2
+
+
+def test_partial_diagnosis_maps_to_borderline_band() -> None:
+    world = make_minimal_world()
+    _, fx = fixture_submission("good_submission_working_capital", world)
+    rubric = json.loads(json.dumps(fx["fake_rubric"]))
+    rubric["misdiagnosis"] = False  # grader sets only the partial flag; code normalises
+    rubric["partial_diagnosis"] = True
+    env = Env({"grader": rubric, "adversary": adversary_reply()})
+    priors = {n: env.graph.mastery(n) for n in world.skill_nodes}
+    report = env.ped.grade(world, wc_submission(world))
+    assert report.rubric.misdiagnosis is True
+    assert report.rubric.raw_scores["partial_diagnosis"] == 1.0
+    assert any(c.startswith("partial_diagnosis:") for c in report.rubric.clamps)
+    # the good fixture scores every node >= 0.65 uncapped, so 0.6 lands each in the borderline band
+    assert all(o.score == 0.6 and o.outcome == "borderline" for o in report.observations)
+    assert {u.node for u in report.skill_updates} == set(world.skill_nodes)
+    for u in report.skill_updates:
+        expected = bkt_update(priors[u.node], False, env.graph.params(u.node), slip_adjust=BORDERLINE_SLIP_BUMP)
+        assert u.after == pytest.approx(expected, abs=1e-6)
+    stored = env.db.get_submission(report.submission_id)
+    assert stored is not None and stored.grade["rubric"]["raw_scores"]["partial_diagnosis"] == 1.0  # type: ignore[index]
+
+    # the same rubric as a full misdiagnosis: capped at 0.45 and a plain miss
+    rubric["partial_diagnosis"] = False
+    rubric["misdiagnosis"] = True
+    env2 = Env({"grader": rubric, "adversary": adversary_reply()})
+    full = env2.ped.grade(world, wc_submission(world))
+    assert "partial_diagnosis" not in full.rubric.raw_scores
+    assert all(o.score <= 0.45 and o.outcome == "incorrect" for o in full.observations)
+
+
+def test_unsupported_metric_caps_technical_execution() -> None:
+    world = make_minimal_world()
+    _, fx = fixture_submission("good_submission_working_capital", world)
+    rubric = json.loads(json.dumps(fx["fake_rubric"]))
+    rubric["metric_support"] = [
+        {"metric": "dso_latest", "evidence": "dso_by_period"},
+        {"metric": "dso_baseline", "evidence": "unsupported"},
+        {"metric": "cash_trapped_in_ar_cents", "evidence": "a query that does not exist"},
+        {"metric": "not_asserted", "evidence": "unsupported"},
+    ]
+    env = Env({"grader": rubric, "adversary": adversary_reply()})
+    report = env.ped.grade(world, wc_submission(world))
+    assert report.rubric.raw_scores["technical_execution"] == 9
+    assert report.rubric.dimensions["technical_execution"].score == 5
+    clamp = next(c for c in report.rubric.clamps if "unsupported metric" in c)
+    assert "dso_baseline" in clamp and "cash_trapped_in_ar_cents" in clamp and "not_asserted" not in clamp
+    rubric["metric_support"] = [{"metric": "dso_latest", "evidence": "DSO_by_period"}]
+    ok = Env({"grader": rubric, "adversary": adversary_reply()}).ped.grade(world, wc_submission(world))
+    assert ok.rubric.dimensions["technical_execution"].score == 9
+
+
+def test_with_usd_adds_dollar_renderings() -> None:
+    ctx = with_usd({
+        "2024Q4": {"revenue_cents": 2_100_000_000.0, "dso": 68.0},
+        "metrics": [{"key": "q4_revenue_cents", "value": 1_830_000_000, "unit": "cents"},
+                    {"key": "dso_latest", "value": 70.0, "unit": "days"}],
+        "lever": {"key": "credit_line_cents", "min": 0, "max": 50_000_000, "default": 0, "unit": "cents"},
+        "flag_cents": True,
+    })
+    assert ctx["2024Q4"] == {"revenue_cents": 2_100_000_000.0, "revenue_usd": 21_000_000.0, "dso": 68.0}
+    assert ctx["metrics"][0]["value_usd"] == 18_300_000.0 and "value_usd" not in ctx["metrics"][1]
+    assert ctx["lever"]["max_usd"] == 500_000.0 and ctx["lever"]["min_usd"] == 0.0
+    assert "flag_usd" not in ctx  # booleans are not amounts
+
+    world = make_minimal_world()
+    env = Env({"case_synthesizer": dossier_payload()})
+    env.ped.synthesize_dossier(world)
+    prompt = env.transport.requests[0]["messages"][-1]["content"]
+    assert '"revenue_cents":2100000000.0' in prompt and '"revenue_usd":21000000.0' in prompt
+    assert '"ending_cash_usd":1200000.0' in prompt
+    system = env.transport.requests[0]["messages"][0]["content"]
+    assert "never raw cents" in system
+
+
+def test_narrator_gets_lever_lags() -> None:
+    world = make_minimal_world()
+    _, fx = fixture_submission("good_submission_working_capital", world)
+    env = Env({"grader": fx["fake_rubric"], "adversary": adversary_reply(),
+               "quarter_narrator": {"narrative_markdown": NARRATIVE, "watch_items": []}})
+    report = env.ped.grade(world, wc_submission(world))
+    env.ped.advance_quarter(world, report.submission_id, {"terms_days": 45})
+    msgs = env.transport.requests[-1]["messages"]
+    levers = json.loads(msgs[-1]["content"].split("LEVER DEFINITIONS: ", 1)[1].split("\n", 1)[0])
+    by_key = {lv["key"]: lv for lv in levers}
+    assert by_key["terms_days"]["lag_periods"] == [0, 1]
+    assert by_key["terms_days"]["moved_kpis_this_quarter"] == ["dso"]  # revenue effect lags one quarter
+    assert by_key["early_pay_discount_pct"]["moved_kpis_this_quarter"] == []
+    assert "no measurable effect" in msgs[0]["content"]
+    assert '"cash_usd"' in msgs[-1]["content"]
 
 
 # --------------------------------------------------------------------------- leak check

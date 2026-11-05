@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { StatementLine } from "../../api/types";
 import { useCase } from "../../store/caseStore";
-import { fmtCents, fmtPct } from "../../lib/format";
+import { fmtCents, fmtRatio } from "../../lib/format";
 
 type Stmt = "income" | "balance" | "cash_flow" | "ratios";
 const LABEL: Record<Stmt, string> = { income: "Income", balance: "Balance", cash_flow: "Cash flow", ratios: "Ratios" };
@@ -16,15 +16,13 @@ export function FinancialsView() {
 
   let rows: { caption: string; level: number; values: string[] }[] = [];
   if (stmt === "ratios") {
-    const keys = Object.keys(st.ratios[periods[0]] ?? {});
+    // Union of keys across periods: a ratio missing in the first period still gets a row.
+    const keys = [...new Set(periods.flatMap((p) => Object.keys(st.ratios[p] ?? {})))];
     rows = keys.map((k) => ({
       caption: k,
       level: 0,
-      values: periods.map((p) => {
-        const v = st.ratios[p]?.[k];
-        if (v === undefined) return "—";
-        return /margin|pct/.test(k) ? fmtPct(v) : v.toFixed(1);
-      }),
+      // null (not meaningful, e.g. interest coverage with no interest) and the legacy 999.0 sentinel render "n/m".
+      values: periods.map((p) => fmtRatio(k, st.ratios[p]?.[k])),
     }));
   } else {
     const list = st[stmt] as { period: string; lines: StatementLine[] }[];

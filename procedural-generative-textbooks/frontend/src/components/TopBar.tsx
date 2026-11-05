@@ -1,12 +1,54 @@
+import { useEffect, useState } from "react";
 import { ChevronRight, Command, LayoutDashboard, Settings } from "lucide-react";
+import type { WorldStats } from "../api/types";
 import type { Route } from "../lib/route";
 import { navigate } from "../lib/route";
-import { humanize } from "../lib/format";
-import { isMockMode } from "../api/client";
+import { fmtNum, humanize } from "../lib/format";
+import { api, isMockMode } from "../api/client";
 import { useCase } from "../store/caseStore";
 import { useCatalog } from "../store/catalogStore";
 import { useUi } from "../store/uiStore";
 import { Kbd, StatusPill } from "./ui/primitives";
+
+/** `GET /cases/{id}/world-stats`, refetched when the case changes; null while loading or on error. */
+function useWorldStats(caseId: string | null): WorldStats | null {
+  const [stats, setStats] = useState<{ id: string; data: WorldStats } | null>(null);
+  useEffect(() => {
+    if (!caseId) return;
+    let live = true;
+    api.worldStats(caseId).then(
+      (data) => { if (live) setStats({ id: caseId, data }); },
+      () => { if (live) setStats(null); },
+    );
+    return () => { live = false; };
+  }, [caseId]);
+  return stats && stats.id === caseId ? stats.data : null;
+}
+
+/** Compact size/health strip for the generated world: tables · rows · invariants n/n · generation ms. */
+function WorldStatsStrip({ s }: { s: WorldStats }) {
+  const ok = s.invariants_passed === s.invariants_total;
+  const ms = s.generation_ms;
+  return (
+    <span
+      className="hidden items-center gap-1.5 whitespace-nowrap font-mono text-2xs text-muted lg:flex"
+      title={`World: ${s.tables} tables, ${s.rows.toLocaleString("en-US")} rows, ${s.invariants_passed}/${s.invariants_total} ledger invariants hold${s.periods.length ? `, ${s.periods[0]}–${s.periods[s.periods.length - 1]}` : ""}${ms !== null ? `, generated in ${ms.toLocaleString("en-US")} ms` : ""}`}
+      aria-label="World stats"
+    >
+      <span><span className="text-fg">{s.tables}</span> tables</span>
+      <span aria-hidden>·</span>
+      <span><span className="text-fg">{fmtNum(s.rows)}</span> rows</span>
+      <span aria-hidden>·</span>
+      <span className={ok ? "text-ok" : "text-bad"}>{ok ? "✓" : "✗"} {s.invariants_passed}/{s.invariants_total} inv</span>
+      {ms !== null && (
+        <>
+          <span aria-hidden>·</span>
+          <span><span className="text-fg">{ms >= 10_000 ? fmtNum(ms) : Math.round(ms)}</span> ms</span>
+        </>
+      )}
+    </span>
+  );
+}
 
 export function TopBar({ route }: { route: Route }) {
   const c = useCase((s) => s.caseData);
@@ -17,6 +59,7 @@ export function TopBar({ route }: { route: Route }) {
   const setSettings = useUi((s) => s.setSettings);
   const showCase = route.name === "case" && c && c.case_id === route.id;
   const status = grade ? "graded" : c?.status ?? "generated";
+  const stats = useWorldStats(showCase && c ? c.case_id : null);
 
   return (
     <header className="flex h-10 shrink-0 items-center gap-3 border-b border-line bg-s1 px-3">
@@ -47,6 +90,7 @@ export function TopBar({ route }: { route: Route }) {
         )}
       </nav>
       <div className="ml-auto flex items-center gap-1.5">
+        {showCase && stats && <WorldStatsStrip s={stats} />}
         {isMockMode() && <span className="chip border-warn/40 text-warn">MOCK</span>}
         <span
           className="flex items-center gap-1.5 px-1 text-2xs text-muted"

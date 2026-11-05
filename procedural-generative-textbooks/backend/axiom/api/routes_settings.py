@@ -52,6 +52,17 @@ async def put_llm_settings(body: LLMSettings, services: AppServices = Depends(ge
     return LLMSettingsView.build(await run_in_threadpool(_put))
 
 
+@router.delete("/llm", response_model=LLMSettingsView)
+async def clear_llm_settings(services: AppServices = Depends(get_services)) -> LLMSettingsView:
+    """Forget the stored API key and models; the next request sees an unconfigured LLM."""
+
+    def _clear() -> LLMSettings:
+        services.persistence.clear_llm_settings()
+        return services.llm_settings()
+
+    return LLMSettingsView.build(await run_in_threadpool(_clear))
+
+
 @router.post("/llm/test", response_model=LLMTestResult)
 async def test_llm(services: AppServices = Depends(get_services)) -> LLMTestResult:
     """One tiny completion against the configured fast model."""

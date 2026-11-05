@@ -394,6 +394,14 @@ class Persistence:
             )
         logger.info("llm settings updated: provider=%s fast=%s deep=%s", settings.provider, settings.fast_model, settings.deep_model)
 
+    def clear_llm_settings(self) -> bool:
+        """Delete the stored LLM settings row. Returns True if a row existed."""
+        with self._tx() as conn:
+            cur = conn.execute("DELETE FROM llm_settings WHERE id = 1")
+            removed = cur.rowcount > 0
+        logger.info("llm settings cleared")
+        return removed
+
     def record_usage(self, record: LLMUsageRecord) -> int:
         """Append an LLM usage row. Returns the row id."""
         with self._tx() as conn:

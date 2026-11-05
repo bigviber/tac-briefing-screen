@@ -29,6 +29,7 @@ import type {
   SqlResult,
   Submission,
   TextbookChapter,
+  WorldStats,
 } from "./types";
 
 export const API_BASE: string = import.meta.env.VITE_API_BASE ?? "/api/v1";
@@ -128,6 +129,7 @@ export const api = {
   getCase: (id: string) => request<CasePublic>("GET", `/cases/${enc(id)}`),
   getSchema: (id: string) => request<DatabaseSpec>("GET", `/cases/${enc(id)}/schema`),
   session: (id: string) => request<SessionState>("GET", `/cases/${enc(id)}/session`),
+  worldStats: (id: string) => request<WorldStats>("GET", `/cases/${enc(id)}/world-stats`),
 
   dossier: (id: string, force = false) => request<Dossier>("POST", `/cases/${enc(id)}/dossier`, { force }),
   dossierStream: (id: string, force: boolean, onDelta?: DeltaHandler) =>

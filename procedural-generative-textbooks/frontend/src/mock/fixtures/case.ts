@@ -108,6 +108,9 @@ function buildStatements(): FinancialStatements {
       ccc: Number((dsoPath[i] - (ap / cogs) * 91).toFixed(1)),
       gross_margin: Number((gp / rev).toFixed(3)),
       current_ratio: Number(((cash + ar + prepaid) / (ap + accrued + dr + revolver)).toFixed(2)),
+      // Not meaningful before the revolver is drawn (zero interest expense): the backend now sends
+      // null; older worlds carry the 999.0 sentinel (2023Q4 here). Both render "n/m".
+      interest_coverage: interest === 0 ? (period === "2023Q4" ? 999.0 : null) : Number((opInc / interest).toFixed(1)),
     };
     prev = { cash, ar, prepaid, ppe, ap, accrued, dr, revolver, re };
   });
@@ -117,7 +120,8 @@ function buildStatements(): FinancialStatements {
 export const ASKS: Ask[] = [
   { key: "dso_2024q4", label: "DSO, 2024Q4", unit: "days", hint: "Ending AR ÷ quarterly revenue × 91. Clean duplicate and dollar-denominated invoices first." },
   { key: "ar_over_90_pct", label: "AR > 90 days past due", unit: "pct", hint: "Share of open AR (by value) more than 90 days past due at 2024-12-31." },
-  { key: "cash_trapped_usd", label: "Excess cash trapped in AR", unit: "usd", hint: "AR above what a 45-day DSO would imply at 2024Q4 revenue." },
+  // Backend asks for money keep the `_cents` key and unit "cents"; the UI takes dollars and converts.
+  { key: "cash_trapped_in_ar_cents", label: "Excess cash trapped in AR", unit: "cents", hint: "AR above what a 45-day DSO would imply at 2024Q4 revenue." },
   { key: "ramp_concessions_usd", label: "Ramp concessions, 2024H2", unit: "usd", hint: "Credit memos tagged as ramp concessions issued Jul–Dec 2024." },
 ];
 
@@ -126,6 +130,7 @@ export const LEVERS: Lever[] = [
   { key: "payment_terms_days", label: "Default payment terms", min: 15, max: 90, default: 60, unit: "days", effect: "Shorter terms reduce DSO; enterprise win rate falls below 45 days." },
   { key: "dunning_strictness", label: "Dunning strictness", min: 0, max: 1, default: 0.3, unit: "index", effect: "Stricter dunning lowers 90+ AR and raises logo churn slightly." },
   { key: "early_pay_discount_pct", label: "Early-pay discount", min: 0, max: 0.03, default: 0, unit: "pct", effect: "2/10 net 30 style discount; accelerates cash at a margin cost." },
+  { key: "revolver_paydown_cents", label: "Revolver paydown", min: 0, max: 300_000_000, default: 0, unit: "cents", effect: "Repay drawn revolver from cash; lowers interest, tightens liquidity." },
 ];
 
 const statements = buildStatements();
@@ -137,7 +142,7 @@ PERIODS.forEach((p, i) => {
     nrr: Number((1.12 - i * 0.006).toFixed(3)),
     gross_churn_monthly: Number((0.009 + i * 0.0006).toFixed(4)),
     collection_rate: Number((0.97 - i * 0.031).toFixed(3)),
-    dso: statements.ratios[p].dso,
+    dso: statements.ratios[p].dso ?? 0,
   };
 });
 
@@ -171,7 +176,12 @@ export function buildCase(overrides: Partial<CasePublic> = {}): CasePublic {
       ],
     },
     operations: {
-      stations: [], queueing: {}, cohorts: [], supply_chain: {}, pricing: {},
+      // utilization > 1 is physically impossible; kept here so the data room proves it renders such values as-is.
+      stations: [
+        { name: "Invoice review", capacity_per_hour: 42, utilization: 0.81, wip: 36, cycle_time: 1.1 },
+        { name: "Collections follow-up", capacity_per_hour: 18, utilization: 1.07, wip: 412, cycle_time: 22.9 },
+      ],
+      queueing: { arrival_rate_per_hour: 19.3 }, cohorts: [], supply_chain: {}, pricing: {},
       unit_economics: { cac: 18400, ltv: 96100, payback_months: 17.2, gross_margin: 0.74, arpa: 2580, churn_monthly: 0.013 },
       kpis_by_period: kpis,
     },

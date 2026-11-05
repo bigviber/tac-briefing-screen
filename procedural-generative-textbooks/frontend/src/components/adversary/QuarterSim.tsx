@@ -1,11 +1,11 @@
 import { FastForward, LineChart as LineIcon } from "lucide-react";
 import { useCase } from "../../store/caseStore";
-import { fmtCents } from "../../lib/format";
+import { fmtCents, isCents } from "../../lib/format";
 import { SimCard, KpiTrend } from "./SimCharts";
 
-function leverDisplay(v: number, unit: string): string {
+function leverDisplay(v: number, unit: string, key: string): string {
   if (unit === "pct") return `${(v * 100).toFixed(1)}%`;
-  if (unit === "cents") return fmtCents(v, { compact: true });
+  if (isCents(key, unit)) return `${fmtCents(v, { compact: true })} USD`;
   if (unit.startsWith("%")) return `${Number.isInteger(v) ? v : v.toFixed(1)}${unit}`;
   if (unit === "index") return v.toFixed(2);
   return `${Number.isInteger(v) ? v : v.toFixed(1)} ${unit}`;
@@ -35,12 +35,13 @@ export function QuarterSim() {
           {levers.length === 0 && <div className="text-xs text-muted">This case exposes no decision levers.</div>}
           {levers.map((l) => {
             const v = values[l.key] ?? l.default;
-            const step = l.unit === "FTE" || l.unit === "days" ? 1 : (l.max - l.min) / 100;
+            // Cents levers step in whole dollars at least (the slider value stays in cents).
+            const step = l.unit === "FTE" || l.unit === "days" ? 1 : isCents(l.key, l.unit) ? Math.max(100, Math.round((l.max - l.min) / 100)) : (l.max - l.min) / 100;
             return (
               <div key={l.key} title={l.effect}>
                 <div className="flex items-baseline justify-between text-xs">
                   <label htmlFor={`lever-${l.key}`} className="text-fg">{l.label}</label>
-                  <span className="num text-accent">{leverDisplay(v, l.unit)}</span>
+                  <span className="num text-accent">{leverDisplay(v, l.unit, l.key)}</span>
                 </div>
                 <input
                   id={`lever-${l.key}`}
@@ -53,9 +54,9 @@ export function QuarterSim() {
                   className="h-4 w-full accent-[#5b8def]"
                 />
                 <div className="flex justify-between gap-2 font-mono text-2xs text-[#4a5466]">
-                  <span className="shrink-0 whitespace-nowrap">{leverDisplay(l.min, l.unit)}</span>
+                  <span className="shrink-0 whitespace-nowrap">{leverDisplay(l.min, l.unit, l.key)}</span>
                   <span className="min-w-0 truncate font-sans text-muted">{l.effect}</span>
-                  <span className="shrink-0 whitespace-nowrap">{leverDisplay(l.max, l.unit)}</span>
+                  <span className="shrink-0 whitespace-nowrap">{leverDisplay(l.max, l.unit, l.key)}</span>
                 </div>
               </div>
             );

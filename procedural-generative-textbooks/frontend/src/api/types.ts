@@ -137,7 +137,8 @@ export interface FinancialStatements {
   income: IncomeStatement[];
   balance: BalanceSheet[];
   cash_flow: CashFlowStatement[];
-  ratios: Record<string, Record<string, number>>;
+  /** `null` = not meaningful (e.g. interest coverage with zero interest expense); renders "n/m". */
+  ratios: Record<string, Record<string, number | null>>;
 }
 
 export interface InvariantCheck {
@@ -320,6 +321,16 @@ export interface CaseSummary {
 }
 
 // ---------------------------------------------------------------- §5 / §11 endpoints
+
+/** `GET /cases/{id}/world-stats` (backend/axiom/api/schemas.py WorldStats). */
+export interface WorldStats {
+  tables: number;
+  rows: number;
+  periods: string[];
+  invariants_passed: number;
+  invariants_total: number;
+  generation_ms: number | null;
+}
 
 export interface Health {
   status: string;

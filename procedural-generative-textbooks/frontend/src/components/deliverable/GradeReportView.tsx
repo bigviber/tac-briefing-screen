@@ -36,11 +36,16 @@ export function GradeReportView({ report }: { report: GradeReport }) {
         />
         <Stat label="Submission" value={report.submission_id} tone="text-muted" />
         <div className="flex flex-col justify-center gap-0.5 bg-s1 px-3 py-1.5 text-xs">
-          {r.misdiagnosis && (
+          {/* partial_diagnosis rides in raw_scores (RubricGrade has no field for it): right area, wrong mechanism. */}
+          {r.misdiagnosis && r.raw_scores.partial_diagnosis === 1 ? (
+            <div className="flex items-center gap-1 font-medium text-warn" title="Mastery counts this as a borderline miss (reduced penalty), not a full miss.">
+              <AlertOctagon size={12} aria-hidden /> Partial diagnosis: right area, wrong mechanism
+            </div>
+          ) : r.misdiagnosis ? (
             <div className="flex items-center gap-1 font-medium text-bad">
               <AlertOctagon size={12} aria-hidden /> Misdiagnosis: root cause not identified
             </div>
-          )}
+          ) : null}
           <div className="truncate" title={r.strongest_point}><span className="text-ok">▲ </span>{r.strongest_point}</div>
           <div className="truncate" title={r.weakest_point}><span className="text-bad">▼ </span>{r.weakest_point}</div>
         </div>
