@@ -1,0 +1,61 @@
+pid 15352
+61
+      2 e.StateMachines
+      1 stack_manager
+      1 queued-work-loo
+      1 media_worker
+      1 hci_thread
+      1 eadsetClient.SM
+      1 droid.bluetooth
+      1 btu message loo
+      1 btif_sock_poll
+      1 btif_sock
+      1 btif_a2dp_sink_
+      1 bt_workqueue
+      1 arch_disk_io_2
+      1 arch_disk_io_1
+      1 arch_disk_io_0
+      1 alarm_dispatche
+      1 alarm_default_c
+      1 Thread-9
+      1 Thread-8
+      1 Thread-7
+      1 Thread-6
+      1 Thread-5
+      1 Signal Catcher
+      1 SapAcceptThread
+      1 ReferenceQueueD
+      1 Profile Saver
+      1 PbapHandlerThre
+      1 PbapClientState
+      1 POSIX timer 1
+      1 POSIX timer 0
+      1 PBAP PCE handle
+      1 Jit thread pool
+      1 HwBinder:15352_
+      1 HeapTaskDaemon
+      1 FinalizerWatchd
+      1 FinalizerDaemon
+      1 BondStateMachin
+      1 BluetoothScanMa
+      1 BluetoothMapHan
+/data/user_de/0/com.android.bluetooth/databases/bluetooth_db-shm
+/dev/__properties__/u:object_r:binder_cache_bluetooth_server_prop:s0
+/dev/__properties__/u:object_r:bluetooth_a2dp_offload_prop:s0
+/dev/__properties__/u:object_r:bluetooth_prop:s0
+/dev/__properties__/u:object_r:exported_bluetooth_prop:s0
+/dev/__properties__/u:object_r:vendor_bluetooth_prop:s0
+/system/lib64/android.hardware.bluetooth@1.0.so
+/system/lib64/libaaudio.so
+/system/lib64/libaaudio_internal.so
+/system/lib64/libaudioclient.so
+/system/lib64/libaudioeffect_jni.so
+/system/lib64/libaudiofoundation.so
+/system/lib64/libaudiomanager.so
+/system/lib64/libaudiopolicy.so
+/system/lib64/libaudioutils.so
+/system/lib64/libbluetooth-binder.so
+/system/lib64/libbluetooth_qti_jni.so
+/system_ext/lib64/com.qualcomm.qti.bluetooth_audio@1.0.so
+/system_ext/lib64/libbluetooth_qti.so
+/system_ext/lib64/vendor.qti.hardware.bluetooth_audio@2.0.so
