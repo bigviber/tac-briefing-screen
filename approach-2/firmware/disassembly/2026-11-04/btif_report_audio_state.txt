@@ -1,0 +1,106 @@
+
+==== _ZL23btif_report_audio_state18btav_audio_state_tP10RawAddress @ 0x1ba9dc size=0x1a0
+0x001ba9dc: str	x30, [x18], #8
+0x001ba9e0: stp	x29, x30, [sp, #-0x30]!
+0x001ba9e4: str	x21, [sp, #0x10]
+0x001ba9e8: stp	x20, x19, [sp, #0x20]
+0x001ba9ec: mov	x29, sp
+0x001ba9f0: adrp	x21, #0x3f6000
+0x001ba9f4: ldr	x8, [x21, #0xa70]  ; [0x3f6a70]
+0x001ba9f8: mov	x19, x1
+0x001ba9fc: mov	w20, w0
+0x001baa00: cbz	x8, #0x1baa48
+0x001baa04: ldr	x8, [x8, #0x10]
+0x001baa08: cbz	x8, #0x1baa9c
+0x001baa0c: adrp	x8, #0x3db000
+0x001baa10: ldrb	w8, [x8, #0xb01]  ; [0x3dbb01]
+0x001baa14: adrp	x1, #0x26000
+0x001baa18: adrp	x2, #0x49000
+0x001baa1c: adrp	x3, #0x5b000
+0x001baa20: adrp	x4, #0x55000
+0x001baa24: add	x1, x1, #0xe8  ; "%s: HAL %s->%s"
+0x001baa28: add	x2, x2, #0xf9e  ; "btif_report_audio_state"
+0x001baa2c: add	x3, x3, #0xb00  ; "bt_av_sink_callbacks"
+0x001baa30: add	x4, x4, #0xd36  ; "audio_state_cb"
+0x001baa34: mov	w0, #0x502
+0x001baa38: cmp	w8, #3
+0x001baa3c: b.lo	#0x1baad0
+0x001baa40: bl	#0x101b38  -> LogMsg
+0x001baa44: b	#0x1baad4
+0x001baa48: adrp	x21, #0x3f6000
+0x001baa4c: ldr	x8, [x21, #0xa08]  ; [0x3f6a08]
+0x001baa50: cbz	x8, #0x1bab14
+0x001baa54: ldr	x8, [x8, #0x10]  ; [0x3db010]
+0x001baa58: cbz	x8, #0x1bab28
+0x001baa5c: adrp	x8, #0x3db000
+0x001baa60: ldrb	w8, [x8, #0xb01]  ; [0x3dbb01]
+0x001baa64: adrp	x1, #0x26000
+0x001baa68: adrp	x2, #0x49000
+0x001baa6c: adrp	x3, #0x23000
+0x001baa70: adrp	x4, #0x55000
+0x001baa74: add	x1, x1, #0xe8  ; "%s: HAL %s->%s"
+0x001baa78: add	x2, x2, #0xf9e  ; "btif_report_audio_state"
+0x001baa7c: add	x3, x3, #0x319  ; "bt_av_src_callbacks"
+0x001baa80: add	x4, x4, #0xd36  ; "audio_state_cb"
+0x001baa84: mov	w0, #0x502
+0x001baa88: cmp	w8, #3
+0x001baa8c: b.lo	#0x1bab70
+0x001baa90: bl	#0x101b38  -> LogMsg
+0x001baa94: ldr	x8, [x21, #0xa08]  ; [0x3f6a08]
+0x001baa98: b	#0x1baad8
+0x001baa9c: adrp	x1, #0x4f000
+0x001baaa0: adrp	x2, #0x3a000
+0x001baaa4: adrp	x3, #0x73000
+0x001baaa8: adrp	x4, #0x49000
+0x001baaac: adrp	x6, #0x76000
+0x001baab0: add	x1, x1, #0xc8c  ; "btif_av"
+0x001baab4: add	x2, x2, #0xc30  ; "### ASSERT : %s %s line %d %s (%d) ###"
+0x001baab8: add	x3, x3, #0xb47  ; "vendor/qcom/opensource/commonsys/system/bt/btif/src/btif_av.cc"
+0x001baabc: add	x4, x4, #0xf9e  ; "btif_report_audio_state"
+0x001baac0: add	x6, x6, #0xc58  ; "Callback is NULL"
+0x001baac4: mov	w0, #6
+0x001baac8: mov	w5, #0x250
+0x001baacc: b	#0x1bab58
+0x001baad0: bl	#0x101d1c  -> vnd_LogMsg
+0x001baad4: ldr	x8, [x21, #0xa70]  ; [0x3f6a70]
+0x001baad8: ldr	x1, [x8, #0x10]  ; [0x3db010]
+0x001baadc: mov	x0, #0xb156
+0x001baae0: movk	x0, #0x861, lsl #16
+0x001baae4: movk	x0, #0x55c7, lsl #32
+0x001baae8: movk	x0, #0xdcc2, lsl #48
+0x001baaec: str	x1, [x29, #0x18]
+0x001baaf0: bl	#0x3cf680
+0x001baaf4: mov	x0, x19
+0x001baaf8: mov	w1, w20
+0x001baafc: ldr	x2, [x29, #0x18]
+0x001bab00: ldp	x20, x19, [sp, #0x20]
+0x001bab04: ldr	x21, [sp, #0x10]
+0x001bab08: ldp	x29, x30, [sp], #0x30
+0x001bab0c: ldr	x30, [x18, #-8]!
+0x001bab10: br	x2
+0x001bab14: ldp	x20, x19, [sp, #0x20]
+0x001bab18: ldr	x21, [sp, #0x10]
+0x001bab1c: ldp	x29, x30, [sp], #0x30
+0x001bab20: ldr	x30, [x18, #-8]!
+0x001bab24: ret	
+0x001bab28: adrp	x1, #0x4f000
+0x001bab2c: adrp	x2, #0x3a000
+0x001bab30: adrp	x3, #0x73000
+0x001bab34: adrp	x4, #0x49000
+0x001bab38: adrp	x6, #0x76000
+0x001bab3c: add	x1, x1, #0xc8c  ; "btif_av"
+0x001bab40: add	x2, x2, #0xc30  ; "### ASSERT : %s %s line %d %s (%d) ###"
+0x001bab44: add	x3, x3, #0xb47  ; "vendor/qcom/opensource/commonsys/system/bt/btif/src/btif_av.cc"
+0x001bab48: add	x4, x4, #0xf9e  ; "btif_report_audio_state"
+0x001bab4c: add	x6, x6, #0xc58  ; "Callback is NULL"
+0x001bab50: mov	w0, #6
+0x001bab54: mov	w5, #0x252
+0x001bab58: ldp	x20, x19, [sp, #0x20]
+0x001bab5c: ldr	x21, [sp, #0x10]
+0x001bab60: mov	w7, wzr
+0x001bab64: ldp	x29, x30, [sp], #0x30
+0x001bab68: ldr	x30, [x18, #-8]!
+0x001bab6c: b	#0x3cf520
+0x001bab70: bl	#0x101d1c  -> vnd_LogMsg
+0x001bab74: ldr	x8, [x21, #0xa08]  ; [0x3f6a08]
+0x001bab78: b	#0x1baad8

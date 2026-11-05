@@ -1,0 +1,1872 @@
+0x001b5068: ffc303d1   sub     sp, sp, #0xf0
+0x001b506c: 5e8600f8   str     x30, [x18], #8
+0x001b5070: fd7b09a9   stp     x29, x30, [sp, #0x90]
+0x001b5074: fc6f0aa9   stp     x28, x27, [sp, #0xa0]
+0x001b5078: fa670ba9   stp     x26, x25, [sp, #0xb0]
+0x001b507c: f85f0ca9   stp     x24, x23, [sp, #0xc0]
+0x001b5080: f6570da9   stp     x22, x21, [sp, #0xd0]
+0x001b5084: f44f0ea9   stp     x20, x19, [sp, #0xe0]
+0x001b5088: fd430291   add     x29, sp, #0x90
+0x001b508c: 48d03bd5   mrs     x8, tpidr_el0
+0x001b5090: e81b00f9   str     x8, [sp, #0x30]
+0x001b5094: 081540f9   ldr     x8, [x8, #0x28]
+0x001b5098: f403022a   mov     w20, w2
+0x001b509c: f30301aa   mov     x19, x1
+0x001b50a0: f503002a   mov     w21, w0
+0x001b50a4: a8831ff8   stur    x8, [x29, #-8]
+0x001b50a8: a2431db8   stur    w2, [x29, #-0x2c]
+0x001b50ac: cde6ff97   bl      #0x1aebe0  -> _Z21dump_av_sm_event_name18btif_av_sm_event_t
+0x001b50b0: 9f160071   cmp     w20, #5
+0x001b50b4: 22e70054   b.hs    #0x1b6d98
+0x001b50b8: ea03142a   mov     w10, w20
+0x001b50bc: 4845348b   add     x8, x10, w20, uxtw #1
+0x001b50c0: 09028052   mov     w9, #0x10
+0x001b50c4: 09857ab3   bfi     x9, x8, #6, #0x22
+0x001b50c8: 3f010ff1   cmp     x9, #0x3c0
+0x001b50cc: a9031cf8   stur    x9, [x29, #-0x40]
+0x001b50d0: 28e60054   b.hi    #0x1b6d94
+0x001b50d4: 49050a8b   add     x9, x10, x10, lsl #1
+0x001b50d8: 4b028052   mov     w11, #0x12
+0x001b50dc: 2b857ab3   bfi     x11, x9, #6, #0x22
+0x001b50e0: 7f010ff1   cmp     x11, #0x3c0
+0x001b50e4: eb2700f9   str     x11, [sp, #0x48]
+0x001b50e8: 68e50054   b.hi    #0x1b6d94
+0x001b50ec: 38e57ad3   lsl     x24, x9, #6
+0x001b50f0: 1f630df1   cmp     x24, #0x358
+0x001b50f4: 08e50054   b.hi    #0x1b6d94
+0x001b50f8: 49050a8b   add     x9, x10, x10, lsl #1
+0x001b50fc: da078052   mov     w26, #0x3e
+0x001b5100: 3a857ab3   bfi     x26, x9, #6, #0x22
+0x001b5104: 5f030ff1   cmp     x26, #0x3c0
+0x001b5108: 68e40054   b.hi    #0x1b6d94
+0x001b510c: f32b02a9   stp     x19, x10, [sp, #0x20]
+0x001b5110: 33e57ad3   lsl     x19, x9, #6
+0x001b5114: 7f1e0cf1   cmp     x19, #0x307
+0x001b5118: e8e30054   b.hi    #0x1b6d94
+0x001b511c: 0c1200b0   adrp    x12, #0x3f6000
+0x001b5120: 08e57ad3   lsl     x8, x8, #6
+0x001b5124: 8c011891   add     x12, x12, #0x600
+0x001b5128: 8801088b   add     x8, x12, x8
+0x001b512c: 8901188b   add     x9, x12, x24
+0x001b5130: 8c01138b   add     x12, x12, x19
+0x001b5134: 171200b0   adrp    x23, #0x3f6000
+0x001b5138: 191200b0   adrp    x25, #0x3f6000
+0x001b513c: 08410091   add     x8, x8, #0x10
+0x001b5140: 2d490091   add     x13, x9, #0x12
+0x001b5144: 29a10191   add     x9, x9, #0x68
+0x001b5148: 9bf90091   add     x27, x12, #0x3e
+0x001b514c: 9ce50291   add     x28, x12, #0xb9
+0x001b5150: ead26739   ldrb    w10, [x23, #0x9f4]
+0x001b5154: 2b036839   ldrb    w11, [x25, #0xa00]
+0x001b5158: a8831cf8   stur    x8, [x29, #-0x38]
+0x001b515c: 04014039   ldrb    w4, [x8]
+0x001b5160: e9b703a9   stp     x9, x13, [sp, #0x38]
+0x001b5164: a5014039   ldrb    w5, [x13]
+0x001b5168: 270140b9   ldr     w7, [x9]
+0x001b516c: 68034039   ldrb    w8, [x27]
+0x001b5170: 89034039   ldrb    w9, [x28]
+0x001b5174: f60300aa   mov     x22, x0
+0x001b5178: e1f5ffd0   adrp    x1, #0x73000
+0x001b517c: e2f4ffd0   adrp    x2, #0x53000
+0x001b5180: 21e43191   add     x1, x1, #0xc79  ; "%s: event: %s, flags: %x, peer_sep: %x, index: %x reconfig_event: %d, codec_cfg_change: %d, reconfig_pending: %d, reconfig_a2dp: %d, is_retry_reconfig: %d"
+0x001b5184: 42dc0091   add     x2, x2, #0x37  ; "btif_av_state_opened_handler"
+0x001b5188: 80a08052   mov     w0, #0x504
+0x001b518c: e30316aa   mov     x3, x22
+0x001b5190: e603142a   mov     w6, w20
+0x001b5194: e91b00b9   str     w9, [sp, #0x18]
+0x001b5198: eb1300b9   str     w11, [sp, #0x10]
+0x001b519c: e80b00b9   str     w8, [sp, #8]
+0x001b51a0: ea0300b9   str     w10, [sp]
+0x001b51a4: 6532fd97   bl      #0x101b38  -> LogMsg
+0x001b51a8: a8035cf8   ldur    x8, [x29, #-0x40]
+0x001b51ac: 1f010ff1   cmp     x8, #0x3c0
+0x001b51b0: 28df0054   b.hi    #0x1b6d94
+0x001b51b4: e82740f9   ldr     x8, [sp, #0x48]
+0x001b51b8: 1f010ff1   cmp     x8, #0x3c0
+0x001b51bc: c8de0054   b.hi    #0x1b6d94
+0x001b51c0: 1f630df1   cmp     x24, #0x358
+0x001b51c4: 88de0054   b.hi    #0x1b6d94
+0x001b51c8: 5f030ff1   cmp     x26, #0x3c0
+0x001b51cc: 48de0054   b.hi    #0x1b6d94
+0x001b51d0: 7f1e0cf1   cmp     x19, #0x307
+0x001b51d4: 08de0054   b.hi    #0x1b6d94
+0x001b51d8: a8835cf8   ldur    x8, [x29, #-0x38]
+0x001b51dc: 29036839   ldrb    w9, [x25, #0xa00]
+0x001b51e0: 6a034039   ldrb    w10, [x27]
+0x001b51e4: 8b034039   ldrb    w11, [x28]
+0x001b51e8: 04014039   ldrb    w4, [x8]
+0x001b51ec: e82340f9   ldr     x8, [sp, #0x40]
+0x001b51f0: e1f5ffd0   adrp    x1, #0x73000
+0x001b51f4: e2f4ffd0   adrp    x2, #0x53000
+0x001b51f8: 21e43191   add     x1, x1, #0xc79  ; "%s: event: %s, flags: %x, peer_sep: %x, index: %x reconfig_event: %d, codec_cfg_change: %d, reconfig_pending: %d, reconfig_a2dp: %d, is_retry_reconfig: %d"
+0x001b51fc: 05014039   ldrb    w5, [x8]
+0x001b5200: e81f40f9   ldr     x8, [sp, #0x38]
+0x001b5204: 42dc0091   add     x2, x2, #0x37  ; "btif_av_state_opened_handler"
+0x001b5208: 80a08052   mov     w0, #0x504
+0x001b520c: e30316aa   mov     x3, x22
+0x001b5210: 070140b9   ldr     w7, [x8]
+0x001b5214: e8d26739   ldrb    w8, [x23, #0x9f4]
+0x001b5218: e603142a   mov     w6, w20
+0x001b521c: eb1b00b9   str     w11, [sp, #0x18]
+0x001b5220: e91300b9   str     w9, [sp, #0x10]
+0x001b5224: ea0b00b9   str     w10, [sp, #8]
+0x001b5228: e80300b9   str     w8, [sp]
+0x001b522c: bc32fd97   bl      #0x101d1c  -> vnd_LogMsg
+0x001b5230: a80e0051   sub     w8, w21, #3
+0x001b5234: 1fa90071   cmp     w8, #0x2a
+0x001b5238: 48030054   b.hi    #0x1b52a0
+0x001b523c: 29f3ffb0   adrp    x9, #0x1a000
+0x001b5240: 29f92991   add     x9, x9, #0xa7e  ; "."
+0x001b5244: 8a000010   adr     x10, #0x1b5254
+0x001b5248: 2b796878   ldrh    w11, [x9, x8, lsl #1]
+0x001b524c: 4a090b8b   add     x10, x10, x11, lsl #2
+0x001b5250: 40011fd6   br      x10
+0x001b5254: e11340f9   ldr     x1, [sp, #0x20]
+0x001b5258: e003152a   mov     w0, w21
+0x001b525c: 6d5e0194   bl      #0x20cc10  -> _Z15btif_rc_handlerhP7tBTA_AV
+0x001b5260: 33008052   mov     w19, #1
+0x001b5264: e81b40f9   ldr     x8, [sp, #0x30]
+0x001b5268: 081540f9   ldr     x8, [x8, #0x28]
+0x001b526c: a9835ff8   ldur    x9, [x29, #-8]
+0x001b5270: 1f0109eb   cmp     x8, x9
+0x001b5274: 41d90054   b.ne    #0x1b6d9c
+0x001b5278: fd7b49a9   ldp     x29, x30, [sp, #0x90]
+0x001b527c: e003132a   mov     w0, w19
+0x001b5280: f44f4ea9   ldp     x20, x19, [sp, #0xe0]
+0x001b5284: f6574da9   ldp     x22, x21, [sp, #0xd0]
+0x001b5288: f85f4ca9   ldp     x24, x23, [sp, #0xc0]
+0x001b528c: fa674ba9   ldp     x26, x25, [sp, #0xb0]
+0x001b5290: fc6f4aa9   ldp     x28, x27, [sp, #0xa0]
+0x001b5294: 5e8e5ff8   ldr     x30, [x18, #-8]!
+0x001b5298: ffc30391   add     sp, sp, #0xf0
+0x001b529c: c0035fd6   ret     
+0x001b52a0: c8ff9f52   mov     w8, #0xfffe
+0x001b52a4: bf02086b   cmp     w21, w8
+0x001b52a8: 80380054   b.eq    #0x1b59b8
+0x001b52ac: e8ff9f52   mov     w8, #0xffff
+0x001b52b0: bf02086b   cmp     w21, w8
+0x001b52b4: a1040054   b.ne    #0x1b5348
+0x001b52b8: a8035cf8   ldur    x8, [x29, #-0x40]
+0x001b52bc: 1f010ff1   cmp     x8, #0x3c0
+0x001b52c0: a8d60054   b.hi    #0x1b6d94
+0x001b52c4: aa835cf8   ldur    x10, [x29, #-0x38]
+0x001b52c8: 131200b0   adrp    x19, #0x3f6000
+0x001b52cc: 5f030ff1   cmp     x26, #0x3c0
+0x001b52d0: 73021891   add     x19, x19, #0x600
+0x001b52d4: 49014039   ldrb    w9, [x10]
+0x001b52d8: 28791c12   and     w8, w9, #0xfffffff7
+0x001b52dc: 48010039   strb    w8, [x10]
+0x001b52e0: a8d50054   b.hi    #0x1b6d94
+0x001b52e4: 6a034039   ldrb    w10, [x27]
+0x001b52e8: 2a660034   cbz     w10, #0x1b5fac
+0x001b52ec: a8035cf8   ldur    x8, [x29, #-0x40]
+0x001b52f0: 1f010ff1   cmp     x8, #0x3c0
+0x001b52f4: 08d50054   b.hi    #0x1b6d94
+0x001b52f8: 28011e12   and     w8, w9, #4
+0x001b52fc: a9835cf8   ldur    x9, [x29, #-0x38]
+0x001b5300: fa1740f9   ldr     x26, [sp, #0x28]
+0x001b5304: 28010039   strb    w8, [x9]
+0x001b5308: 48650034   cbz     w8, #0x1b5fb0
+0x001b530c: 29036839   ldrb    w9, [x25, #0xa00]
+0x001b5310: 09650035   cbnz    w9, #0x1b5fb0
+0x001b5314: f6f3ffb0   adrp    x22, #0x32000
+0x001b5318: f5f4ffd0   adrp    x21, #0x53000
+0x001b531c: d6060b91   add     x22, x22, #0x2c1  ; "%s: Pending start set for reconfig, do not reset"
+0x001b5320: b5de0091   add     x21, x21, #0x37  ; "btif_av_state_opened_handler"
+0x001b5324: 80a08052   mov     w0, #0x504
+0x001b5328: e10316aa   mov     x1, x22
+0x001b532c: e20315aa   mov     x2, x21
+0x001b5330: 0232fd97   bl      #0x101b38  -> LogMsg
+0x001b5334: 80a08052   mov     w0, #0x504
+0x001b5338: e10316aa   mov     x1, x22
+0x001b533c: e20315aa   mov     x2, x21
+0x001b5340: 7732fd97   bl      #0x101d1c  -> vnd_LogMsg
+0x001b5344: 21030014   b       #0x1b5fc8
+0x001b5348: 281100d0   adrp    x8, #0x3db000
+0x001b534c: 08056c39   ldrb    w8, [x8, #0xb01]
+0x001b5350: 81f4ffd0   adrp    x1, #0x47000
+0x001b5354: e2f4ffd0   adrp    x2, #0x53000
+0x001b5358: 21240591   add     x1, x1, #0x149  ; "%s : unhandled event:%s"
+0x001b535c: 42dc0091   add     x2, x2, #0x37  ; "btif_av_state_opened_handler"
+0x001b5360: 20a08052   mov     w0, #0x501
+0x001b5364: e30316aa   mov     x3, x22
+0x001b5368: 1f090071   cmp     w8, #2
+0x001b536c: 63410054   b.lo    #0x1b5b98
+0x001b5370: f231fd97   bl      #0x101b38  -> LogMsg
+0x001b5374: 0a020014   b       #0x1b5b9c
+0x001b5378: e01340f9   ldr     x0, [sp, #0x20]
+0x001b537c: 007800b5   cbnz    x0, #0x1b627c
+0x001b5380: 281100d0   adrp    x8, #0x3db000
+0x001b5384: 08056c39   ldrb    w8, [x8, #0xb01]
+0x001b5388: 81f4ffd0   adrp    x1, #0x47000
+0x001b538c: e2f4ffd0   adrp    x2, #0x53000
+0x001b5390: 21540091   add     x1, x1, #0x15  ; "%s: p_data not null"
+0x001b5394: 42dc0091   add     x2, x2, #0x37  ; "btif_av_state_opened_handler"
+0x001b5398: 80a08052   mov     w0, #0x504
+0x001b539c: 1f150071   cmp     w8, #5
+0x001b53a0: 03760054   b.lo    #0x1b6260
+0x001b53a4: e531fd97   bl      #0x101b38  -> LogMsg
+0x001b53a8: af030014   b       #0x1b6264
+0x001b53ac: f61340f9   ldr     x22, [sp, #0x20]
+0x001b53b0: 351100d0   adrp    x21, #0x3db000
+0x001b53b4: a8066c39   ldrb    w8, [x21, #0xb01]
+0x001b53b8: 0b1200b0   adrp    x11, #0x3f6000
+0x001b53bc: c30a4039   ldrb    w3, [x22, #2]
+0x001b53c0: 0a188052   mov     w10, #0xc0
+0x001b53c4: 6b011891   add     x11, x11, #0x600
+0x001b53c8: 897eaa9b   umull   x9, w20, w10
+0x001b53cc: 8a2eaa9b   umaddl  x10, w20, w10, x11
+0x001b53d0: 29117fb2   orr     x9, x9, #0x3e
+0x001b53d4: 1f150071   cmp     w8, #5
+0x001b53d8: 48f90091   add     x8, x10, #0x3e
+0x001b53dc: 433e0054   b.lo    #0x1b5ba4
+0x001b53e0: 3f010ff1   cmp     x9, #0x3c0
+0x001b53e4: 88cd0054   b.hi    #0x1b6d94
+0x001b53e8: 04014039   ldrb    w4, [x8]
+0x001b53ec: 61f4ff90   adrp    x1, #0x41000
+0x001b53f0: e2f4ffd0   adrp    x2, #0x53000
+0x001b53f4: 21a80b91   add     x1, x1, #0x2ea  ; "%s: reconfig status: %d, reconfig_pending: %d"
+0x001b53f8: 42dc0091   add     x2, x2, #0x37  ; "btif_av_state_opened_handler"
+0x001b53fc: 80a08052   mov     w0, #0x504
+0x001b5400: ce31fd97   bl      #0x101b38  -> LogMsg
+0x001b5404: f1010014   b       #0x1b5bc8
+0x001b5408: eb1740f9   ldr     x11, [sp, #0x28]
+0x001b540c: 68050b8b   add     x8, x11, x11, lsl #1
+0x001b5410: 08e57ad3   lsl     x8, x8, #6
+0x001b5414: 1fe90df1   cmp     x8, #0x37a
+0x001b5418: e8cb0054   b.hi    #0x1b6d94
+0x001b541c: 0a1200b0   adrp    x10, #0x3f6000
+0x001b5420: 08188052   mov     w8, #0xc0
+0x001b5424: 4a011891   add     x10, x10, #0x600
+0x001b5428: 6829089b   madd    x8, x11, x8, x10
+0x001b542c: 08194139   ldrb    w8, [x8, #0x46]
+0x001b5430: e8510034   cbz     w8, #0x1b5e6c
+0x001b5434: a8035cf8   ldur    x8, [x29, #-0x40]
+0x001b5438: 1f010ff1   cmp     x8, #0x3c0
+0x001b543c: c8ca0054   b.hi    #0x1b6d94
+0x001b5440: a8835cf8   ldur    x8, [x29, #-0x38]
+0x001b5444: 08014039   ldrb    w8, [x8]
+0x001b5448: c8511036   tbz     w8, #2, #0x1b5e80
+0x001b544c: 281100d0   adrp    x8, #0x3db000
+0x001b5450: 08056c39   ldrb    w8, [x8, #0xb01]
+0x001b5454: c1f5fff0   adrp    x1, #0x70000
+0x001b5458: e2f4ffd0   adrp    x2, #0x53000
+0x001b545c: 21fc3891   add     x1, x1, #0xe3f  ; "%s: BTA_AV_SUSPEND_EVT for TWS+ remote when pending start"
+0x001b5460: 42dc0091   add     x2, x2, #0x37  ; "btif_av_state_opened_handler"
+0x001b5464: 80a08052   mov     w0, #0x504
+0x001b5468: 1f150071   cmp     w8, #5
+0x001b546c: 43740054   b.lo    #0x1b62f4
+0x001b5470: b231fd97   bl      #0x101b38  -> LogMsg
+0x001b5474: 7bffff17   b       #0x1b5260
+0x001b5478: f52742a9   ldp     x21, x9, [sp, #0x20]
+0x001b547c: 131200b0   adrp    x19, #0x3f6000
+0x001b5480: 08188052   mov     w8, #0xc0
+0x001b5484: 73021891   add     x19, x19, #0x600
+0x001b5488: b40240f9   ldr     x20, [x21]
+0x001b548c: 284d089b   madd    x8, x9, x8, x19
+0x001b5490: 091140b8   ldur    w9, [x8, #1]
+0x001b5494: 0a514078   ldurh   w10, [x8, #5]
+0x001b5498: 8b0240b9   ldr     w11, [x20]
+0x001b549c: 8c0a4079   ldrh    w12, [x20, #4]
+0x001b54a0: 281100d0   adrp    x8, #0x3db000
+0x001b54a4: 08056c39   ldrb    w8, [x8, #0xb01]
+0x001b54a8: 6901094a   eor     w9, w11, w9
+0x001b54ac: 8a010a4a   eor     w10, w12, w10
+0x001b54b0: 29010a2a   orr     w9, w9, w10
+0x001b54b4: 89510034   cbz     w9, #0x1b5ee4
+0x001b54b8: 1f090071   cmp     w8, #2
+0x001b54bc: 03530054   b.lo    #0x1b5f1c
+0x001b54c0: a88300d1   sub     x8, x29, #0x20
+0x001b54c4: e00314aa   mov     x0, x20
+0x001b54c8: e2590894   bl      #0x3cbc50  -> sub_3cbc50
+0x001b54cc: a08300d1   sub     x0, x29, #0x20
+0x001b54d0: c650fd97   bl      #0x1097e8  -> _ZNKSt3__112basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEE4dataEv
+0x001b54d4: 21f6ff90   adrp    x1, #0x79000
+0x001b54d8: e2f4ffd0   adrp    x2, #0x53000
+0x001b54dc: e30300aa   mov     x3, x0
+0x001b54e0: 21303791   add     x1, x1, #0xdcc  ; "%s: Moved to opened by Other incoming Connect request: target_bda=%s"
+0x001b54e4: 42dc0091   add     x2, x2, #0x37  ; "btif_av_state_opened_handler"
+0x001b54e8: 20a08052   mov     w0, #0x501
+0x001b54ec: 9331fd97   bl      #0x101b38  -> LogMsg
+0x001b54f0: 97020014   b       #0x1b5f4c
+0x001b54f4: 081200b0   adrp    x8, #0x3f6000
+0x001b54f8: 29008052   mov     w9, #1
+0x001b54fc: e003142a   mov     w0, w20
+0x001b5500: 09813739   strb    w9, [x8, #0xde0]
+0x001b5504: 2a170094   bl      #0x1bb1ac  -> _Z30btif_av_update_multicast_statei
+0x001b5508: 331100d0   adrp    x19, #0x3db000
+0x001b550c: 69324fb9   ldr     w9, [x19, #0xf30]
+0x001b5510: 151200b0   adrp    x21, #0x3f6000
+0x001b5514: b5021891   add     x21, x21, #0x600
+0x001b5518: 3f050071   cmp     w9, #1
+0x001b551c: 0b7d0054   b.lt    #0x1b64bc
+0x001b5520: 2905098b   add     x9, x9, x9, lsl #1
+0x001b5524: e8031faa   mov     x8, xzr
+0x001b5528: 29e57ad3   lsl     x9, x9, #6
+0x001b552c: 04000014   b       #0x1b553c
+0x001b5530: 08010391   add     x8, x8, #0xc0
+0x001b5534: 3f0108eb   cmp     x9, x8
+0x001b5538: 207c0054   b.eq    #0x1b64bc
+0x001b553c: 1f010ff1   cmp     x8, #0x3c0
+0x001b5540: c0c20054   b.eq    #0x1b6d98
+0x001b5544: 0a190191   add     x10, x8, #0x46
+0x001b5548: 5f010ff1   cmp     x10, #0x3c0
+0x001b554c: 48c20054   b.hi    #0x1b6d94
+0x001b5550: aa02088b   add     x10, x21, x8
+0x001b5554: 4a194139   ldrb    w10, [x10, #0x46]
+0x001b5558: cafeff34   cbz     w10, #0x1b5530
+0x001b555c: 0ac90091   add     x10, x8, #0x32
+0x001b5560: 5f010ff1   cmp     x10, #0x3c0
+0x001b5564: 88c10054   b.hi    #0x1b6d94
+0x001b5568: 68c10054   b.hi    #0x1b6d94
+0x001b556c: aa02088b   add     x10, x21, x8
+0x001b5570: 4ac94039   ldrb    w10, [x10, #0x32]
+0x001b5574: eafdff34   cbz     w10, #0x1b5530
+0x001b5578: 341100d0   adrp    x20, #0x3db000
+0x001b557c: 88066c39   ldrb    w8, [x20, #0xb01]
+0x001b5580: a1f3ffd0   adrp    x1, #0x2b000
+0x001b5584: 62f5fff0   adrp    x2, #0x64000
+0x001b5588: 217c0791   add     x1, x1, #0x1df  ; "%s"
+0x001b558c: 42943c91   add     x2, x2, #0xf25  ; "btif_av_current_device_is_tws"
+0x001b5590: 80a08052   mov     w0, #0x504
+0x001b5594: 1f150071   cmp     w8, #5
+0x001b5598: 63780054   b.lo    #0x1b64a4
+0x001b559c: 6731fd97   bl      #0x101b38  -> LogMsg
+0x001b55a0: c2030014   b       #0x1b64a8
+0x001b55a4: f51740f9   ldr     x21, [sp, #0x28]
+0x001b55a8: 131200b0   adrp    x19, #0x3f6000
+0x001b55ac: 08188052   mov     w8, #0xc0
+0x001b55b0: 73021891   add     x19, x19, #0x600
+0x001b55b4: a84e089b   madd    x8, x21, x8, x19
+0x001b55b8: 00050091   add     x0, x8, #1
+0x001b55bc: de150094   bl      #0x1bad34  -> _ZL38btif_av_query_mandatory_codec_priorityRK10RawAddress
+0x001b55c0: a8035cf8   ldur    x8, [x29, #-0x40]
+0x001b55c4: 1f010ff1   cmp     x8, #0x3c0
+0x001b55c8: 68be0054   b.hi    #0x1b6d94
+0x001b55cc: a8835cf8   ldur    x8, [x29, #-0x38]
+0x001b55d0: f61340f9   ldr     x22, [sp, #0x20]
+0x001b55d4: 08014039   ldrb    w8, [x8]
+0x001b55d8: 68321036   tbz     w8, #2, #0x1b5c24
+0x001b55dc: e8d26739   ldrb    w8, [x23, #0x9f4]
+0x001b55e0: 28320034   cbz     w8, #0x1b5c24
+0x001b55e4: e00316aa   mov     x0, x22
+0x001b55e8: e103142a   mov     w1, w20
+0x001b55ec: 38160094   bl      #0x1baecc  -> _ZL30btif_av_cache_src_codec_configjPvi
+0x001b55f0: 1cffff17   b       #0x1b5260
+0x001b55f4: 331100d0   adrp    x19, #0x3db000
+0x001b55f8: 68324fb9   ldr     w8, [x19, #0xf30]
+0x001b55fc: f71740f9   ldr     x23, [sp, #0x28]
+0x001b5600: 161200b0   adrp    x22, #0x3f6000
+0x001b5604: d6021891   add     x22, x22, #0x600
+0x001b5608: 1f050071   cmp     w8, #1
+0x001b560c: 4b1e0054   b.lt    #0x1b59d4
+0x001b5610: f4031faa   mov     x20, xzr
+0x001b5614: 15018052   mov     w21, #8
+0x001b5618: 06000014   b       #0x1b5630
+0x001b561c: 68324fb9   ldr     w8, [x19, #0xf30]
+0x001b5620: 94060091   add     x20, x20, #1
+0x001b5624: 9fc228eb   cmp     x20, w8, sxtw
+0x001b5628: b5020391   add     x21, x21, #0xc0
+0x001b562c: 4a1d0054   b.ge    #0x1b59d4
+0x001b5630: ff0214eb   cmp     x23, x20
+0x001b5634: 60ffff54   b.eq    #0x1b5620
+0x001b5638: 9f1600f1   cmp     x20, #5
+0x001b563c: e2ba0054   b.hs    #0x1b6d98
+0x001b5640: bf020ff1   cmp     x21, #0x3c0
+0x001b5644: 88ba0054   b.hi    #0x1b6d94
+0x001b5648: 68ba0054   b.hi    #0x1b6d94
+0x001b564c: c06a75f8   ldr     x0, [x22, x21]
+0x001b5650: e4860194   bl      #0x2171e0  -> _Z17btif_sm_get_statePv
+0x001b5654: 08000032   orr     w8, w0, #1
+0x001b5658: 1f0d0071   cmp     w8, #3
+0x001b565c: 01feff54   b.ne    #0x1b561c
+0x001b5660: 331100d0   adrp    x19, #0x3db000
+0x001b5664: 68026c39   ldrb    w8, [x19, #0xb00]
+0x001b5668: 1f090071   cmp     w8, #2
+0x001b566c: e3000054   b.lo    #0x1b5688
+0x001b5670: 41f5ffd0   adrp    x1, #0x5f000
+0x001b5674: e2f4ffd0   adrp    x2, #0x53000
+0x001b5678: 219c0091   add     x1, x1, #0x27  ; "%s: Conn is closing,close AV data channel"
+0x001b567c: 42dc0091   add     x2, x2, #0x37  ; "btif_av_state_opened_handler"
+0x001b5680: 20a08052   mov     w0, #0x501
+0x001b5684: 2d31fd97   bl      #0x101b38  -> LogMsg
+0x001b5688: 5fe9ff97   bl      #0x1afc04  -> _Z29btif_av_is_split_a2dp_enabledv
+0x001b568c: a0000036   tbz     w0, #0, #0x1b56a0
+0x001b5690: 5de9ff97   bl      #0x1afc04  -> _Z29btif_av_is_split_a2dp_enabledv
+0x001b5694: c0640036   tbz     w0, #0, #0x1b632c
+0x001b5698: 28036839   ldrb    w8, [x25, #0xa00]
+0x001b569c: 88640035   cbnz    w8, #0x1b632c
+0x001b56a0: a8035cf8   ldur    x8, [x29, #-0x40]
+0x001b56a4: 1f010ff1   cmp     x8, #0x3c0
+0x001b56a8: 68b70054   b.hi    #0x1b6d94
+0x001b56ac: a8835cf8   ldur    x8, [x29, #-0x38]
+0x001b56b0: 08014039   ldrb    w8, [x8]
+0x001b56b4: 08050012   and     w8, w8, #3
+0x001b56b8: 1f090071   cmp     w8, #2
+0x001b56bc: 81630054   b.ne    #0x1b632c
+0x001b56c0: e806178b   add     x8, x23, x23, lsl #1
+0x001b56c4: 29068052   mov     w9, #0x31
+0x001b56c8: 09857ab3   bfi     x9, x8, #6, #0x22
+0x001b56cc: 3f010ff1   cmp     x9, #0x3c0
+0x001b56d0: 28b60054   b.hi    #0x1b6d94
+0x001b56d4: 08188052   mov     w8, #0xc0
+0x001b56d8: e85a089b   madd    x8, x23, x8, x22
+0x001b56dc: 29008052   mov     w9, #1
+0x001b56e0: 09c50039   strb    w9, [x8, #0x31]
+0x001b56e4: e0000014   b       #0x1b5a64
+0x001b56e8: f91340f9   ldr     x25, [sp, #0x20]
+0x001b56ec: 351100d0   adrp    x21, #0x3db000
+0x001b56f0: a8066c39   ldrb    w8, [x21, #0xb01]
+0x001b56f4: a1f4ff90   adrp    x1, #0x49000
+0x001b56f8: 230b4039   ldrb    w3, [x25, #2]
+0x001b56fc: 24134039   ldrb    w4, [x25, #4]
+0x001b5700: 250f4039   ldrb    w5, [x25, #3]
+0x001b5704: 26174039   ldrb    w6, [x25, #5]
+0x001b5708: e2f4ffd0   adrp    x2, #0x53000
+0x001b570c: 21d83e91   add     x1, x1, #0xfb6  ; "%s: BTA_AV_START_EVT status: %d, suspending: %d, init: %d, role: %d"
+0x001b5710: 42dc0091   add     x2, x2, #0x37  ; "btif_av_state_opened_handler"
+0x001b5714: 80a08052   mov     w0, #0x504
+0x001b5718: 1f150071   cmp     w8, #5
+0x001b571c: e32a0054   b.lo    #0x1b5c78
+0x001b5720: 0631fd97   bl      #0x101b38  -> LogMsg
+0x001b5724: 56010014   b       #0x1b5c7c
+0x001b5728: 281100d0   adrp    x8, #0x3db000
+0x001b572c: 08056c39   ldrb    w8, [x8, #0xb01]
+0x001b5730: 1f150071   cmp     w8, #5
+0x001b5734: e32b0054   b.lo    #0x1b5cb0
+0x001b5738: f51340f9   ldr     x21, [sp, #0x20]
+0x001b573c: a88300d1   sub     x8, x29, #0x20
+0x001b5740: a0120091   add     x0, x21, #4
+0x001b5744: 43590894   bl      #0x3cbc50  -> sub_3cbc50
+0x001b5748: a08300d1   sub     x0, x29, #0x20
+0x001b574c: dc30fd97   bl      #0x101abc  -> _ZNKSt3__117__compressed_pairINS_12basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEE5__repES5_E5firstEv
+0x001b5750: 13004039   ldrb    w19, [x0]
+0x001b5754: a08300d1   sub     x0, x29, #0x20
+0x001b5758: d930fd97   bl      #0x101abc  -> _ZNKSt3__117__compressed_pairINS_12basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEE5__repES5_E5firstEv
+0x001b575c: 334e0037   tbnz    w19, #0, #0x1b6120
+0x001b5760: 14040091   add     x20, x0, #1
+0x001b5764: e00314aa   mov     x0, x20
+0x001b5768: b932fd97   bl      #0x10224c  -> _ZNSt3__19addressofIKcEEPT_RS2_
+0x001b576c: 6e020014   b       #0x1b6124
+0x001b5770: e81340f9   ldr     x8, [sp, #0x20]
+0x001b5774: 08054039   ldrb    w8, [x8, #1]
+0x001b5778: 1f110171   cmp     w8, #0x44
+0x001b577c: c1d6ff54   b.ne    #0x1b5254
+0x001b5780: e003142a   mov     w0, w20
+0x001b5784: 57170094   bl      #0x1bb4e0  -> _Z33btif_av_check_flag_remote_suspendi
+0x001b5788: 60d60736   tbz     w0, #0, #0x1b5254
+0x001b578c: 331100d0   adrp    x19, #0x3db000
+0x001b5790: 68066c39   ldrb    w8, [x19, #0xb01]
+0x001b5794: c1f5ffb0   adrp    x1, #0x6e000
+0x001b5798: e2f4ffd0   adrp    x2, #0x53000
+0x001b579c: 217c0591   add     x1, x1, #0x15f  ; "%s: Resetting remote suspend flag on RC PLAY"
+0x001b57a0: 42dc0091   add     x2, x2, #0x37  ; "btif_av_state_opened_handler"
+0x001b57a4: 60a08052   mov     w0, #0x503
+0x001b57a8: 1f110071   cmp     w8, #4
+0x001b57ac: e3610054   b.lo    #0x1b63e8
+0x001b57b0: e230fd97   bl      #0x101b38  -> LogMsg
+0x001b57b4: 0e030014   b       #0x1b63ec
+0x001b57b8: 081200b0   adrp    x8, #0x3f6000
+0x001b57bc: 08715239   ldrb    w8, [x8, #0x49c]
+0x001b57c0: e91340f9   ldr     x9, [sp, #0x20]
+0x001b57c4: 341100d0   adrp    x20, #0x3db000
+0x001b57c8: 1f010071   cmp     w8, #0
+0x001b57cc: 88026c39   ldrb    w8, [x20, #0xb00]
+0x001b57d0: 2915899a   cinc    x9, x9, eq
+0x001b57d4: 33014039   ldrb    w19, [x9]
+0x001b57d8: 1f090071   cmp     w8, #2
+0x001b57dc: c3000054   b.lo    #0x1b57f4
+0x001b57e0: a1f4ffb0   adrp    x1, #0x4a000
+0x001b57e4: 21e40091   add     x1, x1, #0x39  ; "Offload Start Rsp is unsupported in opened state, status = %d"
+0x001b57e8: 20a08052   mov     w0, #0x501
+0x001b57ec: e203132a   mov     w2, w19
+0x001b57f0: d230fd97   bl      #0x101b38  -> LogMsg
+0x001b57f4: a8035cf8   ldur    x8, [x29, #-0x40]
+0x001b57f8: 1f010ff1   cmp     x8, #0x3c0
+0x001b57fc: c8ac0054   b.hi    #0x1b6d94
+0x001b5800: a8835cf8   ldur    x8, [x29, #-0x38]
+0x001b5804: 08014039   ldrb    w8, [x8]
+0x001b5808: c8d20f36   tbz     w8, #1, #0x1b5260
+0x001b580c: d3000035   cbnz    w19, #0x1b5824
+0x001b5810: 081200b0   adrp    x8, #0x3f6000
+0x001b5814: 29008052   mov     w9, #1
+0x001b5818: e0031faa   mov     x0, xzr
+0x001b581c: 09651239   strb    w9, [x8, #0x499]
+0x001b5820: 805c0894   bl      #0x3cca20  -> _Z26bta_av_vendor_offload_stopP11tBTA_AV_SCB
+0x001b5824: 88026c39   ldrb    w8, [x20, #0xb00]
+0x001b5828: 1f090071   cmp     w8, #2
+0x001b582c: 032e0054   b.lo    #0x1b5dec
+0x001b5830: a8035cf8   ldur    x8, [x29, #-0x40]
+0x001b5834: 1f010ff1   cmp     x8, #0x3c0
+0x001b5838: e8aa0054   b.hi    #0x1b6d94
+0x001b583c: a8835cf8   ldur    x8, [x29, #-0x38]
+0x001b5840: c1f5ffb0   adrp    x1, #0x6e000
+0x001b5844: 21300691   add     x1, x1, #0x18c  ; "%s: Ack success to MM although VSCs of STRAT Failed: %d"
+0x001b5848: 03014039   ldrb    w3, [x8]
+0x001b584c: 64010014   b       #0x1b5ddc
+0x001b5850: 281100d0   adrp    x8, #0x3db000
+0x001b5854: 08056c39   ldrb    w8, [x8, #0xb01]
+0x001b5858: 01f4ff90   adrp    x1, #0x35000
+0x001b585c: e2f4ffd0   adrp    x2, #0x53000
+0x001b5860: 21dc0791   add     x1, x1, #0x1f7  ; "%s : BTA_AV_DELAY_REPORT_EVT received"
+0x001b5864: 42dc0091   add     x2, x2, #0x37  ; "btif_av_state_opened_handler"
+0x001b5868: 80a08052   mov     w0, #0x504
+0x001b586c: 1f150071   cmp     w8, #5
+0x001b5870: c3230054   b.lo    #0x1b5ce8
+0x001b5874: b130fd97   bl      #0x101b38  -> LogMsg
+0x001b5878: 1d010014   b       #0x1b5cec
+0x001b587c: f71740f9   ldr     x23, [sp, #0x28]
+0x001b5880: e806178b   add     x8, x23, x23, lsl #1
+0x001b5884: 13e57ad3   lsl     x19, x8, #6
+0x001b5888: 7ffe0ef1   cmp     x19, #0x3bf
+0x001b588c: 48a80054   b.hi    #0x1b6d94
+0x001b5890: 161200b0   adrp    x22, #0x3f6000
+0x001b5894: d6021891   add     x22, x22, #0x600
+0x001b5898: d402138b   add     x20, x22, x19
+0x001b589c: 80024039   ldrb    w0, [x20]
+0x001b58a0: edc3fd97   bl      #0x126854  -> _Z11BTA_AvCloseh
+0x001b58a4: e82740f9   ldr     x8, [sp, #0x48]
+0x001b58a8: 1f010ff1   cmp     x8, #0x3c0
+0x001b58ac: 48a70054   b.hi    #0x1b6d94
+0x001b58b0: e82340f9   ldr     x8, [sp, #0x40]
+0x001b58b4: 08014039   ldrb    w8, [x8]
+0x001b58b8: a8000035   cbnz    w8, #0x1b58cc
+0x001b58bc: 7ffe0ef1   cmp     x19, #0x3bf
+0x001b58c0: a8a60054   b.hi    #0x1b6d94
+0x001b58c4: 80024039   ldrb    w0, [x20]
+0x001b58c8: cec5fd97   bl      #0x127000  -> _Z13BTA_AvCloseRch
+0x001b58cc: 331100d0   adrp    x19, #0x3db000
+0x001b58d0: 68324fb9   ldr     w8, [x19, #0xf30]
+0x001b58d4: 1f050071   cmp     w8, #1
+0x001b58d8: 4b110054   b.lt    #0x1b5b00
+0x001b58dc: f4031faa   mov     x20, xzr
+0x001b58e0: 15018052   mov     w21, #8
+0x001b58e4: 05000014   b       #0x1b58f8
+0x001b58e8: 94060091   add     x20, x20, #1
+0x001b58ec: 9fc228eb   cmp     x20, w8, sxtw
+0x001b58f0: b5020391   add     x21, x21, #0xc0
+0x001b58f4: 6a100054   b.ge    #0x1b5b00
+0x001b58f8: ff0214eb   cmp     x23, x20
+0x001b58fc: 60ffff54   b.eq    #0x1b58e8
+0x001b5900: 9f1600f1   cmp     x20, #5
+0x001b5904: a2a40054   b.hs    #0x1b6d98
+0x001b5908: bf020ff1   cmp     x21, #0x3c0
+0x001b590c: 48a40054   b.hi    #0x1b6d94
+0x001b5910: 28a40054   b.hi    #0x1b6d94
+0x001b5914: c06a75f8   ldr     x0, [x22, x21]
+0x001b5918: 32860194   bl      #0x2171e0  -> _Z17btif_sm_get_statePv
+0x001b591c: 08000032   orr     w8, w0, #1
+0x001b5920: 1f0d0071   cmp     w8, #3
+0x001b5924: 00100054   b.eq    #0x1b5b24
+0x001b5928: 68324fb9   ldr     w8, [x19, #0xf30]
+0x001b592c: efffff17   b       #0x1b58e8
+0x001b5930: 281100d0   adrp    x8, #0x3db000
+0x001b5934: 08056c39   ldrb    w8, [x8, #0xb01]
+0x001b5938: e8000034   cbz     w8, #0x1b5954
+0x001b593c: 61f5ff90   adrp    x1, #0x61000
+0x001b5940: e2f4ffd0   adrp    x2, #0x53000
+0x001b5944: 21b83391   add     x1, x1, #0xcee  ; "%s: BTIF_AV_OFFLOAD_START_REQ_EVT: Stream not Started Opened"
+0x001b5948: 42dc0091   add     x2, x2, #0x37  ; "btif_av_state_opened_handler"
+0x001b594c: 00a08052   mov     w0, #0x500
+0x001b5950: 7a30fd97   bl      #0x101b38  -> LogMsg
+0x001b5954: a8035cf8   ldur    x8, [x29, #-0x40]
+0x001b5958: 1f010ff1   cmp     x8, #0x3c0
+0x001b595c: c8a10054   b.hi    #0x1b6d94
+0x001b5960: a8835cf8   ldur    x8, [x29, #-0x38]
+0x001b5964: 03014039   ldrb    w3, [x8]
+0x001b5968: e3220837   tbnz    w3, #1, #0x1b5dc4
+0x001b596c: 20008052   mov     w0, #1
+0x001b5970: 33008052   mov     w19, #1
+0x001b5974: 06b4ff97   bl      #0x1a298c  -> _Z28btif_a2dp_on_offload_startedh
+0x001b5978: 3bfeff17   b       #0x1b5264
+0x001b597c: 281100d0   adrp    x8, #0x3db000
+0x001b5980: 08314fb9   ldr     w8, [x8, #0xf30]
+0x001b5984: 1f01146b   cmp     w8, w20
+0x001b5988: 81230054   b.ne    #0x1b5df8
+0x001b598c: 281100d0   adrp    x8, #0x3db000
+0x001b5990: 08056c39   ldrb    w8, [x8, #0xb01]
+0x001b5994: e8000034   cbz     w8, #0x1b59b0
+0x001b5998: 61f4ff90   adrp    x1, #0x41000
+0x001b599c: 02f6ffb0   adrp    x2, #0x76000
+0x001b59a0: 219c0791   add     x1, x1, #0x1e7  ; "%s: Invalid handle"
+0x001b59a4: 42743391   add     x2, x2, #0xcdd  ; "btif_av_get_av_hdl_from_idx"
+0x001b59a8: 00a08052   mov     w0, #0x500
+0x001b59ac: 6330fd97   bl      #0x101b38  -> LogMsg
+0x001b59b0: f31f8052   mov     w19, #0xff
+0x001b59b4: 1c010014   b       #0x1b5e24
+0x001b59b8: a8035cf8   ldur    x8, [x29, #-0x40]
+0x001b59bc: 1f010ff1   cmp     x8, #0x3c0
+0x001b59c0: a89e0054   b.hi    #0x1b6d94
+0x001b59c4: a9835cf8   ldur    x9, [x29, #-0x38]
+0x001b59c8: 28014039   ldrb    w8, [x9]
+0x001b59cc: 08791d12   and     w8, w8, #0xfffffffb
+0x001b59d0: 2b030014   b       #0x1b667c
+0x001b59d4: 331100d0   adrp    x19, #0x3db000
+0x001b59d8: 68026c39   ldrb    w8, [x19, #0xb00]
+0x001b59dc: 1f090071   cmp     w8, #2
+0x001b59e0: e3000054   b.lo    #0x1b59fc
+0x001b59e4: 21f4ffb0   adrp    x1, #0x3a000
+0x001b59e8: e2f4ffd0   adrp    x2, #0x53000
+0x001b59ec: 21ac3191   add     x1, x1, #0xc6b  ; "%s: Stop the AV Data channel"
+0x001b59f0: 42dc0091   add     x2, x2, #0x37  ; "btif_av_state_opened_handler"
+0x001b59f4: 20a08052   mov     w0, #0x501
+0x001b59f8: 5030fd97   bl      #0x101b38  -> LogMsg
+0x001b59fc: 82e8ff97   bl      #0x1afc04  -> _Z29btif_av_is_split_a2dp_enabledv
+0x001b5a00: 40010036   tbz     w0, #0, #0x1b5a28
+0x001b5a04: 72c9ff97   bl      #0x1a7fcc  -> _Z36btif_a2dp_source_is_hal_v2_supportedv
+0x001b5a08: 00010037   tbnz    w0, #0, #0x1b5a28
+0x001b5a0c: 141200b0   adrp    x20, #0x3f6000
+0x001b5a10: 88f26939   ldrb    w8, [x20, #0xa7c]
+0x001b5a14: a8000034   cbz     w8, #0x1b5a28
+0x001b5a18: 66150094   bl      #0x1bafb0  -> _Z12isBATEnabledv
+0x001b5a1c: 60000037   tbnz    w0, #0, #0x1b5a28
+0x001b5a20: 9ff22939   strb    wzr, [x20, #0xa7c]
+0x001b5a24: c7dfff97   bl      #0x1ad940  -> _Z32btif_a2dp_audio_interface_deinitv
+0x001b5a28: 081200b0   adrp    x8, #0x3f6000
+0x001b5a2c: 08416839   ldrb    w8, [x8, #0xa10]
+0x001b5a30: 1f050071   cmp     w8, #1
+0x001b5a34: 41010054   b.ne    #0x1b5a5c
+0x001b5a38: e806178b   add     x8, x23, x23, lsl #1
+0x001b5a3c: 49068052   mov     w9, #0x32
+0x001b5a40: 09857ab3   bfi     x9, x8, #6, #0x22
+0x001b5a44: 3f010ff1   cmp     x9, #0x3c0
+0x001b5a48: 689a0054   b.hi    #0x1b6d94
+0x001b5a4c: 08188052   mov     w8, #0xc0
+0x001b5a50: e85a089b   madd    x8, x23, x8, x22
+0x001b5a54: 08c94039   ldrb    w8, [x8, #0x32]
+0x001b5a58: 68450034   cbz     w8, #0x1b6304
+0x001b5a5c: e0031faa   mov     x0, xzr
+0x001b5a60: 41b2ff97   bl      #0x1a2364  -> _Z20btif_a2dp_on_stoppedP15tBTA_AV_SUSPEND
+0x001b5a64: a8035cf8   ldur    x8, [x29, #-0x40]
+0x001b5a68: 1f010ff1   cmp     x8, #0x3c0
+0x001b5a6c: 48990054   b.hi    #0x1b6d94
+0x001b5a70: b4835cf8   ldur    x20, [x29, #-0x38]
+0x001b5a74: 09188052   mov     w9, #0xc0
+0x001b5a78: e95a099b   madd    x9, x23, x9, x22
+0x001b5a7c: 33050091   add     x19, x9, #1  ; ""
+0x001b5a80: 88024039   ldrb    w8, [x20]
+0x001b5a84: e00313aa   mov     x0, x19
+0x001b5a88: 08011c32   orr     w8, w8, #0x10
+0x001b5a8c: 88020039   strb    w8, [x20]
+0x001b5a90: a8110094   bl      #0x1ba130  -> _ZL40btif_av_disconnect_queue_advance_by_uuidPK10RawAddress
+0x001b5a94: e0031f2a   mov     w0, wzr
+0x001b5a98: e10313aa   mov     x1, x19
+0x001b5a9c: 35120094   bl      #0x1ba370  -> _ZL28btif_report_connection_state23btav_connection_state_tP10RawAddress
+0x001b5aa0: 88024039   ldrb    w8, [x20]
+0x001b5aa4: 09791b12   and     w9, w8, #0xffffffef
+0x001b5aa8: 89020039   strb    w9, [x20]
+0x001b5aac: 48011036   tbz     w8, #2, #0x1b5ad4
+0x001b5ab0: 20008052   mov     w0, #1
+0x001b5ab4: c2b9ff97   bl      #0x1a41bc  -> _Z21btif_a2dp_command_ack14tA2DP_CTRL_ACK
+0x001b5ab8: a8035cf8   ldur    x8, [x29, #-0x40]
+0x001b5abc: 1f010ff1   cmp     x8, #0x3c0
+0x001b5ac0: a8960054   b.hi    #0x1b6d94
+0x001b5ac4: a9835cf8   ldur    x9, [x29, #-0x38]
+0x001b5ac8: 28014039   ldrb    w8, [x9]
+0x001b5acc: 08791d12   and     w8, w8, #0xfffffffb
+0x001b5ad0: 28010039   strb    w8, [x9]
+0x001b5ad4: e806178b   add     x8, x23, x23, lsl #1
+0x001b5ad8: 09018052   mov     w9, #8
+0x001b5adc: 09857ab3   bfi     x9, x8, #6, #0x22
+0x001b5ae0: 3f010ff1   cmp     x9, #0x3c0
+0x001b5ae4: 88950054   b.hi    #0x1b6d94
+0x001b5ae8: 08188052   mov     w8, #0xc0
+0x001b5aec: e85a089b   madd    x8, x23, x8, x22
+0x001b5af0: 000540f9   ldr     x0, [x8, #8]
+0x001b5af4: e1031f2a   mov     w1, wzr
+0x001b5af8: ff850194   bl      #0x2172f4  -> _Z20btif_sm_change_statePvj
+0x001b5afc: f7010014   b       #0x1b62d8
+0x001b5b00: 41e8ff97   bl      #0x1afc04  -> _Z29btif_av_is_split_a2dp_enabledv
+0x001b5b04: 00010036   tbz     w0, #0, #0x1b5b24
+0x001b5b08: 31c9ff97   bl      #0x1a7fcc  -> _Z36btif_a2dp_source_is_hal_v2_supportedv
+0x001b5b0c: c0000037   tbnz    w0, #0, #0x1b5b24
+0x001b5b10: 28150094   bl      #0x1bafb0  -> _Z12isBATEnabledv
+0x001b5b14: 80000037   tbnz    w0, #0, #0x1b5b24
+0x001b5b18: 081200b0   adrp    x8, #0x3f6000
+0x001b5b1c: 1ff12939   strb    wzr, [x8, #0xa7c]
+0x001b5b20: 88dfff97   bl      #0x1ad940  -> _Z32btif_a2dp_audio_interface_deinitv
+0x001b5b24: a8035cf8   ldur    x8, [x29, #-0x40]
+0x001b5b28: 1f010ff1   cmp     x8, #0x3c0
+0x001b5b2c: 48930054   b.hi    #0x1b6d94
+0x001b5b30: a8835cf8   ldur    x8, [x29, #-0x38]
+0x001b5b34: 08014039   ldrb    w8, [x8]
+0x001b5b38: 48011036   tbz     w8, #2, #0x1b5b60
+0x001b5b3c: 20008052   mov     w0, #1
+0x001b5b40: 9fb9ff97   bl      #0x1a41bc  -> _Z21btif_a2dp_command_ack14tA2DP_CTRL_ACK
+0x001b5b44: a8035cf8   ldur    x8, [x29, #-0x40]
+0x001b5b48: 1f010ff1   cmp     x8, #0x3c0
+0x001b5b4c: 48920054   b.hi    #0x1b6d94
+0x001b5b50: a9835cf8   ldur    x9, [x29, #-0x38]
+0x001b5b54: 28014039   ldrb    w8, [x9]
+0x001b5b58: 08791d12   and     w8, w8, #0xfffffffb
+0x001b5b5c: 28010039   strb    w8, [x9]
+0x001b5b60: e806178b   add     x8, x23, x23, lsl #1
+0x001b5b64: 09018052   mov     w9, #8
+0x001b5b68: 09857ab3   bfi     x9, x8, #6, #0x22
+0x001b5b6c: 3f010ff1   cmp     x9, #0x3c0
+0x001b5b70: 28910054   b.hi    #0x1b6d94
+0x001b5b74: 08188052   mov     w8, #0xc0
+0x001b5b78: f35a089b   madd    x19, x23, x8, x22
+0x001b5b7c: 600640f9   ldr     x0, [x19, #8]
+0x001b5b80: 81008052   mov     w1, #4
+0x001b5b84: dc850194   bl      #0x2172f4  -> _Z20btif_sm_change_statePvj
+0x001b5b88: 61060091   add     x1, x19, #1  ; "%.="
+0x001b5b8c: 60008052   mov     w0, #3
+0x001b5b90: f8110094   bl      #0x1ba370  -> _ZL28btif_report_connection_state23btav_connection_state_tP10RawAddress
+0x001b5b94: b3fdff17   b       #0x1b5260
+0x001b5b98: 6130fd97   bl      #0x101d1c  -> vnd_LogMsg
+0x001b5b9c: f3031f2a   mov     w19, wzr
+0x001b5ba0: b1fdff17   b       #0x1b5264
+0x001b5ba4: 3f010ff1   cmp     x9, #0x3c0
+0x001b5ba8: 688f0054   b.hi    #0x1b6d94
+0x001b5bac: 04014039   ldrb    w4, [x8]
+0x001b5bb0: 61f4ff90   adrp    x1, #0x41000
+0x001b5bb4: e2f4ffd0   adrp    x2, #0x53000
+0x001b5bb8: 21a80b91   add     x1, x1, #0x2ea  ; "%s: reconfig status: %d, reconfig_pending: %d"
+0x001b5bbc: 42dc0091   add     x2, x2, #0x37  ; "btif_av_state_opened_handler"
+0x001b5bc0: 80a08052   mov     w0, #0x504
+0x001b5bc4: 5630fd97   bl      #0x101d1c  -> vnd_LogMsg
+0x001b5bc8: 1f630df1   cmp     x24, #0x358
+0x001b5bcc: 488e0054   b.hi    #0x1b6d94
+0x001b5bd0: e81f40f9   ldr     x8, [sp, #0x38]
+0x001b5bd4: 080140b9   ldr     w8, [x8]
+0x001b5bd8: 685b0034   cbz     w8, #0x1b6744
+0x001b5bdc: c80a4039   ldrb    w8, [x22, #2]
+0x001b5be0: 1f250071   cmp     w8, #9
+0x001b5be4: 011c0054   b.ne    #0x1b5f64
+0x001b5be8: 7f1e0cf1   cmp     x19, #0x307
+0x001b5bec: 488d0054   b.hi    #0x1b6d94
+0x001b5bf0: a8066c39   ldrb    w8, [x21, #0xb01]
+0x001b5bf4: a1f4ff90   adrp    x1, #0x49000
+0x001b5bf8: e2f4ffd0   adrp    x2, #0x53000
+0x001b5bfc: 29008052   mov     w9, #1
+0x001b5c00: 1f150071   cmp     w8, #5
+0x001b5c04: 21e83f91   add     x1, x1, #0xffa  ; "%s: ignore, as we are retrying reconfig, is_retry_reconfig: %d"
+0x001b5c08: 42dc0091   add     x2, x2, #0x37  ; "btif_av_state_opened_handler"
+0x001b5c0c: 80a08052   mov     w0, #0x504
+0x001b5c10: 23008052   mov     w3, #1
+0x001b5c14: 89030039   strb    w9, [x28]
+0x001b5c18: 23370054   b.lo    #0x1b62fc
+0x001b5c1c: c72ffd97   bl      #0x101b38  -> LogMsg
+0x001b5c20: c9020014   b       #0x1b6744
+0x001b5c24: 1f630df1   cmp     x24, #0x358
+0x001b5c28: 688b0054   b.hi    #0x1b6d94
+0x001b5c2c: e81f40f9   ldr     x8, [sp, #0x38]
+0x001b5c30: e9d26739   ldrb    w9, [x23, #0x9f4]
+0x001b5c34: 00e4006f   movi    v0.2d, #0000000000000000
+0x001b5c38: 1f0100b9   str     wzr, [x8]
+0x001b5c3c: 08188052   mov     w8, #0xc0
+0x001b5c40: a84e089b   madd    x8, x21, x8, x19
+0x001b5c44: 008104ad   stp     q0, q0, [x8, #0x90]
+0x001b5c48: 008103ad   stp     q0, q0, [x8, #0x70]
+0x001b5c4c: 09010034   cbz     w9, #0x1b5c6c
+0x001b5c50: 5f030ff1   cmp     x26, #0x3c0
+0x001b5c54: 088a0054   b.hi    #0x1b6d94
+0x001b5c58: 28008052   mov     w8, #1
+0x001b5c5c: e00316aa   mov     x0, x22
+0x001b5c60: e103142a   mov     w1, w20
+0x001b5c64: 68030039   strb    w8, [x27]
+0x001b5c68: 99140094   bl      #0x1baecc  -> _ZL30btif_av_cache_src_codec_configjPvi
+0x001b5c6c: e00316aa   mov     x0, x22
+0x001b5c70: c50e0094   bl      #0x1b9784  -> _ZL24btif_update_source_codecPv
+0x001b5c74: 7bfdff17   b       #0x1b5260
+0x001b5c78: 2930fd97   bl      #0x101d1c  -> vnd_LogMsg
+0x001b5c7c: 29174039   ldrb    w9, [x25, #5]
+0x001b5c80: 08188052   mov     w8, #0xc0
+0x001b5c84: 171200b0   adrp    x23, #0x3f6000
+0x001b5c88: 8a7ea89b   umull   x10, w20, w8
+0x001b5c8c: f7021891   add     x23, x23, #0x600
+0x001b5c90: 3f050071   cmp     w9, #1
+0x001b5c94: 490d7eb2   orr     x9, x10, #0x3c
+0x001b5c98: 41050054   b.ne    #0x1b5d40
+0x001b5c9c: f81740f9   ldr     x24, [sp, #0x28]
+0x001b5ca0: 3f010ff1   cmp     x9, #0x3c0
+0x001b5ca4: 88870054   b.hi    #0x1b6d94
+0x001b5ca8: 29008052   mov     w9, #1
+0x001b5cac: 29000014   b       #0x1b5d50
+0x001b5cb0: f51340f9   ldr     x21, [sp, #0x20]
+0x001b5cb4: a88300d1   sub     x8, x29, #0x20
+0x001b5cb8: a0120091   add     x0, x21, #4
+0x001b5cbc: e5570894   bl      #0x3cbc50  -> sub_3cbc50
+0x001b5cc0: a08300d1   sub     x0, x29, #0x20
+0x001b5cc4: 7e2ffd97   bl      #0x101abc  -> _ZNKSt3__117__compressed_pairINS_12basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEE5__repES5_E5firstEv
+0x001b5cc8: 13004039   ldrb    w19, [x0]
+0x001b5ccc: a08300d1   sub     x0, x29, #0x20
+0x001b5cd0: 7b2ffd97   bl      #0x101abc  -> _ZNKSt3__117__compressed_pairINS_12basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEE5__repES5_E5firstEv
+0x001b5cd4: 93230037   tbnz    w19, #0, #0x1b6144
+0x001b5cd8: 14040091   add     x20, x0, #1
+0x001b5cdc: e00314aa   mov     x0, x20
+0x001b5ce0: 5b31fd97   bl      #0x10224c  -> _ZNSt3__19addressofIKcEEPT_RS2_
+0x001b5ce4: 19010014   b       #0x1b6148
+0x001b5ce8: 0d30fd97   bl      #0x101d1c  -> vnd_LogMsg
+0x001b5cec: e82740f9   ldr     x8, [sp, #0x48]
+0x001b5cf0: eb1740f9   ldr     x11, [sp, #0x28]
+0x001b5cf4: 0a1200b0   adrp    x10, #0x3f6000
+0x001b5cf8: 4a011891   add     x10, x10, #0x600
+0x001b5cfc: 1f010ff1   cmp     x8, #0x3c0
+0x001b5d00: a8840054   b.hi    #0x1b6d94
+0x001b5d04: e82340f9   ldr     x8, [sp, #0x40]
+0x001b5d08: e91340f9   ldr     x9, [sp, #0x20]
+0x001b5d0c: 08014039   ldrb    w8, [x8]
+0x001b5d10: 1f050071   cmp     w8, #1
+0x001b5d14: 61aaff54   b.ne    #0x1b5260
+0x001b5d18: 68050b8b   add     x8, x11, x11, lsl #1
+0x001b5d1c: 08e57ad3   lsl     x8, x8, #6
+0x001b5d20: 1ffd0df1   cmp     x8, #0x37f
+0x001b5d24: 88830054   b.hi    #0x1b6d94
+0x001b5d28: 28114079   ldrh    w8, [x9, #8]
+0x001b5d2c: 09188052   mov     w9, #0xc0
+0x001b5d30: 6929099b   madd    x9, x11, x9, x10
+0x001b5d34: 33008052   mov     w19, #1
+0x001b5d38: 28810079   strh    w8, [x9, #0x40]
+0x001b5d3c: 4afdff17   b       #0x1b5264
+0x001b5d40: f81740f9   ldr     x24, [sp, #0x28]
+0x001b5d44: 3f010ff1   cmp     x9, #0x3c0
+0x001b5d48: 68820054   b.hi    #0x1b6d94
+0x001b5d4c: e9031f2a   mov     w9, wzr
+0x001b5d50: 885ea89b   umaddl  x8, w20, w8, x23
+0x001b5d54: e003142a   mov     w0, w20
+0x001b5d58: 09cd0338   strb    w9, [x8, #0x3c]!
+0x001b5d5c: 14150094   bl      #0x1bb1ac  -> _Z30btif_av_update_multicast_statei
+0x001b5d60: 280b4039   ldrb    w8, [x25, #2]
+0x001b5d64: 280d0034   cbz     w8, #0x1b5f08
+0x001b5d68: a8035cf8   ldur    x8, [x29, #-0x40]
+0x001b5d6c: 1f010ff1   cmp     x8, #0x3c0
+0x001b5d70: 28810054   b.hi    #0x1b6d94
+0x001b5d74: a8835cf8   ldur    x8, [x29, #-0x38]
+0x001b5d78: 08014039   ldrb    w8, [x8]
+0x001b5d7c: 68001037   tbnz    w8, #2, #0x1b5d88
+0x001b5d80: e3eb0094   bl      #0x1f0d0c  -> _ZN9bluetooth7headset23btif_hf_is_call_vr_idleEv
+0x001b5d84: a0250036   tbz     w0, #0, #0x1b6238
+0x001b5d88: 0807188b   add     x8, x24, x24, lsl #1
+0x001b5d8c: 49068052   mov     w9, #0x32
+0x001b5d90: 09857ab3   bfi     x9, x8, #6, #0x22
+0x001b5d94: 3f010ff1   cmp     x9, #0x3c0
+0x001b5d98: e87f0054   b.hi    #0x1b6d94
+0x001b5d9c: 08188052   mov     w8, #0xc0
+0x001b5da0: 085f089b   madd    x8, x24, x8, x23
+0x001b5da4: 08c94039   ldrb    w8, [x8, #0x32]
+0x001b5da8: e81f0034   cbz     w8, #0x1b61a4
+0x001b5dac: a8035cf8   ldur    x8, [x29, #-0x40]
+0x001b5db0: 1f010ff1   cmp     x8, #0x3c0
+0x001b5db4: 087f0054   b.hi    #0x1b6d94
+0x001b5db8: a8835cf8   ldur    x8, [x29, #-0x38]
+0x001b5dbc: 08014039   ldrb    w8, [x8]
+0x001b5dc0: ff000014   b       #0x1b61bc
+0x001b5dc4: 281100d0   adrp    x8, #0x3db000
+0x001b5dc8: 08016c39   ldrb    w8, [x8, #0xb00]
+0x001b5dcc: 1f090071   cmp     w8, #2
+0x001b5dd0: e3000054   b.lo    #0x1b5dec
+0x001b5dd4: 41f5ffd0   adrp    x1, #0x5f000
+0x001b5dd8: 21440191   add     x1, x1, #0x51  ; "%s: Ack success to MM although VSCs of START exchange didn't start : %d"
+0x001b5ddc: e2f4ffd0   adrp    x2, #0x53000
+0x001b5de0: 42dc0091   add     x2, x2, #0x37  ; "btif_av_state_opened_handler"
+0x001b5de4: 20a08052   mov     w0, #0x501
+0x001b5de8: 542ffd97   bl      #0x101b38  -> LogMsg
+0x001b5dec: e0008052   mov     w0, #7
+0x001b5df0: e7b2ff97   bl      #0x1a298c  -> _Z28btif_a2dp_on_offload_startedh
+0x001b5df4: 1bfdff17   b       #0x1b5260
+0x001b5df8: ea1740f9   ldr     x10, [sp, #0x28]
+0x001b5dfc: 48050a8b   add     x8, x10, x10, lsl #1
+0x001b5e00: 08e57ad3   lsl     x8, x8, #6
+0x001b5e04: 1ffd0ef1   cmp     x8, #0x3bf
+0x001b5e08: 687c0054   b.hi    #0x1b6d94
+0x001b5e0c: 091200b0   adrp    x9, #0x3f6000
+0x001b5e10: 29011891   add     x9, x9, #0x600
+0x001b5e14: 087c0054   b.hi    #0x1b6d94
+0x001b5e18: 08188052   mov     w8, #0xc0
+0x001b5e1c: 487d089b   mul     x8, x10, x8
+0x001b5e20: 33696838   ldrb    w19, [x9, x8]
+0x001b5e24: 281100d0   adrp    x8, #0x3db000
+0x001b5e28: 08016c39   ldrb    w8, [x8, #0xb00]
+0x001b5e2c: 1f150071   cmp     w8, #5
+0x001b5e30: 43010054   b.lo    #0x1b5e58
+0x001b5e34: 66c8ff97   bl      #0x1a7fcc  -> _Z36btif_a2dp_source_is_hal_v2_supportedv
+0x001b5e38: c1f4ffd0   adrp    x1, #0x4f000
+0x001b5e3c: e2f4ffd0   adrp    x2, #0x53000
+0x001b5e40: 04000012   and     w4, w0, #1
+0x001b5e44: 21d43291   add     x1, x1, #0xcb5  ; "%s: hdl = %d, btif_a2dp_source_is_hal_v2_supported() %d"
+0x001b5e48: 42dc0091   add     x2, x2, #0x37  ; "btif_av_state_opened_handler"
+0x001b5e4c: 80a08052   mov     w0, #0x504
+0x001b5e50: e303132a   mov     w3, w19
+0x001b5e54: 392ffd97   bl      #0x101b38  -> LogMsg
+0x001b5e58: 5dc8ff97   bl      #0x1a7fcc  -> _Z36btif_a2dp_source_is_hal_v2_supportedv
+0x001b5e5c: 20a00737   tbnz    w0, #0, #0x1b5260
+0x001b5e60: e003132a   mov     w0, w19
+0x001b5e64: 56c7ff97   bl      #0x1a7bbc  -> _Z28btif_a2dp_source_setup_codech
+0x001b5e68: fefcff17   b       #0x1b5260
+0x001b5e6c: a8035cf8   ldur    x8, [x29, #-0x40]
+0x001b5e70: 1f010ff1   cmp     x8, #0x3c0
+0x001b5e74: 08790054   b.hi    #0x1b6d94
+0x001b5e78: a8835cf8   ldur    x8, [x29, #-0x38]
+0x001b5e7c: 08014039   ldrb    w8, [x8]
+0x001b5e80: a9035cf8   ldur    x9, [x29, #-0x40]
+0x001b5e84: 3f010ff1   cmp     x9, #0x3c0
+0x001b5e88: 68780054   b.hi    #0x1b6d94
+0x001b5e8c: 69050b8b   add     x9, x11, x11, lsl #1
+0x001b5e90: 29e57ad3   lsl     x9, x9, #6
+0x001b5e94: 3f210cf1   cmp     x9, #0x308
+0x001b5e98: a9835cf8   ldur    x9, [x29, #-0x38]
+0x001b5e9c: 08191f12   and     w8, w8, #0xfe
+0x001b5ea0: 28010039   strb    w8, [x9]
+0x001b5ea4: 88770054   b.hi    #0x1b6d94
+0x001b5ea8: 281100d0   adrp    x8, #0x3db000
+0x001b5eac: 08056c39   ldrb    w8, [x8, #0xb01]
+0x001b5eb0: 09188052   mov     w9, #0xc0
+0x001b5eb4: c1f3ffb0   adrp    x1, #0x2e000
+0x001b5eb8: e2f4ffd0   adrp    x2, #0x53000
+0x001b5ebc: 6929099b   madd    x9, x11, x9, x10
+0x001b5ec0: 1f150071   cmp     w8, #5
+0x001b5ec4: 21003791   add     x1, x1, #0xdc0  ; "%s: BTA_AV_SUSPEND_EVT received in opened state for index: %d, ignore."
+0x001b5ec8: 42dc0091   add     x2, x2, #0x37  ; "btif_av_state_opened_handler"
+0x001b5ecc: 80a08052   mov     w0, #0x504
+0x001b5ed0: e303142a   mov     w3, w20
+0x001b5ed4: 3fe10239   strb    wzr, [x9, #0xb8]
+0x001b5ed8: e3010054   b.lo    #0x1b5f14
+0x001b5edc: 172ffd97   bl      #0x101b38  -> LogMsg
+0x001b5ee0: e0fcff17   b       #0x1b5260
+0x001b5ee4: 01f6ffb0   adrp    x1, #0x76000
+0x001b5ee8: e2f4ffd0   adrp    x2, #0x53000
+0x001b5eec: 21cc3491   add     x1, x1, #0xd33  ; "%s: Ignore BTIF_AV_CONNECT_REQ_EVT for same device"
+0x001b5ef0: 42dc0091   add     x2, x2, #0x37  ; "btif_av_state_opened_handler"
+0x001b5ef4: 80a08052   mov     w0, #0x504
+0x001b5ef8: 1f150071   cmp     w8, #5
+0x001b5efc: 831c0054   b.lo    #0x1b628c
+0x001b5f00: 0e2ffd97   bl      #0x101b38  -> LogMsg
+0x001b5f04: e3000014   b       #0x1b6290
+0x001b5f08: 28134039   ldrb    w8, [x25, #4]
+0x001b5f0c: a89aff35   cbnz    w8, #0x1b5260
+0x001b5f10: 96ffff17   b       #0x1b5d68
+0x001b5f14: 822ffd97   bl      #0x101d1c  -> vnd_LogMsg
+0x001b5f18: d2fcff17   b       #0x1b5260
+0x001b5f1c: a88300d1   sub     x8, x29, #0x20
+0x001b5f20: e00314aa   mov     x0, x20
+0x001b5f24: 4b570894   bl      #0x3cbc50  -> sub_3cbc50
+0x001b5f28: a08300d1   sub     x0, x29, #0x20
+0x001b5f2c: 2f4efd97   bl      #0x1097e8  -> _ZNKSt3__112basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEE4dataEv
+0x001b5f30: 21f6ff90   adrp    x1, #0x79000
+0x001b5f34: e2f4ffd0   adrp    x2, #0x53000
+0x001b5f38: e30300aa   mov     x3, x0
+0x001b5f3c: 21303791   add     x1, x1, #0xdcc  ; "%s: Moved to opened by Other incoming Connect request: target_bda=%s"
+0x001b5f40: 42dc0091   add     x2, x2, #0x37  ; "btif_av_state_opened_handler"
+0x001b5f44: 20a08052   mov     w0, #0x501
+0x001b5f48: 752ffd97   bl      #0x101d1c  -> vnd_LogMsg
+0x001b5f4c: a08300d1   sub     x0, x29, #0x20
+0x001b5f50: 1c660894   bl      #0x3cf7c0
+0x001b5f54: e0031f2a   mov     w0, wzr
+0x001b5f58: e10314aa   mov     x1, x20
+0x001b5f5c: 05110094   bl      #0x1ba370  -> _ZL28btif_report_connection_state23btav_connection_state_tP10RawAddress
+0x001b5f60: cc000014   b       #0x1b6290
+0x001b5f64: e8d26739   ldrb    w8, [x23, #0x9f4]
+0x001b5f68: e8000034   cbz     w8, #0x1b5f84
+0x001b5f6c: a8035cf8   ldur    x8, [x29, #-0x40]
+0x001b5f70: 1f010ff1   cmp     x8, #0x3c0
+0x001b5f74: 08710054   b.hi    #0x1b6d94
+0x001b5f78: a8835cf8   ldur    x8, [x29, #-0x38]
+0x001b5f7c: 08014039   ldrb    w8, [x8]
+0x001b5f80: 28441037   tbnz    w8, #2, #0x1b6804
+0x001b5f84: a8066c39   ldrb    w8, [x21, #0xb01]
+0x001b5f88: 61f4ff90   adrp    x1, #0x41000
+0x001b5f8c: e2f4ffd0   adrp    x2, #0x53000
+0x001b5f90: 21600c91   add     x1, x1, #0x318  ; "%s: Clear cached codec_config data as reconfig got success"
+0x001b5f94: 42dc0091   add     x2, x2, #0x37  ; "btif_av_state_opened_handler"
+0x001b5f98: 80a08052   mov     w0, #0x504
+0x001b5f9c: 1f150071   cmp     w8, #5
+0x001b5fa0: 833b0054   b.lo    #0x1b6710
+0x001b5fa4: e52efd97   bl      #0x101b38  -> LogMsg
+0x001b5fa8: db010014   b       #0x1b6714
+0x001b5fac: fa1740f9   ldr     x26, [sp, #0x28]
+0x001b5fb0: a9035cf8   ldur    x9, [x29, #-0x40]
+0x001b5fb4: 3f010ff1   cmp     x9, #0x3c0
+0x001b5fb8: e86e0054   b.hi    #0x1b6d94
+0x001b5fbc: a9835cf8   ldur    x9, [x29, #-0x38]
+0x001b5fc0: 08751c12   and     w8, w8, #0xfffffff3
+0x001b5fc4: 28010039   strb    w8, [x9]
+0x001b5fc8: 1f630df1   cmp     x24, #0x358
+0x001b5fcc: 486e0054   b.hi    #0x1b6d94
+0x001b5fd0: e81f40f9   ldr     x8, [sp, #0x38]
+0x001b5fd4: 080140b9   ldr     w8, [x8]
+0x001b5fd8: 68010034   cbz     w8, #0x1b6004
+0x001b5fdc: a8035cf8   ldur    x8, [x29, #-0x40]
+0x001b5fe0: 1f010ff1   cmp     x8, #0x3c0
+0x001b5fe4: 886d0054   b.hi    #0x1b6d94
+0x001b5fe8: aa835cf8   ldur    x10, [x29, #-0x38]
+0x001b5fec: 48014039   ldrb    w8, [x10]
+0x001b5ff0: 09011e12   and     w9, w8, #4
+0x001b5ff4: 49010039   strb    w9, [x10]
+0x001b5ff8: 68001037   tbnz    w8, #2, #0x1b6004
+0x001b5ffc: e003142a   mov     w0, w20
+0x001b6000: df120094   bl      #0x1bab7c  -> _ZL39btif_av_process_cached_src_codec_configi
+0x001b6004: 48071a8b   add     x8, x26, x26, lsl #1
+0x001b6008: 08e57ad3   lsl     x8, x8, #6
+0x001b600c: 1fe90df1   cmp     x8, #0x37a
+0x001b6010: 286c0054   b.hi    #0x1b6d94
+0x001b6014: 08188052   mov     w8, #0xc0
+0x001b6018: 484f089b   madd    x8, x26, x8, x19
+0x001b601c: 08194139   ldrb    w8, [x8, #0x46]
+0x001b6020: 0892ff34   cbz     w8, #0x1b5260
+0x001b6024: 351100b0   adrp    x21, #0x3db000
+0x001b6028: a8026c39   ldrb    w8, [x21, #0xb00]
+0x001b602c: 1f150071   cmp     w8, #5
+0x001b6030: a3000054   b.lo    #0x1b6044
+0x001b6034: 41f3ffd0   adrp    x1, #0x20000
+0x001b6038: 21200c91   add     x1, x1, #0x308  ; "TWS+ device enter opened state"
+0x001b603c: 80a08052   mov     w0, #0x504
+0x001b6040: be2efd97   bl      #0x101b38  -> LogMsg
+0x001b6044: 361100b0   adrp    x22, #0x3db000
+0x001b6048: c8324fb9   ldr     w8, [x22, #0xf30]
+0x001b604c: 1f050071   cmp     w8, #1
+0x001b6050: 8b90ff54   b.lt    #0x1b5260
+0x001b6054: 48071a8b   add     x8, x26, x26, lsl #1
+0x001b6058: 1be57ad3   lsl     x27, x8, #6
+0x001b605c: d4f5ffd0   adrp    x20, #0x70000
+0x001b6060: f7031faa   mov     x23, xzr
+0x001b6064: 781a0191   add     x24, x19, #0x46  ; ".="
+0x001b6068: d9088052   mov     w25, #0x46
+0x001b606c: ba008052   mov     w26, #5
+0x001b6070: 7c021b8b   add     x28, x19, x27
+0x001b6074: 943e3791   add     x20, x20, #0xdcf  ; "The other TWS+ is pending start, sending bta av start, flags %x"
+0x001b6078: 33008052   mov     w19, #1
+0x001b607c: 09000014   b       #0x1b60a0
+0x001b6080: 80034039   ldrb    w0, [x28]
+0x001b6084: 14c2fd97   bl      #0x1268d4  -> _Z11BTA_AvStarth
+0x001b6088: c8328fb9   ldrsw   x8, [x22, #0xf30]
+0x001b608c: f7060091   add     x23, x23, #1
+0x001b6090: 18030391   add     x24, x24, #0xc0  ; "....."
+0x001b6094: 39030391   add     x25, x25, #0xc0
+0x001b6098: ff0208eb   cmp     x23, x8
+0x001b609c: 4a8eff54   b.ge    #0x1b5264
+0x001b60a0: e81740f9   ldr     x8, [sp, #0x28]
+0x001b60a4: 1f0117eb   cmp     x8, x23
+0x001b60a8: 00ffff54   b.eq    #0x1b6088
+0x001b60ac: ff1200f1   cmp     x23, #4
+0x001b60b0: 48670054   b.hi    #0x1b6d98
+0x001b60b4: 3f030ff1   cmp     x25, #0x3c0
+0x001b60b8: e8660054   b.hi    #0x1b6d94
+0x001b60bc: 08034039   ldrb    w8, [x24]
+0x001b60c0: 48feff34   cbz     w8, #0x1b6088
+0x001b60c4: 28db00d1   sub     x8, x25, #0x36
+0x001b60c8: 1f010ff1   cmp     x8, #0x3c0
+0x001b60cc: 48660054   b.hi    #0x1b6d94
+0x001b60d0: 02a35c38   ldurb   w2, [x24, #-0x36]
+0x001b60d4: 48001a0a   and     w8, w2, w26
+0x001b60d8: 1f110071   cmp     w8, #4
+0x001b60dc: 61fdff54   b.ne    #0x1b6088
+0x001b60e0: a8026c39   ldrb    w8, [x21, #0xb00]
+0x001b60e4: 1f150071   cmp     w8, #5
+0x001b60e8: 83000054   b.lo    #0x1b60f8
+0x001b60ec: 80a08052   mov     w0, #0x504
+0x001b60f0: e10314aa   mov     x1, x20
+0x001b60f4: 912efd97   bl      #0x101b38  -> LogMsg
+0x001b60f8: a8035cf8   ldur    x8, [x29, #-0x40]
+0x001b60fc: 1f010ff1   cmp     x8, #0x3c0
+0x001b6100: a8640054   b.hi    #0x1b6d94
+0x001b6104: a9835cf8   ldur    x9, [x29, #-0x38]
+0x001b6108: 7fff0ef1   cmp     x27, #0x3bf
+0x001b610c: 28014039   ldrb    w8, [x9]
+0x001b6110: 08011e32   orr     w8, w8, #4
+0x001b6114: 28010039   strb    w8, [x9]
+0x001b6118: 49fbff54   b.ls    #0x1b6080
+0x001b611c: 1e030014   b       #0x1b6d94
+0x001b6120: 140840f9   ldr     x20, [x0, #0x10]
+0x001b6124: c1f5ff90   adrp    x1, #0x6e000
+0x001b6128: e2f4ffb0   adrp    x2, #0x53000
+0x001b612c: 21300591   add     x1, x1, #0x14c  ; "%s: Remote_add: %s"
+0x001b6130: 42dc0091   add     x2, x2, #0x37  ; "btif_av_state_opened_handler"
+0x001b6134: 80a08052   mov     w0, #0x504
+0x001b6138: e30314aa   mov     x3, x20
+0x001b613c: 7f2efd97   bl      #0x101b38  -> LogMsg
+0x001b6140: 09000014   b       #0x1b6164
+0x001b6144: 140840f9   ldr     x20, [x0, #0x10]
+0x001b6148: c1f5ff90   adrp    x1, #0x6e000
+0x001b614c: e2f4ffb0   adrp    x2, #0x53000
+0x001b6150: 21300591   add     x1, x1, #0x14c  ; "%s: Remote_add: %s"
+0x001b6154: 42dc0091   add     x2, x2, #0x37  ; "btif_av_state_opened_handler"
+0x001b6158: 80a08052   mov     w0, #0x504
+0x001b615c: e30314aa   mov     x3, x20
+0x001b6160: ef2efd97   bl      #0x101d1c  -> vnd_LogMsg
+0x001b6164: a08300d1   sub     x0, x29, #0x20
+0x001b6168: 552efd97   bl      #0x101abc  -> _ZNKSt3__117__compressed_pairINS_12basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEE5__repES5_E5firstEv
+0x001b616c: 08004039   ldrb    w8, [x0]
+0x001b6170: 48010036   tbz     w8, #0, #0x1b6198
+0x001b6174: a08300d1   sub     x0, x29, #0x20
+0x001b6178: 542efd97   bl      #0x101ac8  -> _ZNSt3__117__compressed_pairINS_12basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEE5__repES5_E6secondEv
+0x001b617c: a08300d1   sub     x0, x29, #0x20
+0x001b6180: 502efd97   bl      #0x101ac0  -> _ZNSt3__117__compressed_pairINS_12basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEE5__repES5_E5firstEv
+0x001b6184: 140840f9   ldr     x20, [x0, #0x10]
+0x001b6188: a08300d1   sub     x0, x29, #0x20
+0x001b618c: 4c2efd97   bl      #0x101abc  -> _ZNKSt3__117__compressed_pairINS_12basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEE5__repES5_E5firstEv
+0x001b6190: e00314aa   mov     x0, x20
+0x001b6194: 2f650894   bl      #0x3cf650
+0x001b6198: e00315aa   mov     x0, x21
+0x001b619c: 0e150094   bl      #0x1bb5d4  -> _ZL36btif_av_check_rc_connection_priorityPv
+0x001b61a0: 30fcff17   b       #0x1b5260
+0x001b61a4: a8035cf8   ldur    x8, [x29, #-0x40]
+0x001b61a8: 1f010ff1   cmp     x8, #0x3c0
+0x001b61ac: 485f0054   b.hi    #0x1b6d94
+0x001b61b0: a8835cf8   ldur    x8, [x29, #-0x38]
+0x001b61b4: 08014039   ldrb    w8, [x8]
+0x001b61b8: 68261037   tbnz    w8, #2, #0x1b6684
+0x001b61bc: e8511037   tbnz    w8, #2, #0x1b6bf8
+0x001b61c0: e82740f9   ldr     x8, [sp, #0x48]
+0x001b61c4: 1f010ff1   cmp     x8, #0x3c0
+0x001b61c8: 685e0054   b.hi    #0x1b6d94
+0x001b61cc: e82340f9   ldr     x8, [sp, #0x40]
+0x001b61d0: 08014039   ldrb    w8, [x8]
+0x001b61d4: 1f050071   cmp     w8, #1
+0x001b61d8: 01510054   b.ne    #0x1b6bf8
+0x001b61dc: 08120090   adrp    x8, #0x3f6000
+0x001b61e0: 08e16939   ldrb    w8, [x8, #0xa78]
+0x001b61e4: a83d0036   tbz     w8, #0, #0x1b6998
+0x001b61e8: 7be8ff97   bl      #0x1b03d4  -> _Z18btif_av_is_playingv
+0x001b61ec: 204a0036   tbz     w0, #0, #0x1b6b30
+0x001b61f0: 0807188b   add     x8, x24, x24, lsl #1
+0x001b61f4: 08e57ad3   lsl     x8, x8, #6
+0x001b61f8: 1fe90df1   cmp     x8, #0x37a
+0x001b61fc: c85c0054   b.hi    #0x1b6d94
+0x001b6200: 08188052   mov     w8, #0xc0
+0x001b6204: 085f089b   madd    x8, x24, x8, x23
+0x001b6208: 08194139   ldrb    w8, [x8, #0x46]
+0x001b620c: 28490035   cbnz    w8, #0x1b6b30
+0x001b6210: a8066c39   ldrb    w8, [x21, #0xb01]
+0x001b6214: 81f3ffd0   adrp    x1, #0x28000
+0x001b6218: e2f4ffb0   adrp    x2, #0x53000
+0x001b621c: 214c3c91   add     x1, x1, #0xf13  ; "%s: A2dp Multicast playback"
+0x001b6220: 42dc0091   add     x2, x2, #0x37  ; "btif_av_state_opened_handler"
+0x001b6224: 80a08052   mov     w0, #0x504
+0x001b6228: 1f150071   cmp     w8, #5
+0x001b622c: 03480054   b.lo    #0x1b6b2c
+0x001b6230: 422efd97   bl      #0x101b38  -> LogMsg
+0x001b6234: 3f020014   b       #0x1b6b30
+0x001b6238: a8066c39   ldrb    w8, [x21, #0xb01]
+0x001b623c: e1f3ff90   adrp    x1, #0x32000
+0x001b6240: e2f4ffb0   adrp    x2, #0x53000
+0x001b6244: 21c80b91   add     x1, x1, #0x2f2  ; "%s: trigger suspend as call is in progress!!"
+0x001b6248: 42dc0091   add     x2, x2, #0x37  ; "btif_av_state_opened_handler"
+0x001b624c: 60a08052   mov     w0, #0x503
+0x001b6250: 1f110071   cmp     w8, #4
+0x001b6254: c32e0054   b.lo    #0x1b682c
+0x001b6258: 382efd97   bl      #0x101b38  -> LogMsg
+0x001b625c: 75010014   b       #0x1b6830
+0x001b6260: af2efd97   bl      #0x101d1c  -> vnd_LogMsg
+0x001b6264: ea1740f9   ldr     x10, [sp, #0x28]
+0x001b6268: 09120090   adrp    x9, #0x3f6000
+0x001b626c: 29011891   add     x9, x9, #0x600
+0x001b6270: 08188052   mov     w8, #0xc0
+0x001b6274: 4825089b   madd    x8, x10, x8, x9
+0x001b6278: 00050091   add     x0, x8, #1
+0x001b627c: 850e0094   bl      #0x1b9c90  -> _ZL30btif_report_source_codec_statePvP10RawAddress
+0x001b6280: e003142a   mov     w0, w20
+0x001b6284: a0e5ff97   bl      #0x1af904  -> _Z32btif_av_update_reconfigure_eventi
+0x001b6288: f6fbff17   b       #0x1b5260
+0x001b628c: a42efd97   bl      #0x101d1c  -> vnd_LogMsg
+0x001b6290: 08120090   adrp    x8, #0x3f6000
+0x001b6294: 083945f9   ldr     x8, [x8, #0xa70]
+0x001b6298: 680000b4   cbz     x8, #0x1b62a4
+0x001b629c: 68218252   mov     w8, #0x110b
+0x001b62a0: 05000014   b       #0x1b62b4
+0x001b62a4: 08120090   adrp    x8, #0x3f6000
+0x001b62a8: 080545f9   ldr     x8, [x8, #0xa08]
+0x001b62ac: 680000b4   cbz     x8, #0x1b62b8
+0x001b62b0: 48218252   mov     w8, #0x110a
+0x001b62b4: a8120079   strh    w8, [x21, #8]
+0x001b62b8: a8435db8   ldur    w8, [x29, #-0x2c]
+0x001b62bc: 1f110071   cmp     w8, #4
+0x001b62c0: c8560054   b.hi    #0x1b6d98
+0x001b62c4: a0124079   ldrh    w0, [x21, #8]
+0x001b62c8: 09188052   mov     w9, #0xc0
+0x001b62cc: 084d099b   madd    x8, x8, x9, x19
+0x001b62d0: 01050091   add     x1, x8, #1
+0x001b62d4: 912f0194   bl      #0x202118  -> _Z26btif_queue_advance_by_uuidtPK10RawAddress
+0x001b62d8: c0008052   mov     w0, #6
+0x001b62dc: 23008052   mov     w3, #1
+0x001b62e0: e1031f2a   mov     w1, wzr
+0x001b62e4: e2031faa   mov     x2, xzr
+0x001b62e8: 33008052   mov     w19, #1
+0x001b62ec: 37070294   bl      #0x237fc8  -> _Z15ba_send_messagehhPcb
+0x001b62f0: ddfbff17   b       #0x1b5264
+0x001b62f4: 8a2efd97   bl      #0x101d1c  -> vnd_LogMsg
+0x001b62f8: dafbff17   b       #0x1b5260
+0x001b62fc: 882efd97   bl      #0x101d1c  -> vnd_LogMsg
+0x001b6300: 11010014   b       #0x1b6744
+0x001b6304: 68026c39   ldrb    w8, [x19, #0xb00]
+0x001b6308: 1f090071   cmp     w8, #2
+0x001b630c: c3baff54   b.lo    #0x1b5a64
+0x001b6310: c1f3ff90   adrp    x1, #0x2e000
+0x001b6314: e2f4ffb0   adrp    x2, #0x53000
+0x001b6318: 212c3691   add     x1, x1, #0xd8b  ; "%s:Non active device disconnected,continue streaming"
+0x001b631c: 42dc0091   add     x2, x2, #0x37  ; "btif_av_state_opened_handler"
+0x001b6320: 20a08052   mov     w0, #0x501
+0x001b6324: 052efd97   bl      #0x101b38  -> LogMsg
+0x001b6328: cffdff17   b       #0x1b5a64
+0x001b632c: 2ae8ff97   bl      #0x1b03d4  -> _Z18btif_av_is_playingv
+0x001b6330: a0000036   tbz     w0, #0, #0x1b6344
+0x001b6334: 08120090   adrp    x8, #0x3f6000
+0x001b6338: 08416839   ldrb    w8, [x8, #0xa10]
+0x001b633c: 1f050071   cmp     w8, #1
+0x001b6340: 21b9ff54   b.ne    #0x1b5a64
+0x001b6344: e806178b   add     x8, x23, x23, lsl #1
+0x001b6348: 49068052   mov     w9, #0x32
+0x001b634c: 09857ab3   bfi     x9, x8, #6, #0x22
+0x001b6350: 3f010ff1   cmp     x9, #0x3c0
+0x001b6354: 08520054   b.hi    #0x1b6d94
+0x001b6358: 08188052   mov     w8, #0xc0
+0x001b635c: e85a089b   madd    x8, x23, x8, x22
+0x001b6360: 08c94039   ldrb    w8, [x8, #0x32]
+0x001b6364: 08b8ff34   cbz     w8, #0x1b5a64
+0x001b6368: 68026c39   ldrb    w8, [x19, #0xb00]
+0x001b636c: 1f090071   cmp     w8, #2
+0x001b6370: e3000054   b.lo    #0x1b638c
+0x001b6374: 01f6fff0   adrp    x1, #0x79000
+0x001b6378: e2f4ffb0   adrp    x2, #0x53000
+0x001b637c: 21683691   add     x1, x1, #0xd9a  ; "%s: Suspend the AV Data channel for active device"
+0x001b6380: 42dc0091   add     x2, x2, #0x37  ; "btif_av_state_opened_handler"
+0x001b6384: 20a08052   mov     w0, #0x501
+0x001b6388: ec2dfd97   bl      #0x101b38  -> LogMsg
+0x001b638c: 20008052   mov     w0, #1
+0x001b6390: afc9ff97   bl      #0x1a8a4c  -> _Z29btif_a2dp_source_set_tx_flushb
+0x001b6394: 3cc7ff97   bl      #0x1a8084  -> _Z31btif_a2dp_source_stop_audio_reqv
+0x001b6398: 08120090   adrp    x8, #0x3f6000
+0x001b639c: 08416839   ldrb    w8, [x8, #0xa10]
+0x001b63a0: 1f050071   cmp     w8, #1
+0x001b63a4: 01b6ff54   b.ne    #0x1b5a64
+0x001b63a8: 0be8ff97   bl      #0x1b03d4  -> _Z18btif_av_is_playingv
+0x001b63ac: c0b50736   tbz     w0, #0, #0x1b5a64
+0x001b63b0: 68026c39   ldrb    w8, [x19, #0xb00]
+0x001b63b4: 1f090071   cmp     w8, #2
+0x001b63b8: e3000054   b.lo    #0x1b63d4
+0x001b63bc: c1f5ffd0   adrp    x1, #0x70000
+0x001b63c0: e2f4ffb0   adrp    x2, #0x53000
+0x001b63c4: 213c3891   add     x1, x1, #0xe0f  ; "%s:Mcast streaming,suspend other playing device"
+0x001b63c8: 42dc0091   add     x2, x2, #0x37  ; "btif_av_state_opened_handler"
+0x001b63cc: 20a08052   mov     w0, #0x501
+0x001b63d0: da2dfd97   bl      #0x101b38  -> LogMsg
+0x001b63d4: 40048052   mov     w0, #0x22
+0x001b63d8: e1031faa   mov     x1, xzr
+0x001b63dc: e2031f2a   mov     w2, wzr
+0x001b63e0: b80c0094   bl      #0x1b96c0  -> _Z22btif_dispatch_sm_event18btif_av_sm_event_tPvi
+0x001b63e4: a0fdff17   b       #0x1b5a64
+0x001b63e8: 4d2efd97   bl      #0x101d1c  -> vnd_LogMsg
+0x001b63ec: a0180094   bl      #0x1bc66c  -> _Z33btif_av_clear_remote_suspend_flagv
+0x001b63f0: 47ea0094   bl      #0x1f0d0c  -> _ZN9bluetooth7headset23btif_hf_is_call_vr_idleEv
+0x001b63f4: 00730736   tbz     w0, #0, #0x1b5254
+0x001b63f8: e81340f9   ldr     x8, [sp, #0x20]
+0x001b63fc: 00014039   ldrb    w0, [x8]
+0x001b6400: 75650194   bl      #0x20f9d4  -> _Z34btif_rc_get_connected_peer_addressh
+0x001b6404: 091100f0   adrp    x9, #0x3d9000
+0x001b6408: 29f542f9   ldr     x9, [x9, #0x5e8]
+0x001b640c: 08fc60d3   lsr     x8, x0, #0x20
+0x001b6410: 0b3d0012   and     w11, w8, #0xffff
+0x001b6414: a8c31d78   sturh   w8, [x29, #-0x24]
+0x001b6418: 2a0140b9   ldr     w10, [x9]
+0x001b641c: 29094079   ldrh    w9, [x9, #4]
+0x001b6420: a0831db8   stur    w0, [x29, #-0x28]
+0x001b6424: 0a000a4a   eor     w10, w0, w10
+0x001b6428: 6901094a   eor     w9, w11, w9
+0x001b642c: 4901092a   orr     w9, w10, w9
+0x001b6430: 2971ff34   cbz     w9, #0x1b5254
+0x001b6434: 291100b0   adrp    x9, #0x3db000
+0x001b6438: 29314fb9   ldr     w9, [x9, #0xf30]
+0x001b643c: 10120090   adrp    x16, #0x3f6000
+0x001b6440: 10021891   add     x16, x16, #0x600
+0x001b6444: a0031eb8   stur    w0, [x29, #-0x20]
+0x001b6448: 3f050071   cmp     w9, #1
+0x001b644c: a8431e78   sturh   w8, [x29, #-0x1c]
+0x001b6450: 2b70ff54   b.lt    #0x1b5254
+0x001b6454: 2b05098b   add     x11, x9, x9, lsl #1
+0x001b6458: ea031f2a   mov     w10, wzr
+0x001b645c: e8031faa   mov     x8, xzr
+0x001b6460: 6be57ad3   lsl     x11, x11, #6
+0x001b6464: 1f010ff1   cmp     x8, #0x3c0
+0x001b6468: 80490054   b.eq    #0x1b6d98
+0x001b646c: 0c02088b   add     x12, x16, x8
+0x001b6470: ad035eb8   ldur    w13, [x29, #-0x20]
+0x001b6474: ae435e78   ldurh   w14, [x29, #-0x1c]
+0x001b6478: 8f1140b8   ldur    w15, [x12, #1]
+0x001b647c: 8c514078   ldurh   w12, [x12, #5]
+0x001b6480: ad010f4a   eor     w13, w13, w15
+0x001b6484: cc010c4a   eor     w12, w14, w12
+0x001b6488: ac010c2a   orr     w12, w13, w12
+0x001b648c: 8c300034   cbz     w12, #0x1b6a9c
+0x001b6490: 08010391   add     x8, x8, #0xc0
+0x001b6494: 7f0108eb   cmp     x11, x8
+0x001b6498: 4a050011   add     w10, w10, #1
+0x001b649c: 41feff54   b.ne    #0x1b6464
+0x001b64a0: 6dfbff17   b       #0x1b5254
+0x001b64a4: 1e2efd97   bl      #0x101d1c  -> vnd_LogMsg
+0x001b64a8: 08120090   adrp    x8, #0x3f6000
+0x001b64ac: 08016a39   ldrb    w8, [x8, #0xa80]
+0x001b64b0: 68000034   cbz     w8, #0x1b64bc
+0x001b64b4: b4180094   bl      #0x1bc784  -> _Z28btif_av_is_tws_ready_to_playv
+0x001b64b8: a0230036   tbz     w0, #0, #0x1b692c
+0x001b64bc: e82740f9   ldr     x8, [sp, #0x48]
+0x001b64c0: 1f010ff1   cmp     x8, #0x3c0
+0x001b64c4: 88460054   b.hi    #0x1b6d94
+0x001b64c8: e82340f9   ldr     x8, [sp, #0x40]
+0x001b64cc: f41740f9   ldr     x20, [sp, #0x28]
+0x001b64d0: 08014039   ldrb    w8, [x8]
+0x001b64d4: 880b0034   cbz     w8, #0x1b6644
+0x001b64d8: bdc6ff97   bl      #0x1a7fcc  -> _Z36btif_a2dp_source_is_hal_v2_supportedv
+0x001b64dc: e0020037   tbnz    w0, #0, #0x1b6538
+0x001b64e0: 8806148b   add     x8, x20, x20, lsl #1
+0x001b64e4: 08e57ad3   lsl     x8, x8, #6
+0x001b64e8: 1ffd0ef1   cmp     x8, #0x3bf
+0x001b64ec: 48450054   b.hi    #0x1b6d94
+0x001b64f0: 08188052   mov     w8, #0xc0
+0x001b64f4: 887e089b   mul     x8, x20, x8
+0x001b64f8: a06a6838   ldrb    w0, [x21, x8]
+0x001b64fc: b0c5ff97   bl      #0x1a7bbc  -> _Z28btif_a2dp_source_setup_codech
+0x001b6500: c0010034   cbz     w0, #0x1b6538
+0x001b6504: 281100b0   adrp    x8, #0x3db000
+0x001b6508: 08056c39   ldrb    w8, [x8, #0xb01]
+0x001b650c: c8000034   cbz     w8, #0x1b6524
+0x001b6510: 81f3ffd0   adrp    x1, #0x28000
+0x001b6514: e203002a   mov     w2, w0
+0x001b6518: 215c3a91   add     x1, x1, #0xe97  ; "## AV Disconnect## status : %x"
+0x001b651c: 00a08052   mov     w0, #0x500
+0x001b6520: 862dfd97   bl      #0x101b38  -> LogMsg
+0x001b6524: 08188052   mov     w8, #0xc0
+0x001b6528: 8856089b   madd    x8, x20, x8, x21
+0x001b652c: 00050091   add     x0, x8, #1
+0x001b6530: d8c0fd97   bl      #0x126890  -> _Z16BTA_AvDisconnectRK10RawAddress
+0x001b6534: 4bfbff17   b       #0x1b5260
+0x001b6538: 8806148b   add     x8, x20, x20, lsl #1
+0x001b653c: 08e57ad3   lsl     x8, x8, #6
+0x001b6540: 1ffd0ef1   cmp     x8, #0x3bf
+0x001b6544: 88420054   b.hi    #0x1b6d94
+0x001b6548: 08188052   mov     w8, #0xc0
+0x001b654c: 887e089b   mul     x8, x20, x8
+0x001b6550: a06a6838   ldrb    w0, [x21, x8]
+0x001b6554: e0c0fd97   bl      #0x1268d4  -> _Z11BTA_AvStarth
+0x001b6558: 20018052   mov     w0, #9
+0x001b655c: 23008052   mov     w3, #1
+0x001b6560: e1031f2a   mov     w1, wzr
+0x001b6564: e2031faa   mov     x2, xzr
+0x001b6568: 98060294   bl      #0x237fc8  -> _Z15ba_send_messagehhPcb
+0x001b656c: 08120090   adrp    x8, #0x3f6000
+0x001b6570: 08e16939   ldrb    w8, [x8, #0xa78]
+0x001b6574: 28010037   tbnz    w8, #0, #0x1b6598
+0x001b6578: 8906148b   add     x9, x20, x20, lsl #1
+0x001b657c: 29e57ad3   lsl     x9, x9, #6
+0x001b6580: 3fe90df1   cmp     x9, #0x37a
+0x001b6584: 88400054   b.hi    #0x1b6d94
+0x001b6588: 09188052   mov     w9, #0xc0
+0x001b658c: 8956099b   madd    x9, x20, x9, x21
+0x001b6590: 29194139   ldrb    w9, [x9, #0x46]
+0x001b6594: 89060034   cbz     w9, #0x1b6664
+0x001b6598: 69324fb9   ldr     w9, [x19, #0xf30]
+0x001b659c: 3f050071   cmp     w9, #1
+0x001b65a0: 0b66ff54   b.lt    #0x1b5260
+0x001b65a4: 0b120090   adrp    x11, #0x3f6000
+0x001b65a8: 6b016a39   ldrb    w11, [x11, #0xa80]
+0x001b65ac: ea031faa   mov     x10, xzr
+0x001b65b0: ec031faa   mov     x12, xzr
+0x001b65b4: 33008052   mov     w19, #1
+0x001b65b8: 09000014   b       #0x1b65dc
+0x001b65bc: ad190191   add     x13, x13, #0x46
+0x001b65c0: aea15c38   ldurb   w14, [x13, #-0x36]
+0x001b65c4: ce011e32   orr     w14, w14, #4
+0x001b65c8: aea11c38   sturb   w14, [x13, #-0x36]
+0x001b65cc: 8c050091   add     x12, x12, #1
+0x001b65d0: 4a010391   add     x10, x10, #0xc0
+0x001b65d4: 9f0109eb   cmp     x12, x9
+0x001b65d8: 6264ff54   b.hs    #0x1b5264
+0x001b65dc: 9f1500f1   cmp     x12, #5
+0x001b65e0: c03d0054   b.eq    #0x1b6d98
+0x001b65e4: 4d190191   add     x13, x10, #0x46
+0x001b65e8: bf010ff1   cmp     x13, #0x3c0
+0x001b65ec: 483d0054   b.hi    #0x1b6d94
+0x001b65f0: ad020a8b   add     x13, x21, x10
+0x001b65f4: ae194139   ldrb    w14, [x13, #0x46]
+0x001b65f8: ce010034   cbz     w14, #0x1b6630
+0x001b65fc: 0b010034   cbz     w11, #0x1b661c
+0x001b6600: 4d410191   add     x13, x10, #0x50
+0x001b6604: bf010ff1   cmp     x13, #0x3c0
+0x001b6608: 683c0054   b.hi    #0x1b6d94
+0x001b660c: ad020a8b   add     x13, x21, x10
+0x001b6610: ad414139   ldrb    w13, [x13, #0x50]
+0x001b6614: bf0d0071   cmp     w13, #3
+0x001b6618: a1fdff54   b.ne    #0x1b65cc
+0x001b661c: 4d410091   add     x13, x10, #0x10
+0x001b6620: bf010ff1   cmp     x13, #0x3c0
+0x001b6624: 883b0054   b.hi    #0x1b6d94
+0x001b6628: ad020a8b   add     x13, x21, x10
+0x001b662c: e4ffff17   b       #0x1b65bc
+0x001b6630: e8fcff34   cbz     w8, #0x1b65cc
+0x001b6634: 4e410091   add     x14, x10, #0x10
+0x001b6638: df010ff1   cmp     x14, #0x3c0
+0x001b663c: 09fcff54   b.ls    #0x1b65bc
+0x001b6640: d5010014   b       #0x1b6d94
+0x001b6644: 8806148b   add     x8, x20, x20, lsl #1
+0x001b6648: 08e57ad3   lsl     x8, x8, #6
+0x001b664c: 1ffd0ef1   cmp     x8, #0x3bf
+0x001b6650: 283a0054   b.hi    #0x1b6d94
+0x001b6654: 08188052   mov     w8, #0xc0
+0x001b6658: 887e089b   mul     x8, x20, x8
+0x001b665c: a06a6838   ldrb    w0, [x21, x8]
+0x001b6660: 9dc0fd97   bl      #0x1268d4  -> _Z11BTA_AvStarth
+0x001b6664: a8035cf8   ldur    x8, [x29, #-0x40]
+0x001b6668: 1f010ff1   cmp     x8, #0x3c0
+0x001b666c: 48390054   b.hi    #0x1b6d94
+0x001b6670: a9835cf8   ldur    x9, [x29, #-0x38]
+0x001b6674: 28014039   ldrb    w8, [x9]
+0x001b6678: 08011e32   orr     w8, w8, #4
+0x001b667c: 28010039   strb    w8, [x9]
+0x001b6680: f8faff17   b       #0x1b5260
+0x001b6684: 0907188b   add     x9, x24, x24, lsl #1
+0x001b6688: 29e57ad3   lsl     x9, x9, #6
+0x001b668c: 3fe90df1   cmp     x9, #0x37a
+0x001b6690: 28380054   b.hi    #0x1b6d94
+0x001b6694: 09188052   mov     w9, #0xc0
+0x001b6698: 095f099b   madd    x9, x24, x9, x23
+0x001b669c: 29194139   ldrb    w9, [x9, #0x46]
+0x001b66a0: 29130034   cbz     w9, #0x1b6904
+0x001b66a4: 291100b0   adrp    x9, #0x3db000
+0x001b66a8: 29314fb9   ldr     w9, [x9, #0xf30]
+0x001b66ac: 3f050071   cmp     w9, #1
+0x001b66b0: ab120054   b.lt    #0x1b6904
+0x001b66b4: f81740f9   ldr     x24, [sp, #0x28]
+0x001b66b8: ea031faa   mov     x10, xzr
+0x001b66bc: cb088052   mov     w11, #0x46
+0x001b66c0: 05000014   b       #0x1b66d4
+0x001b66c4: 4a050091   add     x10, x10, #1
+0x001b66c8: 5f0109eb   cmp     x10, x9
+0x001b66cc: 6b010391   add     x11, x11, #0xc0
+0x001b66d0: a2110054   b.hs    #0x1b6904
+0x001b66d4: 5f1500f1   cmp     x10, #5
+0x001b66d8: 00360054   b.eq    #0x1b6d98
+0x001b66dc: 7f010ff1   cmp     x11, #0x3c0
+0x001b66e0: a8350054   b.hi    #0x1b6d94
+0x001b66e4: 1f030aeb   cmp     x24, x10
+0x001b66e8: e0feff54   b.eq    #0x1b66c4
+0x001b66ec: ec6a6b38   ldrb    w12, [x23, x11]
+0x001b66f0: acfeff34   cbz     w12, #0x1b66c4
+0x001b66f4: 6c5100d1   sub     x12, x11, #0x14
+0x001b66f8: 9f010ff1   cmp     x12, #0x3c0
+0x001b66fc: c8340054   b.hi    #0x1b6d94
+0x001b6700: ec020b8b   add     x12, x23, x11
+0x001b6704: 8cc15e38   ldurb   w12, [x12, #-0x14]
+0x001b6708: ecfdff34   cbz     w12, #0x1b66c4
+0x001b670c: acfeff17   b       #0x1b61bc
+0x001b6710: 832dfd97   bl      #0x101d1c  -> vnd_LogMsg
+0x001b6714: ea1740f9   ldr     x10, [sp, #0x28]
+0x001b6718: 09120090   adrp    x9, #0x3f6000
+0x001b671c: 29011891   add     x9, x9, #0x600
+0x001b6720: 1f630df1   cmp     x24, #0x358
+0x001b6724: 88330054   b.hi    #0x1b6d94
+0x001b6728: e81f40f9   ldr     x8, [sp, #0x38]
+0x001b672c: 00e4006f   movi    v0.2d, #0000000000000000
+0x001b6730: 1f0100b9   str     wzr, [x8]
+0x001b6734: 08188052   mov     w8, #0xc0
+0x001b6738: 4825089b   madd    x8, x10, x8, x9
+0x001b673c: 008104ad   stp     q0, q0, [x8, #0x90]
+0x001b6740: 008103ad   stp     q0, q0, [x8, #0x70]
+0x001b6744: a8035cf8   ldur    x8, [x29, #-0x40]
+0x001b6748: 1f010ff1   cmp     x8, #0x3c0
+0x001b674c: 48320054   b.hi    #0x1b6d94
+0x001b6750: a8835cf8   ldur    x8, [x29, #-0x38]
+0x001b6754: 08014039   ldrb    w8, [x8]
+0x001b6758: e80b1036   tbz     w8, #2, #0x1b68d4
+0x001b675c: c90a4039   ldrb    w9, [x22, #2]
+0x001b6760: a9020034   cbz     w9, #0x1b67b4
+0x001b6764: a9035cf8   ldur    x9, [x29, #-0x40]
+0x001b6768: 3f010ff1   cmp     x9, #0x3c0
+0x001b676c: 48310054   b.hi    #0x1b6d94
+0x001b6770: a9835cf8   ldur    x9, [x29, #-0x38]
+0x001b6774: 08791d12   and     w8, w8, #0xfffffffb
+0x001b6778: 28010039   strb    w8, [x9]
+0x001b677c: 14c6ff97   bl      #0x1a7fcc  -> _Z36btif_a2dp_source_is_hal_v2_supportedv
+0x001b6780: 60000037   tbnz    w0, #0, #0x1b678c
+0x001b6784: 20008052   mov     w0, #1
+0x001b6788: 8db6ff97   bl      #0x1a41bc  -> _Z21btif_a2dp_command_ack14tA2DP_CTRL_ACK
+0x001b678c: a8066c39   ldrb    w8, [x21, #0xb01]
+0x001b6790: 41f5fff0   adrp    x1, #0x61000
+0x001b6794: e2f4ffb0   adrp    x2, #0x53000
+0x001b6798: 21d83291   add     x1, x1, #0xcb6  ; "%s: reconfig has been failed, reset pending start flag."
+0x001b679c: 42dc0091   add     x2, x2, #0x37  ; "btif_av_state_opened_handler"
+0x001b67a0: 80a08052   mov     w0, #0x504
+0x001b67a4: 1f150071   cmp     w8, #5
+0x001b67a8: a3020054   b.lo    #0x1b67fc
+0x001b67ac: e32cfd97   bl      #0x101b38  -> LogMsg
+0x001b67b0: 49000014   b       #0x1b68d4
+0x001b67b4: 281100b0   adrp    x8, #0x3db000
+0x001b67b8: 08016c39   ldrb    w8, [x8, #0xb00]
+0x001b67bc: 1f090071   cmp     w8, #2
+0x001b67c0: a3000054   b.lo    #0x1b67d4
+0x001b67c4: 01f5ffd0   adrp    x1, #0x58000
+0x001b67c8: 21602a91   add     x1, x1, #0xa98  ; "reconfig done BTA_AVstart()"
+0x001b67cc: 20a08052   mov     w0, #0x501
+0x001b67d0: da2cfd97   bl      #0x101b38  -> LogMsg
+0x001b67d4: accaff97   bl      #0x1a9284  -> _Z42btif_a2dp_source_is_restart_session_neededv
+0x001b67d8: ea1740f9   ldr     x10, [sp, #0x28]
+0x001b67dc: 09120090   adrp    x9, #0x3f6000
+0x001b67e0: 29011891   add     x9, x9, #0x600
+0x001b67e4: e0050036   tbz     w0, #0, #0x1b68a0
+0x001b67e8: 08188052   mov     w8, #0xc0
+0x001b67ec: 4825089b   madd    x8, x10, x8, x9
+0x001b67f0: 00050091   add     x0, x8, #1
+0x001b67f4: 270d0094   bl      #0x1b9c90  -> _ZL30btif_report_source_codec_statePvP10RawAddress
+0x001b67f8: 37000014   b       #0x1b68d4
+0x001b67fc: 482dfd97   bl      #0x101d1c  -> vnd_LogMsg
+0x001b6800: 35000014   b       #0x1b68d4
+0x001b6804: a8066c39   ldrb    w8, [x21, #0xb01]
+0x001b6808: 21f3fff0   adrp    x1, #0x1d000
+0x001b680c: e2f4ffb0   adrp    x2, #0x53000
+0x001b6810: 215c1c91   add     x1, x1, #0x717  ; "%s: do not clear cached codec_config data as codec cfg changed"
+0x001b6814: 42dc0091   add     x2, x2, #0x37  ; "btif_av_state_opened_handler"
+0x001b6818: 80a08052   mov     w0, #0x504
+0x001b681c: 1f150071   cmp     w8, #5
+0x001b6820: e30f0054   b.lo    #0x1b6a1c
+0x001b6824: c52cfd97   bl      #0x101b38  -> LogMsg
+0x001b6828: c7ffff17   b       #0x1b6744
+0x001b682c: 3c2dfd97   bl      #0x101d1c  -> vnd_LogMsg
+0x001b6830: a8035cf8   ldur    x8, [x29, #-0x40]
+0x001b6834: 1f010ff1   cmp     x8, #0x3c0
+0x001b6838: e82a0054   b.hi    #0x1b6d94
+0x001b683c: ab835cf8   ldur    x11, [x29, #-0x38]
+0x001b6840: 0807188b   add     x8, x24, x24, lsl #1
+0x001b6844: 0ae57ad3   lsl     x10, x8, #6
+0x001b6848: 5ff90df1   cmp     x10, #0x37e
+0x001b684c: 69014039   ldrb    w9, [x11]
+0x001b6850: 29791d12   and     w9, w9, #0xfffffffb
+0x001b6854: 69010039   strb    w9, [x11]
+0x001b6858: e8290054   b.hi    #0x1b6d94
+0x001b685c: 0b018052   mov     w11, #8
+0x001b6860: 0b857ab3   bfi     x11, x8, #6, #0x22
+0x001b6864: e91a088b   add     x9, x23, x8, lsl #6
+0x001b6868: 2a008052   mov     w10, #1
+0x001b686c: 7f010ff1   cmp     x11, #0x3c0
+0x001b6870: 2a090139   strb    w10, [x9, #0x42]
+0x001b6874: 08290054   b.hi    #0x1b6d94
+0x001b6878: 08188052   mov     w8, #0xc0
+0x001b687c: 085f089b   madd    x8, x24, x8, x23
+0x001b6880: 000540f9   ldr     x0, [x8, #8]
+0x001b6884: 61008052   mov     w1, #3
+0x001b6888: 9b820194   bl      #0x2172f4  -> _Z20btif_sm_change_statePvj
+0x001b688c: a1b300d1   sub     x1, x29, #0x2c
+0x001b6890: 00058052   mov     w0, #0x28
+0x001b6894: 82008052   mov     w2, #4
+0x001b6898: 8a0b0094   bl      #0x1b96c0  -> _Z22btif_dispatch_sm_event18btif_av_sm_event_tPvi
+0x001b689c: 71faff17   b       #0x1b5260
+0x001b68a0: 48050a8b   add     x8, x10, x10, lsl #1
+0x001b68a4: 08e57ad3   lsl     x8, x8, #6
+0x001b68a8: 1ffd0ef1   cmp     x8, #0x3bf
+0x001b68ac: 48270054   b.hi    #0x1b6d94
+0x001b68b0: 08188052   mov     w8, #0xc0
+0x001b68b4: 487d089b   mul     x8, x10, x8
+0x001b68b8: 20696838   ldrb    w0, [x9, x8]
+0x001b68bc: 06c0fd97   bl      #0x1268d4  -> _Z11BTA_AvStarth
+0x001b68c0: 20018052   mov     w0, #9
+0x001b68c4: 23008052   mov     w3, #1
+0x001b68c8: e1031f2a   mov     w1, wzr
+0x001b68cc: e2031faa   mov     x2, xzr
+0x001b68d0: be050294   bl      #0x237fc8  -> _Z15ba_send_messagehhPcb
+0x001b68d4: 1f630df1   cmp     x24, #0x358
+0x001b68d8: e8250054   b.hi    #0x1b6d94
+0x001b68dc: e81f40f9   ldr     x8, [sp, #0x38]
+0x001b68e0: 080140b9   ldr     w8, [x8]
+0x001b68e4: 88000035   cbnz    w8, #0x1b68f4
+0x001b68e8: 5f030ff1   cmp     x26, #0x3c0
+0x001b68ec: 48250054   b.hi    #0x1b6d94
+0x001b68f0: 7f030039   strb    wzr, [x27]
+0x001b68f4: 20008052   mov     w0, #1
+0x001b68f8: 33008052   mov     w19, #1
+0x001b68fc: 1788ff97   bl      #0x198958  -> _ZN9bluetooth5audio4a2dp21update_session_paramsEN6vendor3qti8hardware15bluetooth_audio4V2_016SessionParamTypeE
+0x001b6900: 59faff17   b       #0x1b5264
+0x001b6904: a8066c39   ldrb    w8, [x21, #0xb01]
+0x001b6908: 61f5ffd0   adrp    x1, #0x64000
+0x001b690c: e2f4ffb0   adrp    x2, #0x53000
+0x001b6910: 21ac3f91   add     x1, x1, #0xfeb  ; "%s: Start event received for in-active device"
+0x001b6914: 42dc0091   add     x2, x2, #0x37  ; "btif_av_state_opened_handler"
+0x001b6918: 60a08052   mov     w0, #0x503
+0x001b691c: 1f110071   cmp     w8, #4
+0x001b6920: 23080054   b.lo    #0x1b6a24
+0x001b6924: 852cfd97   bl      #0x101b38  -> LogMsg
+0x001b6928: 40000014   b       #0x1b6a28
+0x001b692c: 88066c39   ldrb    w8, [x20, #0xb01]
+0x001b6930: e8000034   cbz     w8, #0x1b694c
+0x001b6934: 21f3fff0   adrp    x1, #0x1d000
+0x001b6938: e2f4ffb0   adrp    x2, #0x53000
+0x001b693c: 218c1b91   add     x1, x1, #0x6e3  ; "%s:TWSP device not ready to play, may be out of ear"
+0x001b6940: 42dc0091   add     x2, x2, #0x37  ; "btif_av_state_opened_handler"
+0x001b6944: 00a08052   mov     w0, #0x500
+0x001b6948: 7c2cfd97   bl      #0x101b38  -> LogMsg
+0x001b694c: ea1740f9   ldr     x10, [sp, #0x28]
+0x001b6950: 28208052   mov     w8, #0x101
+0x001b6954: 08e0bf72   movk    w8, #0xff00, lsl #16
+0x001b6958: bf031e78   sturh   wzr, [x29, #-0x20]
+0x001b695c: 49050a8b   add     x9, x10, x10, lsl #1
+0x001b6960: 29e57ad3   lsl     x9, x9, #6
+0x001b6964: 3ffd0ef1   cmp     x9, #0x3bf
+0x001b6968: a8231eb8   stur    w8, [x29, #-0x1e]
+0x001b696c: 48210054   b.hi    #0x1b6d94
+0x001b6970: 08188052   mov     w8, #0xc0
+0x001b6974: 487d089b   mul     x8, x10, x8
+0x001b6978: a26a6838   ldrb    w2, [x21, x8]
+0x001b697c: a08300d1   sub     x0, x29, #0x20
+0x001b6980: e1031f2a   mov     w1, wzr
+0x001b6984: 5badff97   bl      #0x1a1ef0  -> _Z20btif_a2dp_on_startedP13tBTA_AV_STARTbh
+0x001b6988: c0170094   bl      #0x1bc888  -> _Z24btif_av_is_under_handoffv
+0x001b698c: a0460736   tbz     w0, #0, #0x1b5260
+0x001b6990: a5100094   bl      #0x1bac24  -> _Z27btif_av_reset_reconfig_flagv
+0x001b6994: 33faff17   b       #0x1b5260
+0x001b6998: 0807188b   add     x8, x24, x24, lsl #1
+0x001b699c: 08e57ad3   lsl     x8, x8, #6
+0x001b69a0: 1fe90df1   cmp     x8, #0x37a
+0x001b69a4: 881f0054   b.hi    #0x1b6d94
+0x001b69a8: 08188052   mov     w8, #0xc0
+0x001b69ac: 085f089b   madd    x8, x24, x8, x23
+0x001b69b0: 08194139   ldrb    w8, [x8, #0x46]
+0x001b69b4: e8000034   cbz     w8, #0x1b69d0
+0x001b69b8: e003142a   mov     w0, w20
+0x001b69bc: 92110094   bl      #0x1bb004  -> _Z29btif_av_is_tws_device_playingi
+0x001b69c0: 80000036   tbz     w0, #0, #0x1b69d0
+0x001b69c4: e003142a   mov     w0, w20
+0x001b69c8: f2170094   bl      #0x1bc990  -> _Z34btif_av_is_tws_pair_remote_startedi
+0x001b69cc: e0c00736   tbz     w0, #0, #0x1b61e8
+0x001b69d0: a8035cf8   ldur    x8, [x29, #-0x40]
+0x001b69d4: 1f010ff1   cmp     x8, #0x3c0
+0x001b69d8: e81d0054   b.hi    #0x1b6d94
+0x001b69dc: a8835cf8   ldur    x8, [x29, #-0x38]
+0x001b69e0: 08014039   ldrb    w8, [x8]
+0x001b69e4: 88040837   tbnz    w8, #1, #0x1b6a74
+0x001b69e8: 280b4039   ldrb    w8, [x25, #2]
+0x001b69ec: 68100035   cbnz    w8, #0x1b6bf8
+0x001b69f0: a8066c39   ldrb    w8, [x21, #0xb01]
+0x001b69f4: 21f5ffb0   adrp    x1, #0x5b000
+0x001b69f8: e2f4ffb0   adrp    x2, #0x53000
+0x001b69fc: 21b82e91   add     x1, x1, #0xbae  ; "%s: honor remote start on index %d"
+0x001b6a00: 42dc0091   add     x2, x2, #0x37  ; "btif_av_state_opened_handler"
+0x001b6a04: 80a08052   mov     w0, #0x504
+0x001b6a08: e303142a   mov     w3, w20
+0x001b6a0c: 1f150071   cmp     w8, #5
+0x001b6a10: 830b0054   b.lo    #0x1b6b80
+0x001b6a14: 492cfd97   bl      #0x101b38  -> LogMsg
+0x001b6a18: 5b000014   b       #0x1b6b84
+0x001b6a1c: c02cfd97   bl      #0x101d1c  -> vnd_LogMsg
+0x001b6a20: 49ffff17   b       #0x1b6744
+0x001b6a24: be2cfd97   bl      #0x101d1c  -> vnd_LogMsg
+0x001b6a28: a8035cf8   ldur    x8, [x29, #-0x40]
+0x001b6a2c: 1f010ff1   cmp     x8, #0x3c0
+0x001b6a30: 281b0054   b.hi    #0x1b6d94
+0x001b6a34: aa835cf8   ldur    x10, [x29, #-0x38]
+0x001b6a38: 0907188b   add     x9, x24, x24, lsl #1
+0x001b6a3c: 29e57ad3   lsl     x9, x9, #6
+0x001b6a40: 3ffd0ef1   cmp     x9, #0x3bf
+0x001b6a44: 48014039   ldrb    w8, [x10]
+0x001b6a48: 08791d12   and     w8, w8, #0xfffffffb
+0x001b6a4c: 08010032   orr     w8, w8, #1
+0x001b6a50: 48010039   strb    w8, [x10]
+0x001b6a54: 081a0054   b.hi    #0x1b6d94
+0x001b6a58: 08188052   mov     w8, #0xc0
+0x001b6a5c: 087f089b   mul     x8, x24, x8
+0x001b6a60: e16a6838   ldrb    w1, [x23, x8]
+0x001b6a64: 20008052   mov     w0, #1
+0x001b6a68: 33008052   mov     w19, #1
+0x001b6a6c: babffd97   bl      #0x126954  -> _Z10BTA_AvStopbh
+0x001b6a70: fdf9ff17   b       #0x1b5264
+0x001b6a74: a8066c39   ldrb    w8, [x21, #0xb01]
+0x001b6a78: 41f5ff90   adrp    x1, #0x5e000
+0x001b6a7c: e2f4ffb0   adrp    x2, #0x53000
+0x001b6a80: 21e43f91   add     x1, x1, #0xff9  ; "%s: clear remote suspend flag on remote start"
+0x001b6a84: 42dc0091   add     x2, x2, #0x37  ; "btif_av_state_opened_handler"
+0x001b6a88: 80a08052   mov     w0, #0x504
+0x001b6a8c: 1f150071   cmp     w8, #5
+0x001b6a90: c3030054   b.lo    #0x1b6b08
+0x001b6a94: 292cfd97   bl      #0x101b38  -> LogMsg
+0x001b6a98: 1d000014   b       #0x1b6b0c
+0x001b6a9c: 3f010a6b   cmp     w9, w10
+0x001b6aa0: ad3dff54   b.le    #0x1b5254
+0x001b6aa4: 5f150071   cmp     w10, #5
+0x001b6aa8: 82170054   b.hs    #0x1b6d98
+0x001b6aac: 09c90091   add     x9, x8, #0x32
+0x001b6ab0: 3f010ff1   cmp     x9, #0x3c0
+0x001b6ab4: 08170054   b.hi    #0x1b6d94
+0x001b6ab8: e8160054   b.hi    #0x1b6d94
+0x001b6abc: 0902088b   add     x9, x16, x8
+0x001b6ac0: 29c94039   ldrb    w9, [x9, #0x32]
+0x001b6ac4: 893cff34   cbz     w9, #0x1b5254
+0x001b6ac8: 1ff90df1   cmp     x8, #0x37e
+0x001b6acc: 48160054   b.hi    #0x1b6d94
+0x001b6ad0: 28160054   b.hi    #0x1b6d94
+0x001b6ad4: 0802088b   add     x8, x16, x8
+0x001b6ad8: 08094139   ldrb    w8, [x8, #0x42]
+0x001b6adc: c83bff35   cbnz    w8, #0x1b5254
+0x001b6ae0: 68066c39   ldrb    w8, [x19, #0xb01]
+0x001b6ae4: 81f5ffd0   adrp    x1, #0x68000
+0x001b6ae8: e2f4ffb0   adrp    x2, #0x53000
+0x001b6aec: 21880191   add     x1, x1, #0x62  ; "%s: No active call, start stream for active device "
+0x001b6af0: 42dc0091   add     x2, x2, #0x37  ; "btif_av_state_opened_handler"
+0x001b6af4: 60a08052   mov     w0, #0x503
+0x001b6af8: 1f110071   cmp     w8, #4
+0x001b6afc: 03140054   b.lo    #0x1b6d7c
+0x001b6b00: 0e2cfd97   bl      #0x101b38  -> LogMsg
+0x001b6b04: 9f000014   b       #0x1b6d80
+0x001b6b08: 852cfd97   bl      #0x101d1c  -> vnd_LogMsg
+0x001b6b0c: a8035cf8   ldur    x8, [x29, #-0x40]
+0x001b6b10: 1f010ff1   cmp     x8, #0x3c0
+0x001b6b14: 08140054   b.hi    #0x1b6d94
+0x001b6b18: a9835cf8   ldur    x9, [x29, #-0x38]
+0x001b6b1c: 28014039   ldrb    w8, [x9]
+0x001b6b20: 08791e12   and     w8, w8, #0xfffffffd
+0x001b6b24: 28010039   strb    w8, [x9]
+0x001b6b28: 34000014   b       #0x1b6bf8
+0x001b6b2c: 7c2cfd97   bl      #0x101d1c  -> vnd_LogMsg
+0x001b6b30: 280f4039   ldrb    w8, [x25, #3]
+0x001b6b34: 28060035   cbnz    w8, #0x1b6bf8
+0x001b6b38: 27e6ff97   bl      #0x1b03d4  -> _Z18btif_av_is_playingv
+0x001b6b3c: e0050037   tbnz    w0, #0, #0x1b6bf8
+0x001b6b40: a8066c39   ldrb    w8, [x21, #0xb01]
+0x001b6b44: 01f4ffb0   adrp    x1, #0x37000
+0x001b6b48: e2f4ffb0   adrp    x2, #0x53000
+0x001b6b4c: 21243691   add     x1, x1, #0xd89  ; "%s: initiate suspend for remote start"
+0x001b6b50: 42dc0091   add     x2, x2, #0x37  ; "btif_av_state_opened_handler"
+0x001b6b54: 80a08052   mov     w0, #0x504
+0x001b6b58: 1f150071   cmp     w8, #5
+0x001b6b5c: 63000054   b.lo    #0x1b6b68
+0x001b6b60: f62bfd97   bl      #0x101b38  -> LogMsg
+0x001b6b64: 02000014   b       #0x1b6b6c
+0x001b6b68: 6d2cfd97   bl      #0x101d1c  -> vnd_LogMsg
+0x001b6b6c: 40048052   mov     w0, #0x22
+0x001b6b70: e1031faa   mov     x1, xzr
+0x001b6b74: e2031f2a   mov     w2, wzr
+0x001b6b78: d20a0094   bl      #0x1b96c0  -> _Z22btif_dispatch_sm_event18btif_av_sm_event_tPvi
+0x001b6b7c: 1f000014   b       #0x1b6bf8
+0x001b6b80: 672cfd97   bl      #0x101d1c  -> vnd_LogMsg
+0x001b6b84: 0807188b   add     x8, x24, x24, lsl #1
+0x001b6b88: 16e57ad3   lsl     x22, x8, #6
+0x001b6b8c: dffa0df1   cmp     x22, #0x37e
+0x001b6b90: 28100054   b.hi    #0x1b6d94
+0x001b6b94: e802168b   add     x8, x23, x22
+0x001b6b98: 13090191   add     x19, x8, #0x42
+0x001b6b9c: 68024039   ldrb    w8, [x19]
+0x001b6ba0: c8020035   cbnz    w8, #0x1b6bf8
+0x001b6ba4: a8066c39   ldrb    w8, [x21, #0xb01]
+0x001b6ba8: 21f5ffb0   adrp    x1, #0x5b000
+0x001b6bac: e2f4ffb0   adrp    x2, #0x53000
+0x001b6bb0: 21b82e91   add     x1, x1, #0xbae  ; "%s: honor remote start on index %d"
+0x001b6bb4: 42dc0091   add     x2, x2, #0x37  ; "btif_av_state_opened_handler"
+0x001b6bb8: 80a08052   mov     w0, #0x504
+0x001b6bbc: e303142a   mov     w3, w20
+0x001b6bc0: 1f150071   cmp     w8, #5
+0x001b6bc4: 63000054   b.lo    #0x1b6bd0
+0x001b6bc8: dc2bfd97   bl      #0x101b38  -> LogMsg
+0x001b6bcc: 02000014   b       #0x1b6bd4
+0x001b6bd0: 532cfd97   bl      #0x101d1c  -> vnd_LogMsg
+0x001b6bd4: dffa0df1   cmp     x22, #0x37e
+0x001b6bd8: e80d0054   b.hi    #0x1b6d94
+0x001b6bdc: 28008052   mov     w8, #1
+0x001b6be0: 09188052   mov     w9, #0xc0
+0x001b6be4: 68020039   strb    w8, [x19]
+0x001b6be8: 085f099b   madd    x8, x24, x9, x23
+0x001b6bec: 00810191   add     x0, x8, #0x60
+0x001b6bf0: e103142a   mov     w1, w20
+0x001b6bf4: e3afff97   bl      #0x1a2b80  -> _Z28btif_a2dp_honor_remote_startPP7alarm_ti
+0x001b6bf8: 0807188b   add     x8, x24, x24, lsl #1
+0x001b6bfc: 08e57ad3   lsl     x8, x8, #6
+0x001b6c00: 1fe90df1   cmp     x8, #0x37a
+0x001b6c04: 880c0054   b.hi    #0x1b6d94
+0x001b6c08: 08188052   mov     w8, #0xc0
+0x001b6c0c: 085f089b   madd    x8, x24, x8, x23
+0x001b6c10: 08194139   ldrb    w8, [x8, #0x46]
+0x001b6c14: c8020034   cbz     w8, #0x1b6c6c
+0x001b6c18: a8035cf8   ldur    x8, [x29, #-0x40]
+0x001b6c1c: 1f010ff1   cmp     x8, #0x3c0
+0x001b6c20: a80b0054   b.hi    #0x1b6d94
+0x001b6c24: a8835cf8   ldur    x8, [x29, #-0x38]
+0x001b6c28: 08014039   ldrb    w8, [x8]
+0x001b6c2c: 08020036   tbz     w8, #0, #0x1b6c6c
+0x001b6c30: a8066c39   ldrb    w8, [x21, #0xb01]
+0x001b6c34: 01f6fff0   adrp    x1, #0x79000
+0x001b6c38: e2f4ffb0   adrp    x2, #0x53000
+0x001b6c3c: 21dc3591   add     x1, x1, #0xd77  ; "%s:Suspending pending for TWS pair"
+0x001b6c40: 42dc0091   add     x2, x2, #0x37  ; "btif_av_state_opened_handler"
+0x001b6c44: 80a08052   mov     w0, #0x504
+0x001b6c48: 1f150071   cmp     w8, #5
+0x001b6c4c: 63000054   b.lo    #0x1b6c58
+0x001b6c50: ba2bfd97   bl      #0x101b38  -> LogMsg
+0x001b6c54: 02000014   b       #0x1b6c5c
+0x001b6c58: 312cfd97   bl      #0x101d1c  -> vnd_LogMsg
+0x001b6c5c: 40048052   mov     w0, #0x22
+0x001b6c60: e1031faa   mov     x1, xzr
+0x001b6c64: e2031f2a   mov     w2, wzr
+0x001b6c68: 960a0094   bl      #0x1b96c0  -> _Z22btif_dispatch_sm_event18btif_av_sm_event_tPvi
+0x001b6c6c: 280b4039   ldrb    w8, [x25, #2]
+0x001b6c70: 08060034   cbz     w8, #0x1b6d30
+0x001b6c74: e82740f9   ldr     x8, [sp, #0x48]
+0x001b6c78: 1f010ff1   cmp     x8, #0x3c0
+0x001b6c7c: c8080054   b.hi    #0x1b6d94
+0x001b6c80: e82340f9   ldr     x8, [sp, #0x40]
+0x001b6c84: 08014039   ldrb    w8, [x8]
+0x001b6c88: 1f050071   cmp     w8, #1
+0x001b6c8c: 01030054   b.ne    #0x1b6cec
+0x001b6c90: a8035cf8   ldur    x8, [x29, #-0x40]
+0x001b6c94: 1f010ff1   cmp     x8, #0x3c0
+0x001b6c98: e8070054   b.hi    #0x1b6d94
+0x001b6c9c: 0807188b   add     x8, x24, x24, lsl #1
+0x001b6ca0: 08e57ad3   lsl     x8, x8, #6
+0x001b6ca4: 1ffd0ef1   cmp     x8, #0x3bf
+0x001b6ca8: 68070054   b.hi    #0x1b6d94
+0x001b6cac: a9835cf8   ldur    x9, [x29, #-0x38]
+0x001b6cb0: 08188052   mov     w8, #0xc0
+0x001b6cb4: 087f089b   mul     x8, x24, x8
+0x001b6cb8: e26a6838   ldrb    w2, [x23, x8]
+0x001b6cbc: 29014039   ldrb    w9, [x9]
+0x001b6cc0: e00319aa   mov     x0, x25
+0x001b6cc4: 21090253   ubfx    w1, w9, #2, #1
+0x001b6cc8: 8aacff97   bl      #0x1a1ef0  -> _Z20btif_a2dp_on_startedP13tBTA_AV_STARTbh
+0x001b6ccc: 00010036   tbz     w0, #0, #0x1b6cec
+0x001b6cd0: a8035cf8   ldur    x8, [x29, #-0x40]
+0x001b6cd4: 1f010ff1   cmp     x8, #0x3c0
+0x001b6cd8: e8050054   b.hi    #0x1b6d94
+0x001b6cdc: a9835cf8   ldur    x9, [x29, #-0x38]
+0x001b6ce0: 28014039   ldrb    w8, [x9]
+0x001b6ce4: 08791d12   and     w8, w8, #0xfffffffb
+0x001b6ce8: 28010039   strb    w8, [x9]
+0x001b6cec: 281100b0   adrp    x8, #0x3db000
+0x001b6cf0: 08314fb9   ldr     w8, [x8, #0xf30]
+0x001b6cf4: 1f050071   cmp     w8, #1
+0x001b6cf8: 2b75ff54   b.lt    #0x1b5b9c
+0x001b6cfc: e9031faa   mov     x9, xzr
+0x001b6d00: 2a068052   mov     w10, #0x31
+0x001b6d04: 3f1500f1   cmp     x9, #5
+0x001b6d08: 80040054   b.eq    #0x1b6d98
+0x001b6d0c: 5f010ff1   cmp     x10, #0x3c0
+0x001b6d10: 28040054   b.hi    #0x1b6d94
+0x001b6d14: 29050091   add     x9, x9, #1
+0x001b6d18: f3031f2a   mov     w19, wzr
+0x001b6d1c: ff6a2a38   strb    wzr, [x23, x10]
+0x001b6d20: 3f0108eb   cmp     x9, x8
+0x001b6d24: 4a010391   add     x10, x10, #0xc0
+0x001b6d28: e3feff54   b.lo    #0x1b6d04
+0x001b6d2c: 4ef9ff17   b       #0x1b5264
+0x001b6d30: e82740f9   ldr     x8, [sp, #0x48]
+0x001b6d34: 1f010ff1   cmp     x8, #0x3c0
+0x001b6d38: e8020054   b.hi    #0x1b6d94
+0x001b6d3c: e82340f9   ldr     x8, [sp, #0x40]
+0x001b6d40: 08014039   ldrb    w8, [x8]
+0x001b6d44: 68000035   cbnz    w8, #0x1b6d50
+0x001b6d48: e0031f2a   mov     w0, wzr
+0x001b6d4c: 2db9ff97   bl      #0x1a5200  -> _Z27btif_a2dp_sink_set_rx_flushb
+0x001b6d50: 0807188b   add     x8, x24, x24, lsl #1
+0x001b6d54: 09018052   mov     w9, #8
+0x001b6d58: 09857ab3   bfi     x9, x8, #6, #0x22
+0x001b6d5c: 3f010ff1   cmp     x9, #0x3c0
+0x001b6d60: a8010054   b.hi    #0x1b6d94
+0x001b6d64: 08188052   mov     w8, #0xc0
+0x001b6d68: 085f089b   madd    x8, x24, x8, x23
+0x001b6d6c: 000540f9   ldr     x0, [x8, #8]
+0x001b6d70: 61008052   mov     w1, #3
+0x001b6d74: 60810194   bl      #0x2172f4  -> _Z20btif_sm_change_statePvj
+0x001b6d78: 3af9ff17   b       #0x1b5260
+0x001b6d7c: e82bfd97   bl      #0x101d1c  -> vnd_LogMsg
+0x001b6d80: 00048052   mov     w0, #0x20
+0x001b6d84: e1031faa   mov     x1, xzr
+0x001b6d88: e2031f2a   mov     w2, wzr
+0x001b6d8c: 4d0a0094   bl      #0x1b96c0  -> _Z22btif_dispatch_sm_event18btif_av_sm_event_tPvi
+0x001b6d90: 31f9ff17   b       #0x1b5254
+0x001b6d94: 200020d4   brk     #1
+0x001b6d98: d6610894   bl      #0x3cf4f0
+0x001b6d9c: ed610894   bl      #0x3cf550
+
+==== btif_av_state_opened_handler @ 0x1b5068 size=0x1d38 ====

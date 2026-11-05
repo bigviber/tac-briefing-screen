@@ -1,0 +1,86 @@
+--------- beginning of main
+08-10 16:49:41.215  1925  1925 I NavigationBarController: register productivity change listener failure , try again!
+08-10 16:49:41.216  1925  1925 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 16:49:41.330  7249  7249 D BluetoothAdapterService: getAdapterService() - returning com.android.bluetooth.btservice.AdapterService@dd76a00
+08-10 16:49:41.330  7249  7249 E A2dpSinkService: :intent received late, not starting profile
+08-10 16:49:41.331  7249  7249 E BluetoothAdapterService: A2dpSinkService not registered (UNREGISTER).
+08-10 16:49:41.390  7419  7419 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 0 <<<<<<
+08-10 16:49:41.393  7419  7419 I AndroidRuntime: Using default boot image
+08-10 16:49:41.394  7419  7419 I AndroidRuntime: Leaving lock profiling enabled
+08-10 16:49:41.494  7419  7419 D app_process: Time zone APEX ICU file found: /apex/com.android.tzdata/etc/icu/icu_tzdata.dat
+08-10 16:49:41.494  7419  7419 D app_process: I18n APEX ICU file found: /apex/com.android.i18n/etc/icu/icudt66l.dat
+08-10 16:49:41.504  7419  7419 I app_process: The ClassLoaderContext is a special shared library.
+08-10 16:49:41.528  7419  7419 W app_process: JNI RegisterNativeMethods: attempt to register 0 native methods for android.media.AudioAttributes
+08-10 16:49:41.538  7419  7419 D AndroidRuntime: Calling main entry com.android.commands.content.Content
+--------- beginning of system
+08-10 16:49:41.562  1418  5654 E WindowManager: updateSurfaceSize>>>>0_0
+08-10 16:49:41.566  1418  5654 E WindowManager: updateSurfaceSize>>>>0_0
+08-10 16:49:41.569  1925  1925 E toast   : command showtoast
+08-10 16:49:41.570  1925  1925 I chatty  : uid=10080(com.android.systemui) identical 27 lines
+08-10 16:49:41.570  1925  1925 E toast   : command showtoast
+08-10 16:49:41.588  7419  7419 D AndroidRuntime: Shutting down VM
+08-10 16:49:41.631  1418  2946 V WindowManager: Creating surface in session android.view.SurfaceSession@fae9a4e window WindowStateAnimator{4e0d313 Toast} w=396 h=75 x=0 y=0 format=-3 flags=4
+08-10 16:49:41.671  1418  1467 V WindowManager: performShow on Window{9a2934d u0 Toast}: mDrawState=READY_TO_SHOW readyForDisplay=true starting=false during animation: policyVis=true parentHidden=false tok.visibleRequested=false tok.visible=false animating=false tok animating=false Callers=com.android.server.wm.WindowState.performShowLocked:4479 com.android.server.wm.WindowStateAnimator.commitFinishDrawingLocked:379 com.android.server.wm.DisplayContent.lambda$new$8$DisplayContent:909 com.android.server.wm.-$$Lambda$DisplayContent$qxt4izS31fb0LF2uo_OF9DMa7gc.accept:4 
+08-10 16:49:41.671  1418  1467 V WindowManager: Showing Window{9a2934d u0 Toast}: mDrawState=READY_TO_SHOW readyForDisplay=true starting=false during animation: policyVis=true parentHidden=false tok.visibleRequested=false tok.visible=false animating=false tok animating=false Callers=com.android.server.wm.WindowState.performShowLocked:4494 com.android.server.wm.WindowStateAnimator.commitFinishDrawingLocked:379 com.android.server.wm.DisplayContent.lambda$new$8$DisplayContent:909 com.android.server.wm.-$$Lambda$DisplayContent$qxt4izS31fb0LF2uo_OF9DMa7gc.accept:4 
+08-10 16:49:41.674  1418  1467 V WindowManager: Showing Surface(name=Toast)/@0x542584e during relayout
+08-10 16:49:41.718  1925  1925 I NavigationBarController: register productivity change listener failure , try again!
+08-10 16:49:41.720  1925  1925 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 16:49:42.221  1925  1925 I NavigationBarController: register productivity change listener failure , try again!
+08-10 16:49:42.223  1925  1925 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 16:49:42.695  1925  1925 D ProductivityModeListenerConverter: registerProductivityChangeListener in
+08-10 16:49:42.697  1925  1925 D ProductivityModeListenerConverter: registerProductivityChangeListener delay 3000.
+08-10 16:49:42.724  1925  1925 I NavigationBarController: register productivity change listener failure , try again!
+08-10 16:49:42.725  1925  1925 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 16:49:43.228  1925  1925 I NavigationBarController: register productivity change listener failure , try again!
+08-10 16:49:43.229  1925  1925 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 16:49:43.617  1418  5654 W NotificationService: Toast already killed. pkg=com.topjohnwu.magisk token=android.os.BinderProxy@a5d918b
+08-10 16:49:43.729  1925  1925 I NavigationBarController: register productivity change listener failure , try again!
+08-10 16:49:43.731  1925  1925 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 16:49:43.869  1418  1467 I WindowManager: Window WindowStateAnimator{4e0d313 Toast} destroying surface Surface(name=Toast)/@0x542584e, session Session{4f45e62 1925:u0a10080}
+08-10 16:49:44.233  1925  1925 I NavigationBarController: register productivity change listener failure , try again!
+08-10 16:49:44.234  1925  1925 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 16:49:44.736  1925  1925 I NavigationBarController: register productivity change listener failure , try again!
+08-10 16:49:44.737  1925  1925 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 16:49:45.102  1418  1466 W WindowManager: Unable to start animation, surface is null or no children.
+08-10 16:49:45.103  1418  1466 V WindowManager: Policy visibility false: Window{9a2934d u0 Toast}
+08-10 16:49:45.239  1925  1925 I NavigationBarController: register productivity change listener failure , try again!
+08-10 16:49:45.241  1925  1925 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 16:49:45.700  1925  1925 D ProductivityModeListenerConverter: registerProductivityChangeListener in
+08-10 16:49:45.701  1925  1925 D ProductivityModeListenerConverter: registerProductivityChangeListener delay 3000.
+08-10 16:49:45.743  1925  1925 I NavigationBarController: register productivity change listener failure , try again!
+08-10 16:49:45.745  1925  1925 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 16:49:46.247  1925  1925 I NavigationBarController: register productivity change listener failure , try again!
+08-10 16:49:46.249  1925  1925 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 16:49:46.751  1925  1925 I NavigationBarController: register productivity change listener failure , try again!
+08-10 16:49:46.752  1925  1925 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 16:49:47.253  1925  1925 I NavigationBarController: register productivity change listener failure , try again!
+08-10 16:49:47.254  1925  1925 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 16:49:47.757  1925  1925 I NavigationBarController: register productivity change listener failure , try again!
+08-10 16:49:47.758  1925  1925 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 16:49:48.260  1925  1925 I NavigationBarController: register productivity change listener failure , try again!
+08-10 16:49:48.261  1925  1925 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 16:49:48.702  1925  1925 D ProductivityModeListenerConverter: registerProductivityChangeListener in
+08-10 16:49:48.703  1925  1925 D ProductivityModeListenerConverter: registerProductivityChangeListener delay 3000.
+08-10 16:49:48.761  1925  1925 I NavigationBarController: register productivity change listener failure , try again!
+08-10 16:49:48.762  1925  1925 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 16:49:48.824  4612  7437 I GMS_MM_Logger: Memory Metric Logging not allowed. Stopping.
+08-10 16:49:49.264  1925  1925 I NavigationBarController: register productivity change listener failure , try again!
+08-10 16:49:49.265  1925  1925 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 16:49:49.477  7249  7326 D HeadsetService: isInbandRingingEnabled returning: false
+08-10 16:49:49.477  7249  7326 I AudioManager: In isBluetoothScoOn(), calling application: com.android.bluetooth
+08-10 16:49:49.478  1418  4660 I AS.AudioDeviceBroker: In isBluetoothScoOnForApp(), mForcedUseForCommExt: 0
+08-10 16:49:49.479  7249  7326 V Avrcp_ext: for index 0
+08-10 16:49:49.479  7249  7326 V Avrcp_ext: for index 1
+08-10 16:49:49.479  7249  7326 V Avrcp_ext: for index 2
+08-10 16:49:49.479  7249  7326 V Avrcp_ext: for index 3
+08-10 16:49:49.479  7249  7326 V Avrcp_ext: for index 4
+08-10 16:49:49.481  7249  7326 E bt_btif : bta_av_co_get_active_peer: peer index out of bounds: 5
+08-10 16:49:49.596  7249  7326 D HeadsetService: isInbandRingingEnabled returning: false
+08-10 16:49:49.596  7249  7326 I AudioManager: In isBluetoothScoOn(), calling application: com.android.bluetooth
+08-10 16:49:49.597  1418  4660 I AS.AudioDeviceBroker: In isBluetoothScoOnForApp(), mForcedUseForCommExt: 0
+08-10 16:49:49.598  7249  7326 V Avrcp_ext: for index 0
+08-10 16:49:49.598  7249  7326 V Avrcp_ext: for index 1
+08-10 16:49:49.598  7249  7326 V Avrcp_ext: for index 2
+08-10 16:49:49.598  7249  7326 V Avrcp_ext: for index 3
+08-10 16:49:49.599  7249  7326 V Avrcp_ext: for index 4
+08-10 16:49:49.605  7249  7326 E bt_btif : bta_av_co_get_active_peer: peer index out of bounds: 5

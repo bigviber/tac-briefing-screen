@@ -1,0 +1,81 @@
+== Thu Aug 10 17:54:05 KST 2023 serial=TABLET_SERIAL
+-- modules
+/data/adb/modules/btdual_patch version=v5
+/data/adb/modules/btsink_overlay_prop version=v2
+/data/adb/modules/carhome_priv version=v1.6.2
+/data/adb/modules/hfp_audio version=v1
+-- props
+[persist.bluetooth.a2dp_offload.cap]: [sbc-aac-aptx-aptxhd-ldac]
+[persist.bluetooth.a2dp_offload.disabled]: [false]
+[persist.vendor.bt.aac_frm_ctl.enabled]: [true]
+[persist.vendor.btstack.aac_frm_ctl.enabled]: [true]
+[persist.vendor.qcom.bluetooth.a2dp_offload_cap]: [sbc-aptx-aptxtws-aptxhd-aac-ldac]
+[persist.vendor.qcom.bluetooth.aac_vbr_ctl.enabled]: [false]
+[persist.vendor.qcom.bluetooth.enable.splita2dp]: [true]
+[persist.vendor.qcom.bluetooth.scram.enabled]: [false]
+[persist.vendor.qcom.bluetooth.twsp_state.enabled]: [false]
+[persist.vendor.service.bt.a2dp.sink]: [true]
+[ro.bluetooth.a2dp_offload.supported]: [true]
+[vendor.audio.feature.a2dp_offload.enable]: [true]
+-- settings
+hidden_api_policy=null
+exemptions=Landroid/app/ActivityOptions;->setLaunchWindowingMode,Landroid/bluetooth/
+-- overlays
+com.android.bluetooth
+[x] com.local.btsink.overlay
+-- bt component states
+      enabledComponents:
+        com.android.bluetooth.avrcpcontroller.BluetoothMediaBrowserService
+        com.android.bluetooth.pbapclient.PbapClientService
+        com.android.bluetooth.pbapclient.AuthenticationService
+        com.android.bluetooth.a2dpsink.A2dpSinkService
+        com.android.bluetooth.hfpclient.HeadsetClientService
+
+Queries:
+  system apps queryable: false
+  forceQueryable:
+    com.android.bluetooth
+  queries via package name:
+  queries via intent:
+  queryable via interaction:
+    User 0:
+        com.android.bluetooth
+      com.android.bluetooth:
+        [com.tblenovo.wallpaper,com.android.systemui]
+        com.local.carhome
+        com.android.bluetooth
+
+Shared users:
+  SharedUser [android.uid.bluetooth] (9885515):
+    userId=1002
+    Packages
+      PackageSetting{9787f9c com.android.bluetooth/1002}
+-- carrelay
+ls: /data/adb/carrelay: No such file or directory
+-- policy mount
+(stock policy)
+-- bt
+  ConnectionState: STATE_DISCONNECTED
+  MaxConnectedAudioDevices: 5
+  A2dpOffloadEnabled: true
+    AA:00:00:00:00:01 [ DUAL ] USER_IPHONE
+  mActiveDevice: null
+  mActiveDevice: null
+  Devices Tracked = 0
+  Devices Tracked = 0
+-- audio outputs
+   Devices: speaker
+   Devices: speaker
+   Devices: speaker
+   Devices: speaker
+   Devices: speaker
+   Devices: speaker
+   Devices: speaker
+   Devices: speaker
+   Devices: speaker
+   Devices: speaker
+   Devices: speaker
+   Devices: speaker
+   Devices: speaker
+   Devices: speaker
+   Devices: speaker

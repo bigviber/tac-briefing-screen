@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Resource overlay for the system Bluetooth app: switches on the A2DP sink (receive audio from a phone), the
+     hands-free client (calls) and the phonebook client, all shipped switched off in this firmware. Installed as a preinstalled overlay by the Magisk module in ../module-*. -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.local.btsink.overlay" android:versionCode="2" android:versionName="2.0">
+    <overlay android:targetPackage="com.android.bluetooth" android:isStatic="true" android:priority="100" />
+    <application android:hasCode="false" />
+</manifest>

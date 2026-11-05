@@ -1,0 +1,27 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.local.btdual'
+    compileSdk 34
+    defaultConfig {
+        applicationId 'com.local.btdual'
+        minSdk 28
+        targetSdk 30
+        versionName '1.0'
+        versionCode 1
+    }
+    buildTypes {
+        release { minifyEnabled false; signingConfig signingConfigs.debug }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    lint { abortOnError false; checkReleaseBuilds false }
+}
+
+dependencies {
+    compileOnly files('libs/api-82.jar')   // provided at runtime by LSPosed; never packaged
+}

@@ -1,0 +1,141 @@
+== uptime/date
+ 09:31:28 up 16:47,  0 users,  load average: 1.23, 2.85, 3.06
+Fri Aug 11 09:31:28 KST 2023
+== list-sessions
+Sessions:
+  tag=BluetoothMediaBrowserService, package=com.android.bluetooth
+== dumpsys media_session
+MEDIA SESSION SERVICE (dumpsys media_session)
+
+5 sessions listeners.
+Global priority session is com.android.server.telecom/HeadsetMediaButton (userId=0)
+  HeadsetMediaButton com.android.server.telecom/HeadsetMediaButton (userId=0)
+    ownerPid=1461, ownerUid=1000, userId=0
+    package=com.android.server.telecom
+    launchIntent=null
+    mediaButtonReceiver=null
+    active=false
+    flags=65537
+    rating type=0
+    controllers: 0
+    state=null
+    audioAttrs=AudioAttributes: usage=USAGE_VOICE_COMMUNICATION content=CONTENT_TYPE_SPEECH flags=0x800 tags= bundle=null
+    volumeType=1, controlType=2, max=0, current=0
+    metadata: null
+    queueTitle=null, size=0
+User Records:
+Record for full_user=0
+  Volume key long-press listener: null
+  Volume key long-press listener package: 
+  Media key listener: null
+  Media key listener package: 
+  OnMediaKeyEventDispatchedListener: added 0 listener(s)
+  OnMediaKeyEventSessionChangedListener: added 1 listener(s)
+    from com.android.bluetooth
+  Last MediaButtonReceiver: null
+  Media button session is com.android.bluetooth/BluetoothMediaBrowserService (userId=0)
+  Sessions Stack - have 1 sessions:
+    BluetoothMediaBrowserService com.android.bluetooth/BluetoothMediaBrowserService (userId=0)
+      ownerPid=1937, ownerUid=1002, userId=0
+      package=com.android.bluetooth
+      launchIntent=null
+      mediaButtonReceiver=null
+      active=true
+      flags=3
+      rating type=0
+      controllers: 5
+      state=PlaybackState {state=7, position=-1, buffered position=0, speed=1.0, updated=24664, actions=0, custom actions=[], active item id=-1, error=Bluetooth audio disconnected}
+      audioAttrs=AudioAttributes: usage=USAGE_MEDIA content=CONTENT_TYPE_UNKNOWN flags=0x800 tags= bundle=null
+      volumeType=1, controlType=2, max=0, current=0
+      metadata: null
+      queueTitle=Now Playing, size=0
+Audio playback (lastly played comes first)
+  uid=10080 packages=com.tblenovo.wallpaper com.android.systemui 
+  uid=1002 packages=com.android.bluetooth 
+== audio playback + focus
+08-10 16:44:24:946 new player piid:31 uid/pid:10080/1957 type:android.media.MediaPlayer attr:AudioAttributes: usage=USAGE_UNKNOWN content=CONTENT_TYPE_UNKNOWN flags=0x800 tags= bundle=null
+08-10 16:44:24:947 player piid:31 new AudioAttributes:AudioAttributes: usage=USAGE_NOTIFICATION content=CONTENT_TYPE_SONIFICATION flags=0x800 tags= bundle=null
+08-10 16:44:25:613 player piid:31 state:started
+08-10 16:44:28:472 player piid:31 state:stopped
+08-10 16:44:28:478 releasing player piid:31
+08-10 16:46:05:057 new player piid:39 uid/pid:1002/1937 type:android.media.MediaPlayer attr:AudioAttributes: usage=USAGE_UNKNOWN content=CONTENT_TYPE_UNKNOWN flags=0x800 tags= bundle=null
+08-10 16:46:05:058 player piid:39 new AudioAttributes:AudioAttributes: usage=USAGE_MEDIA content=CONTENT_TYPE_UNKNOWN flags=0x800 tags= bundle=null
+08-10 16:46:05:174 player piid:39 state:started
+08-10 16:46:05:743 player piid:39 state:stopped
+08-11 04:35:30:929 new player piid:47 uid/pid:1000/1461 type:android.media.MediaPlayer attr:AudioAttributes: usage=USAGE_UNKNOWN content=CONTENT_TYPE_UNKNOWN flags=0x800 tags= bundle=null
+08-11 04:35:30:950 player piid:47 new AudioAttributes:AudioAttributes: usage=USAGE_NOTIFICATION_RINGTONE content=CONTENT_TYPE_SONIFICATION flags=0x800 tags= bundle=null
+08-11 04:35:30:997 releasing player piid:47
+08-11 04:35:31:000 new player piid:55 uid/pid:1000/1461 type:android.media.MediaPlayer attr:AudioAttributes: usage=USAGE_UNKNOWN content=CONTENT_TYPE_UNKNOWN flags=0x800 tags= bundle=null
+08-11 04:35:31:009 player piid:55 new AudioAttributes:AudioAttributes: usage=USAGE_ASSISTANCE_SONIFICATION content=CONTENT_TYPE_SONIFICATION flags=0x800 tags= bundle=null
+08-11 04:35:31:025 player piid:55 state:started
+08-11 04:35:32:560 player piid:55 state:stopped
+08-11 04:52:48:377 releasing player piid:55
+08-11 09:28:22:252 new player piid:63 uid/pid:1000/1461 type:android.media.MediaPlayer attr:AudioAttributes: usage=USAGE_UNKNOWN content=CONTENT_TYPE_UNKNOWN flags=0x800 tags= bundle=null
+08-11 09:28:22:361 player piid:63 new AudioAttributes:AudioAttributes: usage=USAGE_NOTIFICATION_RINGTONE content=CONTENT_TYPE_SONIFICATION flags=0x800 tags= bundle=null
+08-11 09:28:22:438 releasing player piid:63
+08-11 09:28:22:440 new player piid:71 uid/pid:1000/1461 type:android.media.MediaPlayer attr:AudioAttributes: usage=USAGE_UNKNOWN content=CONTENT_TYPE_UNKNOWN flags=0x800 tags= bundle=null
+08-11 09:28:22:454 player piid:71 new AudioAttributes:AudioAttributes: usage=USAGE_ASSISTANCE_SONIFICATION content=CONTENT_TYPE_SONIFICATION flags=0x800 tags= bundle=null
+08-11 09:28:22:480 player piid:71 state:started
+08-11 09:28:23:849 new player piid:79 uid/pid:10080/1957 type:android.media.MediaPlayer attr:AudioAttributes: usage=USAGE_UNKNOWN content=CONTENT_TYPE_UNKNOWN flags=0x800 tags= bundle=null
+08-11 09:28:23:849 player piid:79 new AudioAttributes:AudioAttributes: usage=USAGE_NOTIFICATION content=CONTENT_TYPE_SONIFICATION flags=0x800 tags= bundle=null
+08-11 09:28:24:348 player piid:71 state:stopped
+08-11 09:28:24:419 player piid:79 state:started
+08-11 09:28:27:207 player piid:79 state:stopped
+08-11 09:28:27:214 releasing player piid:79
+08-11 09:28:51:564 releasing player piid:71
+== logcat bt session
+08-10 16:44:19.001  1461  1461 I SystemServerTiming: StartMediaSessionService
+08-10 16:44:19.002  1461  1461 I SystemServiceManager: Starting com.android.server.media.MediaSessionService
+08-10 16:44:19.075  1461  1461 I SystemServerTiming: OnBootPhase_480_com.android.server.media.MediaSessionService
+08-10 16:44:19.170  1461  1461 I SystemServerTiming: OnBootPhase_500_com.android.server.media.MediaSessionService
+08-10 16:44:19.344  1461  1461 I SystemServerTiming: OnBootPhase_520_com.android.server.media.MediaSessionService
+08-10 16:44:19.497  1461  1461 I SystemServerTiming: OnBootPhase_550_com.android.server.media.MediaSessionService
+08-10 16:44:19.901  1461  1461 I SystemServerTiming: OnBootPhase_600_com.android.server.media.MediaSessionService
+08-10 16:44:20.385  1461  1461 I SystemServerTiming: ssm.onStartUser-0_com.android.server.media.MediaSessionService
+08-10 16:44:23.422  1461  1494 I ActivityManagerTiming: OnBootPhase_1000_com.android.server.media.MediaSessionService
+08-10 16:44:24.696  1461  1501 I SystemServerTimingAsync: ssm.onUnlockingUser-0_com.android.server.media.MediaSessionService
+08-10 16:44:24.947  1461  1501 I SystemServerTimingAsync: ssm.onUnlockedUser-0_com.android.server.media.MediaSessionService
+08-11 04:35:31.592  1937  1937 D BluetoothMediaBrowserService: onGetRoot
+08-11 04:35:33.590  1937  5601 D A2dpSinkService: Saved connectionPolicy AA:00:00:00:00:01 = 100
+08-11 04:35:33.591  1937  5601 D A2dpSinkService:  connect device: AA:00:00:00:00:01, InstanceMap start state: 
+08-11 04:35:33.591  1937  5601 D A2dpSinkService: Profile: A2dpSinkService
+08-11 04:35:33.591  1937  5601 D A2dpSinkService:   Devices Tracked = 0
+08-11 04:35:33.591  1937  5601 D A2dpSinkService: Creating a new state machine for AA:00:00:00:00:01
+08-11 04:35:33.595  1937 25401 I BluetoothA2dpSinkServiceJni: connectA2dpNative: sBluetoothA2dpInterface: 0x6ee0eecc00
+08-11 04:35:33.600  1937  2048 I BluetoothA2dpSinkServiceJni: bta2dp_connection_state_callback
+08-11 04:35:33.602  1937  2048 D A2dpSinkService: onConnectionStateChanged. State = 1, device:AA:00:00:00:00:01, streaming:null
+08-11 04:35:33.607  1937  5601 D A2dpSinkService:  connect device: AA:00:00:00:00:01, InstanceMap start state: 
+08-11 04:35:33.607  1937  5601 D A2dpSinkService: Profile: A2dpSinkService
+08-11 04:35:33.607  1937  5601 D A2dpSinkService:   Devices Tracked = 1
+08-11 04:35:33.607  1937  5601 D A2dpSinkService:   ==== StateMachine for AA:00:00:00:00:01 ====
+08-11 04:35:33.607  1937  5601 D A2dpSinkService:   mDevice: AA:00:00:00:00:01(USER_IPHONE) name=A2DPSinkStateMachine state=Connecting
+08-11 04:35:38.610  1937  1937 D A2dpSinkService: getDevicesMatchingConnectionStates[2]
+08-11 04:35:38.611  1937  1937 D A2dpSinkService: Device: AA:00:00:00:00:01State: 0
+08-11 04:35:38.611  1937  1937 D A2dpSinkService: Device: AA:00:00:00:00:02State: 0
+08-11 04:35:38.611  1937  1937 D A2dpSinkService: []
+08-11 04:35:38.611  1937  1937 D A2dpSinkService: GetDevicesDone
+08-11 04:35:38.876  1937  2048 I BluetoothA2dpSinkServiceJni: bta2dp_connection_state_callback
+08-11 04:35:38.877  1937  2048 D A2dpSinkService: onConnectionStateChanged. State = 0, device:AA:00:00:00:00:01, streaming:null
+08-11 04:35:38.878  1937  2048 D A2dpSinkService: Creating a new state machine for AA:00:00:00:00:01
+08-11 09:28:18.320  1937  1937 D BluetoothMediaBrowserService: onGetRoot
+08-11 09:28:20.297  1937  5601 D A2dpSinkService: Saved connectionPolicy AA:00:00:00:00:01 = 100
+08-11 09:28:20.298  1937  5601 D A2dpSinkService:  connect device: AA:00:00:00:00:01, InstanceMap start state: 
+08-11 09:28:20.298  1937  5601 D A2dpSinkService: Profile: A2dpSinkService
+08-11 09:28:20.298  1937  5601 D A2dpSinkService:   Devices Tracked = 0
+08-11 09:28:20.298  1937  5601 D A2dpSinkService: Creating a new state machine for AA:00:00:00:00:01
+08-11 09:28:20.309  1937  9698 I BluetoothA2dpSinkServiceJni: connectA2dpNative: sBluetoothA2dpInterface: 0x6ee0eecc00
+08-11 09:28:20.311  1937  5601 D A2dpSinkService:  connect device: AA:00:00:00:00:01, InstanceMap start state: 
+08-11 09:28:20.311  1937  5601 D A2dpSinkService: Profile: A2dpSinkService
+08-11 09:28:20.311  1937  5601 D A2dpSinkService:   Devices Tracked = 1
+08-11 09:28:20.311  1937  5601 D A2dpSinkService:   ==== StateMachine for AA:00:00:00:00:01 ====
+08-11 09:28:20.311  1937  5601 D A2dpSinkService:   mDevice: AA:00:00:00:00:01(USER_IPHONE) name=A2DPSinkStateMachine state=Connecting
+08-11 09:28:20.327  1937  2048 I BluetoothA2dpSinkServiceJni: bta2dp_connection_state_callback
+08-11 09:28:20.328  1937  2048 D A2dpSinkService: onConnectionStateChanged. State = 1, device:AA:00:00:00:00:01, streaming:null
+08-11 09:28:25.325  1937  1937 D A2dpSinkService: getDevicesMatchingConnectionStates[2]
+08-11 09:28:25.327  1937  1937 D A2dpSinkService: Device: AA:00:00:00:00:01State: 0
+08-11 09:28:25.333  1937  1937 D A2dpSinkService: Device: AA:00:00:00:00:02State: 0
+08-11 09:28:25.333  1937  1937 D A2dpSinkService: []
+08-11 09:28:25.334  1937  1937 D A2dpSinkService: GetDevicesDone
+08-11 09:28:25.532  1937  2048 I BluetoothA2dpSinkServiceJni: bta2dp_connection_state_callback
+08-11 09:28:25.533  1937  2048 D A2dpSinkService: onConnectionStateChanged. State = 0, device:AA:00:00:00:00:01, streaming:null
+08-11 09:28:25.534  1937  2048 D A2dpSinkService: Creating a new state machine for AA:00:00:00:00:01

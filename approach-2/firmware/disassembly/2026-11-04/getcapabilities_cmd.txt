@@ -1,0 +1,63 @@
+
+==== _ZL19getcapabilities_cmdhP19btif_rc_device_cb_t @ 0x204cf4 size=0xf4
+0x00204cf4: sub	sp, sp, #0x60
+0x00204cf8: str	x30, [x18], #8
+0x00204cfc: stp	x29, x30, [sp, #0x30]
+0x00204d00: stp	x22, x21, [sp, #0x40]
+0x00204d04: stp	x20, x19, [sp, #0x50]
+0x00204d08: add	x29, sp, #0x30
+0x00204d0c: mrs	x21, tpidr_el0
+0x00204d10: ldr	x8, [x21, #0x28]
+0x00204d14: adrp	x22, #0x3db000
+0x00204d18: mov	x19, x1
+0x00204d1c: adrp	x1, #0x1d000
+0x00204d20: stur	x8, [x29, #-8]
+0x00204d24: ldrb	w8, [x22, #0xb01]  ; [0x3dbb01]
+0x00204d28: adrp	x2, #0x74000
+0x00204d2c: mov	w20, w0
+0x00204d30: and	w3, w0, #0xff
+0x00204d34: cmp	w8, #5
+0x00204d38: add	x1, x1, #0xc90  ; "%s: cap_id: %d"
+0x00204d3c: add	x2, x2, #0x1fc  ; "getcapabilities_cmd"
+0x00204d40: mov	w0, #0x504
+0x00204d44: b.lo	#0x204d54
+0x00204d48: bl	#0x101b38  -> LogMsg
+0x00204d4c: cbnz	x19, #0x204d5c
+0x00204d50: b	#0x204d90
+0x00204d54: bl	#0x101d1c  -> vnd_LogMsg
+0x00204d58: cbz	x19, #0x204d90
+0x00204d5c: ldrb	w8, [x19]
+0x00204d60: cbz	w8, #0x204d90
+0x00204d64: movi	v0.2d, #0000000000000000
+0x00204d68: mov	w8, #0x410
+0x00204d6c: mov	x0, sp
+0x00204d70: mov	w1, #1
+0x00204d74: mov	x2, x19
+0x00204d78: str	xzr, [sp, #0x20]
+0x00204d7c: stp	q0, q0, [sp]
+0x00204d80: strb	w20, [sp, #3]
+0x00204d84: strh	w8, [sp]
+0x00204d88: bl	#0x204de8  -> _Z25build_and_send_vendor_cmdP13tAVRC_COMMANDhP19btif_rc_device_cb_t
+0x00204d8c: b	#0x204dbc
+0x00204d90: ldrb	w8, [x22, #0xb01]  ; [0x3dbb01]
+0x00204d94: adrp	x1, #0x47000
+0x00204d98: adrp	x2, #0x74000
+0x00204d9c: add	x1, x1, #0x7c0  ; "%s: called when RC is not connected"
+0x00204da0: add	x2, x2, #0x1fc  ; "getcapabilities_cmd"
+0x00204da4: mov	w0, #0x501
+0x00204da8: cmp	w8, #2
+0x00204dac: b.lo	#0x204db8
+0x00204db0: bl	#0x101b38  -> LogMsg
+0x00204db4: b	#0x204dbc
+0x00204db8: bl	#0x101d1c  -> vnd_LogMsg
+0x00204dbc: ldr	x8, [x21, #0x28]
+0x00204dc0: ldur	x9, [x29, #-8]
+0x00204dc4: cmp	x8, x9
+0x00204dc8: b.ne	#0x204de4
+0x00204dcc: ldp	x29, x30, [sp, #0x30]
+0x00204dd0: ldp	x20, x19, [sp, #0x50]
+0x00204dd4: ldp	x22, x21, [sp, #0x40]
+0x00204dd8: ldr	x30, [x18, #-8]!
+0x00204ddc: add	sp, sp, #0x60
+0x00204de0: ret	
+0x00204de4: bl	#0x3cf550

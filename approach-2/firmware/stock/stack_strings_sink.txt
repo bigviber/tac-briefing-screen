@@ -1,0 +1,122 @@
+## A2DP SINK MEDIA THREAD STARTED ##
+## A2DP SINK START MEDIA THREAD ##
+## A2DP SINK STOP MEDIA THREAD ##
+%s resetting dual handoff flag for index %d
+%s() - found TWS_PLUS SINK uuid
+%s, multicast enabled, calculate average sink latency
+%s, return sink latency: %d
+%s:  sink_info_cie.samp_freq: 0x%x, a2dp_sbc_caps.samp_freq: 0x%x
+%s: A2DP Sink media task already running
+%s: A2dpSink: SBC create track
+%s: A2dpSink: Track creation failed
+%s: AAC VBR is enabled, add AAC codec in sink capability
+%s: AAC codec is added in sink capability
+%s: BTA_AV_SUSPEND_EVT: index: %d, status %d, init %d, flag %d,pending_cmd: %d, dual_handoff: %d,  fake_suspend_rsp: %d
+%s: BTIF_AV_SINK_CONFIG_REQ_EVT sample_rate=%d channel_count=%d
+%s: Disable VBR support for peer sink
+%s: Do not add AAC codec in sink capability
+%s: Looking sink for codec index %d
+%s: Reset to Sink role
+%s: SINK role true 
+%s: Under Dual handoff 
+%s: a2dp_sbc_caps.ch_mode: 0x%x, sink_info_cie.ch_mode: 0x%x
+%s: can't parse peer's Sink capabilities: error = %d
+%s: cannot get the Sink channel type
+%s: cannot match allocation method: source caps = 0x%x sink info = 0x%x
+%s: cannot match block length: source caps = 0x%x sink info = 0x%x
+%s: cannot match channel mode: source caps = 0x%x sink info = 0x%x
+%s: cannot match number of sub-bands: source caps = 0x%x sink info = 0x%x
+%s: cannot match sample frequency: source caps = 0x%x sink info = 0x%x
+%s: cannot set up codec for the peer SINK
+%s: channel mode: source caps = 0x%x sink info = 0x%x
+%s: channel_mode: source caps = 0x%x sink info = 0x%x, ch_mode = 0x%x,  codec_user_config_.channel_mode = 0x%x
+%s: configure decoder for Sink connection
+%s: h:x%x num_seps:%d num_sink:%d num_src:%d
+%s: index = %d, packets in sink queue %d
+%s: initialized Sink codec %s
+%s: last Sink codec reached for peer %s (local %s)
+%s: no Sink codecs were initialized
+%s: no more room for SINK info
+%s: num_sup_sinks: %d
+%s: peer is A2DP SINK
+%s: peer sink for codec %s avail
+%s: peer sink for codec %s does not support Copy Protection
+%s: peer sink for codec %s not found
+%s: peer(o=%d, n_sinks=%d, n_rx_sinks=%d, n_sup_sinks=%d)
+%s: peer(o=%d,n_sinks=%d,n_rx_sinks=%d,n_sup_sinks=%d)
+%s: result_min bitpool > max bitpool, make both = min source caps min/max = 0x%x/0x%x sink info min/max = 0x%x/0x%x
+%s: sink_info_cie.bitRate: %u, a2dp_aac_caps.bitRate: %u
+, .maxSinkBuff_HQ = 
+, .maxSinkBuff_LL = 
+, .maxSinkBuff_TWS = 
+, .minSinkBuff_HQ = 
+, .minSinkBuff_TWS = 
+, .sinkBuffering = 
+.minSinkBuff_LL = 
+A2DP_BuildSrc2SinkConfig
+A2DP_BuildSrc2SinkConfigSbc
+A2DP_GetSinkFramesCountToProcess
+A2DP_GetSinkFramesCountToProcessSbc
+A2DP_GetSinkTrackChannelType
+A2DP_GetSinkTrackChannelTypeSbc
+A2DP_InitCodecConfigSbcSink
+A2DP_IsPeerSinkCodecValid
+A2DP_IsSinkCodecSupported
+Advanced Audio Sink
+BTIF_AV_SINK_CONFIG_REQ_EVT
+BTIF_AV_SINK_CONFIG_REQ_EVT %d %d
+BTIF_MEDIA_SINK_AUDIO_RX_FLUSH
+BTIF_MEDIA_SINK_CLEAR_TRACK
+BTIF_MEDIA_SINK_DECODER_UPDATE
+BTIF_MEDIA_SINK_SET_FOCUS_STATE
+DUAL_MONO
+SBC SINK
+SBC(Sink)
+SDP_FindServiceInDb found HDP source or sink
+SINK_NOT_READY
+UNKNOWN A2DP SINK EVENT
+a2dp_get_sink_latency
+a2dp_sink
+bt_av_sink_callbacks
+bt_btif_a2dp_sink
+bta_av_audio_sink_getconfig
+bta_av_co_audio_set_p_sink
+bta_av_co_audio_sink_supports_cp
+bta_av_sink_data_cback
+bte_av_sink_media_callback
+btif.a2dp_sink_decode
+btif_a2dp_sink_audio_handle_start_decoding
+btif_a2dp_sink_audio_rx_flush_event
+btif_a2dp_sink_avk_handle_timer
+btif_a2dp_sink_clear_track_event
+btif_a2dp_sink_command_ready
+btif_a2dp_sink_decoder_update_event
+btif_a2dp_sink_enqueue_buf
+btif_a2dp_sink_handle_inc_media
+btif_a2dp_sink_set_audio_track_gain
+btif_a2dp_sink_set_focus_state_event
+btif_a2dp_sink_set_focus_state_req
+btif_a2dp_sink_startup
+btif_a2dp_sink_update_decoder
+btif_a2dp_sink_worker_thread
+btif_a2dp_update_sink_latency_change
+btif_av_get_sink_interface
+btif_av_get_sink_latency
+btif_av_sink_execute_service
+btif_av_trigger_dual_handoff
+btif_device_in_sink_role
+btif_get_max_allowable_sink_connections
+btif_initiate_sink_handoff
+btif_is_a2dp_sink_handoff_required
+btif_is_sink_delay_report_supported
+btif_sink_ho_through_avrcp_pback_status
+cleanup_sink
+init_sink
+persist.vendor.bt.a2dp.delay_report_sink
+persist.vendor.bt.a2dp.sink_conn
+persist.vendor.service.bt.a2dp.sink
+send_sink_latency = %d
+sink_connect_src
+sink_disconnect_src
+src_connect_sink
+src_disconnect_sink

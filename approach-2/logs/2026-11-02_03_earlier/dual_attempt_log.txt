@@ -1,0 +1,160 @@
+--------- beginning of main
+08-10 16:49:16.013  1418  4660 D CompatibilityInfo: mCompatibilityFlags - 4
+08-10 16:49:16.013  1418  4660 D CompatibilityInfo: applicationDensity - 240
+08-10 16:49:16.013  1418  4660 D CompatibilityInfo: applicationScale - 1.0
+08-10 16:49:16.019  7249  7249 D BluetoothAdapterService: getAdapterService() - returning com.android.bluetooth.btservice.AdapterService@dd76a00
+08-10 16:49:16.019  1925  1925 D BluetoothA2dpSink: Proxy object connected
+08-10 16:49:16.021  7249  7326 D A2dpSinkService: getDevicesMatchingConnectionStates[2]
+08-10 16:49:16.022  7249  7326 D A2dpSinkService: []
+08-10 16:49:16.022  7249  7326 D A2dpSinkService: GetDevicesDone
+08-10 16:49:16.057  1925  1925 I NavigationBarController: register productivity change listener failure , try again!
+08-10 16:49:16.059  1925  1925 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 16:49:16.060  7370  7370 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 0 <<<<<<
+08-10 16:49:16.062   839  7298 I vendor.qti.bluetooth@1.0-ibs_handler: ProcessIbsCmd: Received IBS_WAKE_IND: 0xFD
+08-10 16:49:16.062   839  7298 D vendor.qti.bluetooth@1.0-ibs_handler: SerialClockVote: vote for UART CLK ON
+08-10 16:49:16.064  7370  7370 I AndroidRuntime: Using default boot image
+08-10 16:49:16.064  7370  7370 I AndroidRuntime: Leaving lock profiling enabled
+08-10 16:49:16.066   839  7298 D vendor.qti.bluetooth@1.0-wake_lock: Acquire wakelock is acquired 
+08-10 16:49:16.066   839  7298 I vendor.qti.bluetooth@1.0-ibs_handler: ProcessIbsCmd: Writing IBS_WAKE_ACK
+08-10 16:49:16.068  7249  7300 V bt_stack: [VERBOSE1:btm_ble_gap.cc(1925)] btm_ble_process_ext_adv_pkt: bda=BB:00:00:00:00:19
+08-10 16:49:16.068  7249  7300 V bt_stack: [VERBOSE1:btm_ble_gap.cc(1849)] btm_ble_process_adv_addr: bda=BB:00:00:00:00:19
+08-10 16:49:16.068  7249  7300 V bt_stack: [VERBOSE1:btm_ble_gap.cc(2054)]  Waiting for scan response BB:00:00:00:00:19
+08-10 16:49:16.068  7249  7300 V bt_stack: [VERBOSE1:btm_ble_gap.cc(1925)] btm_ble_process_ext_adv_pkt: bda=BB:00:00:00:00:19
+08-10 16:49:16.068  7249  7300 V bt_stack: [VERBOSE1:btm_ble_gap.cc(1849)] btm_ble_process_adv_addr: bda=BB:00:00:00:00:19
+08-10 16:49:16.069  7249  7300 V bt_stack: [VERBOSE1:btm_inq.cc(1019)] BTM_InqDbRead: bd addr BB:00:00:00:00:19
+08-10 16:49:16.079  2563  6865 D ApplicationPackageManager: hasSystemFeatrue org.chromium.arc com.google.uid.shared:10148
+08-10 16:49:16.081  2563  6865 D ApplicationPackageManager: hasSystemFeatrue org.chromium.arc com.google.uid.shared:10148
+08-10 16:49:16.108   839  7298 I vendor.qti.bluetooth@1.0-ibs_handler: ProcessIbsCmd: Received IBS_SLEEP_IND: 0xFE
+08-10 16:49:16.108   839  7298 D vendor.qti.bluetooth@1.0-ibs_handler: SerialClockVote: vote for UART CLK OFF
+08-10 16:49:16.160   839  7298 I vendor.qti.bluetooth@1.0-ibs_handler: ProcessIbsCmd: Received IBS_WAKE_IND: 0xFD
+08-10 16:49:16.160   839  7298 D vendor.qti.bluetooth@1.0-ibs_handler: SerialClockVote: vote for UART CLK ON
+08-10 16:49:16.160   839  7298 I vendor.qti.bluetooth@1.0-ibs_handler: ProcessIbsCmd: Writing IBS_WAKE_ACK
+08-10 16:49:16.164  7249  7300 V bt_stack: [VERBOSE1:btm_ble_gap.cc(1925)] btm_ble_process_ext_adv_pkt: bda=BB:00:00:00:00:19
+08-10 16:49:16.164  7249  7300 V bt_stack: [VERBOSE1:btm_ble_gap.cc(1849)] btm_ble_process_adv_addr: bda=BB:00:00:00:00:19
+08-10 16:49:16.164  7249  7300 V bt_stack: [VERBOSE1:btm_ble_gap.cc(2054)]  Waiting for scan response BB:00:00:00:00:19
+08-10 16:49:16.170  7370  7370 D app_process: Time zone APEX ICU file found: /apex/com.android.tzdata/etc/icu/icu_tzdata.dat
+08-10 16:49:16.170  7370  7370 D app_process: I18n APEX ICU file found: /apex/com.android.i18n/etc/icu/icudt66l.dat
+08-10 16:49:16.180  7370  7370 I app_process: The ClassLoaderContext is a special shared library.
+08-10 16:49:16.202  7370  7370 W app_process: JNI RegisterNativeMethods: attempt to register 0 native methods for android.media.AudioAttributes
+08-10 16:49:16.202   839  7298 I vendor.qti.bluetooth@1.0-ibs_handler: ProcessIbsCmd: Received IBS_SLEEP_IND: 0xFE
+08-10 16:49:16.202   839  7298 D vendor.qti.bluetooth@1.0-ibs_handler: SerialClockVote: vote for UART CLK OFF
+08-10 16:49:16.212  7370  7370 D AndroidRuntime: Calling main entry com.android.commands.content.Content
+--------- beginning of system
+08-10 16:49:16.238  1418  4660 E WindowManager: updateSurfaceSize>>>>0_0
+08-10 16:49:16.242  1418  4660 E WindowManager: updateSurfaceSize>>>>0_0
+08-10 16:49:16.247  1925  1925 E toast   : command showtoast
+08-10 16:49:16.249  1925  1925 I chatty  : uid=10080(com.android.systemui) identical 27 lines
+08-10 16:49:16.249  1925  1925 E toast   : command showtoast
+08-10 16:49:16.261  7370  7370 D AndroidRuntime: Shutting down VM
+08-10 16:49:16.314  1418  4660 V WindowManager: Creating surface in session android.view.SurfaceSession@fae9a4e window WindowStateAnimator{7316284 Toast} w=396 h=75 x=0 y=0 format=-3 flags=4
+08-10 16:49:16.352   839  7289 D vendor.qti.bluetooth@1.0-wake_lock: Release wakelock is released 
+08-10 16:49:16.353  1418  1467 V WindowManager: performShow on Window{314ef16 u0 Toast}: mDrawState=READY_TO_SHOW readyForDisplay=true starting=false during animation: policyVis=true parentHidden=false tok.visibleRequested=false tok.visible=false animating=false tok animating=false Callers=com.android.server.wm.WindowState.performShowLocked:4479 com.android.server.wm.WindowStateAnimator.commitFinishDrawingLocked:379 com.android.server.wm.DisplayContent.lambda$new$8$DisplayContent:909 com.android.server.wm.-$$Lambda$DisplayContent$qxt4izS31fb0LF2uo_OF9DMa7gc.accept:4 
+08-10 16:49:16.353  1418  1467 V WindowManager: Showing Window{314ef16 u0 Toast}: mDrawState=READY_TO_SHOW readyForDisplay=true starting=false during animation: policyVis=true parentHidden=false tok.visibleRequested=false tok.visible=false animating=false tok animating=false Callers=com.android.server.wm.WindowState.performShowLocked:4494 com.android.server.wm.WindowStateAnimator.commitFinishDrawingLocked:379 com.android.server.wm.DisplayContent.lambda$new$8$DisplayContent:909 com.android.server.wm.-$$Lambda$DisplayContent$qxt4izS31fb0LF2uo_OF9DMa7gc.accept:4 
+08-10 16:49:16.356  1418  1467 V WindowManager: Showing Surface(name=Toast)/@0xbbbbf33 during relayout
+08-10 16:49:16.425  2563  3497 D ApplicationPackageManager: hasSystemFeatrue android.hardware.bluetooth com.google.uid.shared:10148
+08-10 16:49:16.426  2563  3497 D ApplicationPackageManager: hasSystemFeatrue android.hardware.bluetooth_le com.google.uid.shared:10148
+08-10 16:49:16.428  2563  3497 I NearbySharing: Skip starting FastInitiation scanning, since already scan in current mode SCAN_MODE_OPPORTUNISTIC. [CONTEXT service_id=194 ]
+08-10 16:49:16.428  2563  3497 I NearbySharing: FastInitiation warming period has ended [CONTEXT service_id=194 ]
+08-10 16:49:16.459   839  7298 I vendor.qti.bluetooth@1.0-ibs_handler: ProcessIbsCmd: Received IBS_WAKE_IND: 0xFD
+08-10 16:49:16.459   839  7298 D vendor.qti.bluetooth@1.0-ibs_handler: SerialClockVote: vote for UART CLK ON
+08-10 16:49:16.462   839  7298 D vendor.qti.bluetooth@1.0-wake_lock: Acquire wakelock is acquired 
+08-10 16:49:16.462   839  7298 I vendor.qti.bluetooth@1.0-ibs_handler: ProcessIbsCmd: Writing IBS_WAKE_ACK
+08-10 16:49:16.464  7249  7300 V bt_stack: [VERBOSE1:btm_ble_gap.cc(1925)] btm_ble_process_ext_adv_pkt: bda=BB:00:00:00:00:19
+08-10 16:49:16.465  7249  7300 V bt_stack: [VERBOSE1:btm_ble_gap.cc(1849)] btm_ble_process_adv_addr: bda=BB:00:00:00:00:19
+08-10 16:49:16.465  7249  7300 V bt_stack: [VERBOSE1:btm_ble_gap.cc(2054)]  Waiting for scan response BB:00:00:00:00:19
+08-10 16:49:16.465  7249  7300 V bt_stack: [VERBOSE1:btm_ble_gap.cc(1925)] btm_ble_process_ext_adv_pkt: bda=BB:00:00:00:00:19
+08-10 16:49:16.465  7249  7300 V bt_stack: [VERBOSE1:btm_ble_gap.cc(1849)] btm_ble_process_adv_addr: bda=BB:00:00:00:00:19
+08-10 16:49:16.465  7249  7300 V bt_stack: [VERBOSE1:btm_inq.cc(1019)] BTM_InqDbRead: bd addr BB:00:00:00:00:19
+08-10 16:49:16.477  2563  6865 D ApplicationPackageManager: hasSystemFeatrue org.chromium.arc com.google.uid.shared:10148
+08-10 16:49:16.480  2563  6865 D ApplicationPackageManager: hasSystemFeatrue org.chromium.arc com.google.uid.shared:10148
+08-10 16:49:16.491  2563  6868 D ApplicationPackageManager: hasSystemFeatrue android.hardware.bluetooth_le com.google.uid.shared:10148
+08-10 16:49:16.493  2563  3012 I BeaconBle: Client requested scan, settings=BleSettings [scanMode=ZERO_POWER, callbackType=ALL_MATCHES, reportDelayMillis=0, 5 filters, 1 clients, callingClientName=Nearby] [CONTEXT service_id=111 ]
+08-10 16:49:16.504   839  7298 I vendor.qti.bluetooth@1.0-ibs_handler: ProcessIbsCmd: Received IBS_SLEEP_IND: 0xFE
+08-10 16:49:16.504   839  7298 D vendor.qti.bluetooth@1.0-ibs_handler: SerialClockVote: vote for UART CLK OFF
+08-10 16:49:16.521  2563  3012 I BeaconBle: Stopping scan on delegate scanner. BT state: 12 [CONTEXT service_id=111 ]
+08-10 16:49:16.523  2563  3012 D BluetoothAdapter: isLeEnabled(): ON
+08-10 16:49:16.524  7249  7267 D BtGatt.GattService: stopScan() - queue size =2
+08-10 16:49:16.529  7249  7286 I BtGatt.ScanManager: msg.what = 1
+08-10 16:49:16.529  7249  7286 D BtGatt.ScanManager: stop scan
+08-10 16:49:16.531  7249  7326 D BtGatt.GattService: unregisterScanner() - scannerId=6
+08-10 16:49:16.531   839   839 D vendor.qti.bluetooth@1.0-ibs_handler: SerialClockVote: vote for UART CLK ON
+08-10 16:49:16.531   839   839 I vendor.qti.bluetooth@1.0-ibs_handler: DeviceWakeUp: Writing IBS_WAKE_IND
+08-10 16:49:16.532  7249  7300 V bt_stack: [VERBOSE1:gatt_api.cc(993)] GATT_Deregister gatt_if=6
+08-10 16:49:16.532  7249  7300 V bt_stack: [VERBOSE1:connection_manager.cc(161)] on_app_deregistered : app_id 0x06
+08-10 16:49:16.533   839  7298 I vendor.qti.bluetooth@1.0-ibs_handler: ProcessIbsCmd: Received IBS_WAKE_ACK: 0xFC
+08-10 16:49:16.534   839  7298 I vendor.qti.bluetooth@1.0-ibs_handler: ProcessIbsCmd: Received IBS_WAKE_IND: 0xFD
+08-10 16:49:16.534   839  7298 I vendor.qti.bluetooth@1.0-ibs_handler: ProcessIbsCmd: Writing IBS_WAKE_ACK
+08-10 16:49:16.535  2563  3012 I BeaconBle: Resetting - new scanner available: true [CONTEXT service_id=111 ]
+08-10 16:49:16.535  7249  7276 D BtGatt.GattService: onScanFilterParamsConfigured() - clientIf=6, status=0, action=1, availableSpace=12
+08-10 16:49:16.536  7249  7276 D BtGatt.ScanManager: callback done for scannerId - 6 status - 0
+08-10 16:49:16.536  2563  3012 I BeaconBle: ZERO_POWER is disabled. [CONTEXT service_id=111 ]
+08-10 16:49:16.536  2563  3012 I BeaconBle: 'L' hardware scan: scan stopped, no powered clients [CONTEXT service_id=111 ]
+08-10 16:49:16.553  7249  7276 D BtGatt.GattService: onScanFilterParamsConfigured() - clientIf=6, status=0, action=1, availableSpace=13
+08-10 16:49:16.553  7249  7276 D BtGatt.ScanManager: callback done for scannerId - 6 status - 0
+08-10 16:49:16.556  7249  7276 D BtGatt.GattService: onScanFilterParamsConfigured() - clientIf=6, status=0, action=1, availableSpace=14
+08-10 16:49:16.556  7249  7276 D BtGatt.ScanManager: callback done for scannerId - 6 status - 0
+08-10 16:49:16.560  7249  7276 D BtGatt.GattService: onScanFilterParamsConfigured() - clientIf=6, status=0, action=1, availableSpace=15
+08-10 16:49:16.560  1925  1925 I NavigationBarController: register productivity change listener failure , try again!
+08-10 16:49:16.560  7249  7276 D BtGatt.ScanManager: callback done for scannerId - 6 status - 0
+08-10 16:49:16.561  1925  1925 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 16:49:16.566  7249  7276 D BtGatt.GattService: onScanFilterParamsConfigured() - clientIf=6, status=0, action=1, availableSpace=16
+08-10 16:49:16.566  7249  7276 D BtGatt.ScanManager: callback done for scannerId - 6 status - 0
+08-10 16:49:16.567  7249  7286 D BtGatt.ScanManager: configureRegularScanParams() - queue=1
+08-10 16:49:16.567  7249  7286 D BtGatt.ScanManager: configureRegularScanParams() - ScanSetting LE 1M Scan mode=-1ScanSetting LE Coded Scan mode=-1 mLastConfiguredScanSettingLE1M=2 mLastConfiguredScanSettingLECoded=2scanPhy=255
+08-10 16:49:16.567  7249  7286 D BtGatt.ScanManager: configureRegularScanParams() - queue emtpy, scan stopped
+08-10 16:49:16.567  7249  7286 D BtGatt.ScanManager: configureRegularScanParams() - queue emtpy, scan stopped
+08-10 16:49:16.604   839  7298 I vendor.qti.bluetooth@1.0-ibs_handler: ProcessIbsCmd: Received IBS_SLEEP_IND: 0xFE
+08-10 16:49:17.063  1925  1925 I NavigationBarController: register productivity change listener failure , try again!
+08-10 16:49:17.064  1925  1925 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 16:49:17.535  1418  1418 W WindowManager: removeWindowToken: Attempted to remove non-existing token: android.os.Binder@e0617ba
+08-10 16:49:17.563   839  7303 I vendor.qti.bluetooth@1.0-ibs_handler: DeviceSleep: TX Awake, Sending SLEEP_IND
+08-10 16:49:17.564   839  7303 D vendor.qti.bluetooth@1.0-ibs_handler: SerialClockVote: vote for UART CLK OFF
+08-10 16:49:17.566  1925  1925 I NavigationBarController: register productivity change listener failure , try again!
+08-10 16:49:17.567  1925  1925 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 16:49:17.725   839  7289 D vendor.qti.bluetooth@1.0-wake_lock: Release wakelock is released 
+08-10 16:49:18.069  1925  1925 I NavigationBarController: register productivity change listener failure , try again!
+08-10 16:49:18.070  1925  1925 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 16:49:18.291  1418  4660 W NotificationService: Toast already killed. pkg=com.topjohnwu.magisk token=android.os.BinderProxy@6e91b8f
+08-10 16:49:18.554  1418  1467 I WindowManager: Window WindowStateAnimator{7316284 Toast} destroying surface Surface(name=Toast)/@0xbbbbf33, session Session{4f45e62 1925:u0a10080}
+08-10 16:49:18.570  1925  1925 I NavigationBarController: register productivity change listener failure , try again!
+08-10 16:49:18.571  1925  1925 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 16:49:18.672  1925  1925 D ProductivityModeListenerConverter: registerProductivityChangeListener in
+08-10 16:49:18.673  1925  1925 D ProductivityModeListenerConverter: registerProductivityChangeListener delay 3000.
+08-10 16:49:19.073  1925  1925 I NavigationBarController: register productivity change listener failure , try again!
+08-10 16:49:19.074  1925  1925 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 16:49:19.553  1418  1418 W WindowManager: removeWindowToken: Attempted to remove non-existing token: android.os.Binder@faeff3f
+08-10 16:49:19.577  1925  1925 I NavigationBarController: register productivity change listener failure , try again!
+08-10 16:49:19.578  1925  1925 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 16:49:19.779  1418  1466 W WindowManager: Unable to start animation, surface is null or no children.
+08-10 16:49:19.780  1418  1466 V WindowManager: Policy visibility false: Window{314ef16 u0 Toast}
+08-10 16:49:20.081  1925  1925 I NavigationBarController: register productivity change listener failure , try again!
+08-10 16:49:20.082  1925  1925 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 16:49:20.584  1925  1925 I NavigationBarController: register productivity change listener failure , try again!
+08-10 16:49:20.586  1925  1925 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 16:49:21.088  1925  1925 I NavigationBarController: register productivity change listener failure , try again!
+08-10 16:49:21.089  1925  1925 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 16:49:21.563  1418  1418 W WindowManager: removeWindowToken: Attempted to remove non-existing token: android.os.Binder@41878ef
+08-10 16:49:21.592  1925  1925 I NavigationBarController: register productivity change listener failure , try again!
+08-10 16:49:21.593  1925  1925 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 16:49:21.675  1925  1925 D ProductivityModeListenerConverter: registerProductivityChangeListener in
+08-10 16:49:21.676  1925  1925 D ProductivityModeListenerConverter: registerProductivityChangeListener delay 3000.
+08-10 16:49:22.094  1925  1925 I NavigationBarController: register productivity change listener failure , try again!
+08-10 16:49:22.096  1925  1925 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 16:49:22.146  7249  7326 D HeadsetService: isInbandRingingEnabled returning: false
+08-10 16:49:22.146  7249  7326 I AudioManager: In isBluetoothScoOn(), calling application: com.android.bluetooth
+08-10 16:49:22.147  1418  4660 I AS.AudioDeviceBroker: In isBluetoothScoOnForApp(), mForcedUseForCommExt: 0
+08-10 16:49:22.148  7249  7326 V Avrcp_ext: for index 0
+08-10 16:49:22.148  7249  7326 V Avrcp_ext: for index 1
+08-10 16:49:22.148  7249  7326 V Avrcp_ext: for index 2
+08-10 16:49:22.148  7249  7326 V Avrcp_ext: for index 3
+08-10 16:49:22.148  7249  7326 V Avrcp_ext: for index 4
+08-10 16:49:22.150  7249  7326 E bt_btif : bta_av_co_get_active_peer: peer index out of bounds: 5
+08-10 16:49:22.277  7249  7326 D HeadsetService: isInbandRingingEnabled returning: false
+08-10 16:49:22.277  7249  7326 I AudioManager: In isBluetoothScoOn(), calling application: com.android.bluetooth
+08-10 16:49:22.278  1418  4660 I AS.AudioDeviceBroker: In isBluetoothScoOnForApp(), mForcedUseForCommExt: 0
+08-10 16:49:22.278  7249  7326 V Avrcp_ext: for index 0
+08-10 16:49:22.278  7249  7326 V Avrcp_ext: for index 1
+08-10 16:49:22.279  7249  7326 V Avrcp_ext: for index 2
+08-10 16:49:22.279  7249  7326 V Avrcp_ext: for index 3
+08-10 16:49:22.279  7249  7326 V Avrcp_ext: for index 4
+08-10 16:49:22.283  7249  7326 E bt_btif : bta_av_co_get_active_peer: peer index out of bounds: 5

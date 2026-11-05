@@ -1,0 +1,447 @@
+0x001bef8c: ffc301d1   sub     sp, sp, #0x70
+0x001bef90: 5e8600f8   str     x30, [x18], #8
+0x001bef94: fd7b02a9   stp     x29, x30, [sp, #0x20]
+0x001bef98: f91b00f9   str     x25, [sp, #0x30]
+0x001bef9c: f85f04a9   stp     x24, x23, [sp, #0x40]
+0x001befa0: f65705a9   stp     x22, x21, [sp, #0x50]
+0x001befa4: f44f06a9   stp     x20, x19, [sp, #0x60]
+0x001befa8: fd830091   add     x29, sp, #0x20
+0x001befac: 57d03bd5   mrs     x23, tpidr_el0
+0x001befb0: e81640f9   ldr     x8, [x23, #0x28]
+0x001befb4: f81000b0   adrp    x24, #0x3db000
+0x001befb8: f30301aa   mov     x19, x1
+0x001befbc: f503002a   mov     w21, w0
+0x001befc0: a8831ff8   stur    x8, [x29, #-8]
+0x001befc4: 08334fb9   ldr     w8, [x24, #0xf30]
+0x001befc8: 49fc60d3   lsr     x9, x2, #0x20
+0x001befcc: e21300b9   str     w2, [sp, #0x10]
+0x001befd0: e92b0079   strh    w9, [sp, #0x14]
+0x001befd4: 1f050071   cmp     w8, #1
+0x001befd8: 8b020054   b.lt    #0x1bf028
+0x001befdc: c9110090   adrp    x9, #0x3f6000
+0x001befe0: f4031faa   mov     x20, xzr
+0x001befe4: 29051891   add     x9, x9, #0x601
+0x001befe8: 9f1600f1   cmp     x20, #5
+0x001befec: 00100054   b.eq    #0x1bf1ec
+0x001beff0: ea1340b9   ldr     w10, [sp, #0x10]
+0x001beff4: 2b0140b9   ldr     w11, [x9]
+0x001beff8: ec2b4079   ldrh    w12, [sp, #0x14]
+0x001beffc: 2d094079   ldrh    w13, [x9, #4]
+0x001bf000: 4a010b4a   eor     w10, w10, w11
+0x001bf004: 8b010d4a   eor     w11, w12, w13
+0x001bf008: 4a010b2a   orr     w10, w10, w11
+0x001bf00c: 0a010034   cbz     w10, #0x1bf02c
+0x001bf010: 94060091   add     x20, x20, #1
+0x001bf014: 1f0114eb   cmp     x8, x20
+0x001bf018: 29010391   add     x9, x9, #0xc0
+0x001bf01c: 61feff54   b.ne    #0x1befe8
+0x001bf020: f403082a   mov     w20, w8
+0x001bf024: 02000014   b       #0x1bf02c
+0x001bf028: f4031f2a   mov     w20, wzr
+0x001bf02c: 5bf5ff97   bl      #0x1bc598  -> _Z35btif_av_get_current_playing_dev_idxv
+0x001bf030: f9100090   adrp    x25, #0x3db000
+0x001bf034: 28076c39   ldrb    w8, [x25, #0xb01]
+0x001bf038: f603002a   mov     w22, w0
+0x001bf03c: c1f3fff0   adrp    x1, #0x3a000
+0x001bf040: 62f3fff0   adrp    x2, #0x2e000
+0x001bf044: 1f150071   cmp     w8, #5
+0x001bf048: 21183991   add     x1, x1, #0xe46  ; "%s: index = %d, cur_playing_index: %d"
+0x001bf04c: 42403a91   add     x2, x2, #0xe90  ; "bte_av_sink_media_callback"
+0x001bf050: 80a08052   mov     w0, #0x504
+0x001bf054: e303142a   mov     w3, w20
+0x001bf058: e403162a   mov     w4, w22
+0x001bf05c: 63000054   b.lo    #0x1bf068
+0x001bf060: b60afd97   bl      #0x101b38  -> LogMsg
+0x001bf064: 02000014   b       #0x1bf06c
+0x001bf068: 2d0bfd97   bl      #0x101d1c  -> vnd_LogMsg
+0x001bf06c: a81e0012   and     w8, w21, #0xff
+0x001bf070: 1f510071   cmp     w8, #0x14
+0x001bf074: e0040054   b.eq    #0x1bf110
+0x001bf078: 1f550071   cmp     w8, #0x15
+0x001bf07c: 010a0054   b.ne    #0x1bf1bc
+0x001bf080: 9f160071   cmp     w20, #5
+0x001bf084: 420b0054   b.hs    #0x1bf1ec
+0x001bf088: e803142a   mov     w8, w20
+0x001bf08c: 0945348b   add     x9, x8, w20, uxtw #1
+0x001bf090: 0a018052   mov     w10, #8
+0x001bf094: 2a857ab3   bfi     x10, x9, #6, #0x22
+0x001bf098: 5f010ff1   cmp     x10, #0x3c0
+0x001bf09c: c80a0054   b.hi    #0x1bf1f4
+0x001bf0a0: aa1100f0   adrp    x10, #0x3f6000
+0x001bf0a4: 09188052   mov     w9, #0xc0
+0x001bf0a8: 4a011891   add     x10, x10, #0x600
+0x001bf0ac: 0829099b   madd    x8, x8, x9, x10
+0x001bf0b0: 000540f9   ldr     x0, [x8, #8]
+0x001bf0b4: 4b600194   bl      #0x2171e0  -> _Z17btif_sm_get_statePv
+0x001bf0b8: 08334fb9   ldr     w8, [x24, #0xf30]
+0x001bf0bc: df02086b   cmp     w22, w8
+0x001bf0c0: e0070054   b.eq    #0x1bf1bc
+0x001bf0c4: 9f02166b   cmp     w20, w22
+0x001bf0c8: a1070054   b.ne    #0x1bf1bc
+0x001bf0cc: 08000032   orr     w8, w0, #1
+0x001bf0d0: 1f0d0071   cmp     w8, #3
+0x001bf0d4: 41070054   b.ne    #0x1bf1bc
+0x001bf0d8: e00313aa   mov     x0, x19
+0x001bf0dc: 7298ff97   bl      #0x1a52a4  -> _Z26btif_a2dp_sink_enqueue_bufP6BT_HDR
+0x001bf0e0: 28076c39   ldrb    w8, [x25, #0xb01]
+0x001bf0e4: c1f5ffd0   adrp    x1, #0x79000
+0x001bf0e8: 62f3fff0   adrp    x2, #0x2e000
+0x001bf0ec: 041c0012   and     w4, w0, #0xff
+0x001bf0f0: 1f150071   cmp     w8, #5
+0x001bf0f4: 21783c91   add     x1, x1, #0xf1e  ; "%s: index = %d, packets in sink queue %d"
+0x001bf0f8: 42403a91   add     x2, x2, #0xe90  ; "bte_av_sink_media_callback"
+0x001bf0fc: 80a08052   mov     w0, #0x504
+0x001bf100: e303142a   mov     w3, w20
+0x001bf104: 63040054   b.lo    #0x1bf190
+0x001bf108: 8c0afd97   bl      #0x101b38  -> LogMsg
+0x001bf10c: 2c000014   b       #0x1bf1bc
+0x001bf110: ff0f00b9   str     wzr, [sp, #0xc]
+0x001bf114: ff4300f8   stur    xzr, [sp, #4]
+0x001bf118: 600240f9   ldr     x0, [x19]
+0x001bf11c: 9597ff97   bl      #0x1a4f70  -> _Z29btif_a2dp_sink_update_decoderPKh
+0x001bf120: 600240f9   ldr     x0, [x19]
+0x001bf124: 576c0294   bl      #0x25a280  -> _Z23A2DP_GetTrackSampleRatePKh
+0x001bf128: 1f040031   cmn     w0, #1
+0x001bf12c: e00300b9   str     w0, [sp]
+0x001bf130: 40020054   b.eq    #0x1bf178
+0x001bf134: 600240f9   ldr     x0, [x19]
+0x001bf138: 816c0294   bl      #0x25a33c  -> _Z25A2DP_GetTrackChannelCountPKh
+0x001bf13c: 1f040031   cmn     w0, #1
+0x001bf140: e00700b9   str     w0, [sp, #4]
+0x001bf144: a0020054   b.eq    #0x1bf198
+0x001bf148: 681a4079   ldrh    w8, [x19, #0xc]
+0x001bf14c: 690a40b9   ldr     w9, [x19, #8]
+0x001bf150: 601000d0   adrp    x0, #0x3cd000
+0x001bf154: 00501791   add     x0, x0, #0x5d4  ; &_ZL20btif_av_handle_eventtPc
+0x001bf158: e2030091   mov     x2, sp
+0x001bf15c: a1048052   mov     w1, #0x25
+0x001bf160: 03028052   mov     w3, #0x10
+0x001bf164: e4031faa   mov     x4, xzr
+0x001bf168: e81b0079   strh    w8, [sp, #0xc]
+0x001bf16c: e90b00b9   str     w9, [sp, #8]
+0x001bf170: b2580094   bl      #0x1d5438  -> _Z21btif_transfer_contextPFvtPcEtS_iPFvtS_S_E.cfi
+0x001bf174: 12000014   b       #0x1bf1bc
+0x001bf178: e8100090   adrp    x8, #0x3db000
+0x001bf17c: 08016c39   ldrb    w8, [x8, #0xb00]
+0x001bf180: e8010034   cbz     w8, #0x1bf1bc
+0x001bf184: 21f4ffb0   adrp    x1, #0x44000
+0x001bf188: 21080491   add     x1, x1, #0x102  ; "%s: cannot get the track frequency"
+0x001bf18c: 08000014   b       #0x1bf1ac
+0x001bf190: e30afd97   bl      #0x101d1c  -> vnd_LogMsg
+0x001bf194: 0a000014   b       #0x1bf1bc
+0x001bf198: e8100090   adrp    x8, #0x3db000
+0x001bf19c: 08016c39   ldrb    w8, [x8, #0xb00]
+0x001bf1a0: e8000034   cbz     w8, #0x1bf1bc
+0x001bf1a4: a1f3ffb0   adrp    x1, #0x34000
+0x001bf1a8: 214c3d91   add     x1, x1, #0xf53  ; "%s: cannot get the channel count"
+0x001bf1ac: 62f3fff0   adrp    x2, #0x2e000
+0x001bf1b0: 42403a91   add     x2, x2, #0xe90  ; "bte_av_sink_media_callback"
+0x001bf1b4: 00a08052   mov     w0, #0x500
+0x001bf1b8: 600afd97   bl      #0x101b38  -> LogMsg
+0x001bf1bc: e81640f9   ldr     x8, [x23, #0x28]
+0x001bf1c0: a9835ff8   ldur    x9, [x29, #-8]
+0x001bf1c4: 1f0109eb   cmp     x8, x9
+0x001bf1c8: 41010054   b.ne    #0x1bf1f0
+0x001bf1cc: fd7b42a9   ldp     x29, x30, [sp, #0x20]
+0x001bf1d0: f44f46a9   ldp     x20, x19, [sp, #0x60]
+0x001bf1d4: f65745a9   ldp     x22, x21, [sp, #0x50]
+0x001bf1d8: f85f44a9   ldp     x24, x23, [sp, #0x40]
+0x001bf1dc: f91b40f9   ldr     x25, [sp, #0x30]
+0x001bf1e0: 5e8e5ff8   ldr     x30, [x18, #-8]!
+0x001bf1e4: ffc30191   add     sp, sp, #0x70
+0x001bf1e8: c0035fd6   ret     
+0x001bf1ec: c1400894   bl      #0x3cf4f0
+0x001bf1f0: d8400894   bl      #0x3cf550
+0x001bf1f4: 200020d4   brk     #1
+0x001a52a4: ff8301d1   sub     sp, sp, #0x60
+0x001a52a8: 5e8600f8   str     x30, [x18], #8
+0x001a52ac: fd7b02a9   stp     x29, x30, [sp, #0x20]
+0x001a52b0: f71b00f9   str     x23, [sp, #0x30]
+0x001a52b4: f65704a9   stp     x22, x21, [sp, #0x40]
+0x001a52b8: f44f05a9   stp     x20, x19, [sp, #0x50]
+0x001a52bc: fd830091   add     x29, sp, #0x20
+0x001a52c0: 55d03bd5   mrs     x21, tpidr_el0
+0x001a52c4: a81640f9   ldr     x8, [x21, #0x28]
+0x001a52c8: b61100d0   adrp    x22, #0x3db000
+0x001a52cc: f30300aa   mov     x19, x0
+0x001a52d0: a8831ff8   stur    x8, [x29, #-8]
+0x001a52d4: c8066c39   ldrb    w8, [x22, #0xb01]
+0x001a52d8: 1f190071   cmp     w8, #6
+0x001a52dc: 23010054   b.lo    #0x1a5300
+0x001a52e0: 681200d0   adrp    x8, #0x3f3000
+0x001a52e4: 03a16f39   ldrb    w3, [x8, #0xbe8]
+0x001a52e8: 81f5ff90   adrp    x1, #0x55000
+0x001a52ec: 82f6ffb0   adrp    x2, #0x76000
+0x001a52f0: 21782c91   add     x1, x1, #0xb1e  ; "%s: rx_flush: %d"
+0x001a52f4: 42d42a91   add     x2, x2, #0xab5  ; "btif_a2dp_sink_enqueue_buf"
+0x001a52f8: 80a08052   mov     w0, #0x504
+0x001a52fc: 0f72fd97   bl      #0x101b38  -> LogMsg
+0x001a5300: 681200d0   adrp    x8, #0x3f3000
+0x001a5304: 08812f91   add     x8, x8, #0xbe0
+0x001a5308: 000140f9   ldr     x0, [x8]
+0x001a530c: 17214039   ldrb    w23, [x8, #8]
+0x001a5310: 06890694   bl      #0x347728  -> _Z18fixed_queue_lengthP13fixed_queue_t
+0x001a5314: f40300aa   mov     x20, x0
+0x001a5318: f70b0035   cbnz    w23, #0x1a5494
+0x001a531c: 9fe200f1   cmp     x20, #0x38
+0x001a5320: 41010054   b.ne    #0x1a5348
+0x001a5324: 731200d0   adrp    x19, #0x3f3000
+0x001a5328: 60f245f9   ldr     x0, [x19, #0xbe0]
+0x001a532c: ff880694   bl      #0x347728  -> _Z18fixed_queue_lengthP13fixed_queue_t
+0x001a5330: 68f245f9   ldr     x8, [x19, #0xbe0]
+0x001a5334: f40300aa   mov     x20, x0
+0x001a5338: e00308aa   mov     x0, x8
+0x001a533c: db880694   bl      #0x3476a8  -> _Z23fixed_queue_try_dequeueP13fixed_queue_t
+0x001a5340: c47e0694   bl      #0x344e50  -> _Z8osi_freePv.cfi
+0x001a5344: 54000014   b       #0x1a5494
+0x001a5348: c8066c39   ldrb    w8, [x22, #0xb01]
+0x001a534c: 1f190071   cmp     w8, #6
+0x001a5350: e3000054   b.lo    #0x1a536c
+0x001a5354: 81f6ffb0   adrp    x1, #0x76000
+0x001a5358: 82f6ffb0   adrp    x2, #0x76000
+0x001a535c: 21402b91   add     x1, x1, #0xad0  ; "%s +"
+0x001a5360: 42d42a91   add     x2, x2, #0xab5  ; "btif_a2dp_sink_enqueue_buf"
+0x001a5364: 80a08052   mov     w0, #0x504
+0x001a5368: f471fd97   bl      #0x101b38  -> LogMsg
+0x001a536c: 680a4079   ldrh    w8, [x19, #4]
+0x001a5370: 69064079   ldrh    w9, [x19, #2]
+0x001a5374: 0801098b   add     x8, x8, x9
+0x001a5378: 00410091   add     x0, x8, #0x10
+0x001a537c: 677e0694   bl      #0x344d18  -> _Z10osi_mallocm
+0x001a5380: 680a4079   ldrh    w8, [x19, #4]
+0x001a5384: 62064079   ldrh    w2, [x19, #2]
+0x001a5388: 77220091   add     x23, x19, #8
+0x001a538c: f40300aa   mov     x20, x0
+0x001a5390: 00400091   add     x0, x0, #0x10
+0x001a5394: e102088b   add     x1, x23, x8
+0x001a5398: eaa80894   bl      #0x3cf740
+0x001a539c: 680a4079   ldrh    w8, [x19, #4]
+0x001a53a0: e86a6838   ldrb    w8, [x23, x8]
+0x001a53a4: 080d0012   and     w8, w8, #0xf
+0x001a53a8: 88020079   strh    w8, [x20]
+0x001a53ac: 68064079   ldrh    w8, [x19, #2]
+0x001a53b0: 9f0a0079   strh    wzr, [x20, #4]
+0x001a53b4: 88060079   strh    w8, [x20, #2]
+0x001a53b8: 680e4079   ldrh    w8, [x19, #6]
+0x001a53bc: 880e0079   strh    w8, [x20, #6]
+0x001a53c0: fb7a0094   bl      #0x1c3fac  -> _Z35btif_is_sink_delay_report_supportedv
+0x001a53c4: 00020036   tbz     w0, #0, #0x1a5404
+0x001a53c8: e1230091   add     x1, sp, #8
+0x001a53cc: e0008052   mov     w0, #7
+0x001a53d0: ffff00a9   stp     xzr, xzr, [sp, #8]
+0x001a53d4: c7a90894   bl      #0x3cfaf0
+0x001a53d8: e80740f9   ldr     x8, [sp, #8]
+0x001a53dc: 09409952   mov     w9, #0xca00
+0x001a53e0: 4973a772   movk    w9, #0x3b9a, lsl #16
+0x001a53e4: 0a7dc99b   umulh   x10, x8, x9
+0x001a53e8: ff030aeb   cmp     xzr, x10
+0x001a53ec: e10a0054   b.ne    #0x1a5548
+0x001a53f0: ea0b40f9   ldr     x10, [sp, #0x10]
+0x001a53f4: 087d099b   mul     x8, x8, x9
+0x001a53f8: 08010aab   adds    x8, x8, x10
+0x001a53fc: 620a0054   b.hs    #0x1a5548
+0x001a5400: 880600f9   str     x8, [x20, #8]
+0x001a5404: c8066c39   ldrb    w8, [x22, #0xb01]
+0x001a5408: 1f190071   cmp     w8, #6
+0x001a540c: 23010054   b.lo    #0x1a5430
+0x001a5410: 83024079   ldrh    w3, [x20]
+0x001a5414: 84064079   ldrh    w4, [x20, #2]
+0x001a5418: c1f5ffb0   adrp    x1, #0x5e000
+0x001a541c: 82f6ffb0   adrp    x2, #0x76000
+0x001a5420: 21ec3591   add     x1, x1, #0xd7b  ; "%s: frames to process %d, len %d"
+0x001a5424: 42d42a91   add     x2, x2, #0xab5  ; "btif_a2dp_sink_enqueue_buf"
+0x001a5428: 80a08052   mov     w0, #0x504
+0x001a542c: c371fd97   bl      #0x101b38  -> LogMsg
+0x001a5430: 731200d0   adrp    x19, #0x3f3000
+0x001a5434: 60f245f9   ldr     x0, [x19, #0xbe0]
+0x001a5438: e10314aa   mov     x1, x20
+0x001a543c: ee880694   bl      #0x3477f4  -> _Z19fixed_queue_enqueueP13fixed_queue_tPv
+0x001a5440: 60f245f9   ldr     x0, [x19, #0xbe0]
+0x001a5444: b9880694   bl      #0x347728  -> _Z18fixed_queue_lengthP13fixed_queue_t
+0x001a5448: 1f1400f1   cmp     x0, #5
+0x001a544c: e1010054   b.ne    #0x1a5488
+0x001a5450: c8066c39   ldrb    w8, [x22, #0xb01]
+0x001a5454: 21f5ff90   adrp    x1, #0x49000
+0x001a5458: 82f6ffb0   adrp    x2, #0x76000
+0x001a545c: 21883291   add     x1, x1, #0xca2  ; "%s: Initiate decoding"
+0x001a5460: 42d42a91   add     x2, x2, #0xab5  ; "btif_a2dp_sink_enqueue_buf"
+0x001a5464: 80a08052   mov     w0, #0x504
+0x001a5468: 1f150071   cmp     w8, #5
+0x001a546c: 63000054   b.lo    #0x1a5478
+0x001a5470: b271fd97   bl      #0x101b38  -> LogMsg
+0x001a5474: 02000014   b       #0x1a547c
+0x001a5478: 2972fd97   bl      #0x101d1c  -> vnd_LogMsg
+0x001a547c: 681200d0   adrp    x8, #0x3f3000
+0x001a5480: 08f945f9   ldr     x8, [x8, #0xbf0]
+0x001a5484: 080200b4   cbz     x8, #0x1a54c4
+0x001a5488: 60f245f9   ldr     x0, [x19, #0xbe0]
+0x001a548c: a7880694   bl      #0x347728  -> _Z18fixed_queue_lengthP13fixed_queue_t
+0x001a5490: f40300aa   mov     x20, x0
+0x001a5494: a81640f9   ldr     x8, [x21, #0x28]
+0x001a5498: a9835ff8   ldur    x9, [x29, #-8]
+0x001a549c: 1f0109eb   cmp     x8, x9
+0x001a54a0: 21050054   b.ne    #0x1a5544
+0x001a54a4: fd7b42a9   ldp     x29, x30, [sp, #0x20]
+0x001a54a8: e003142a   mov     w0, w20
+0x001a54ac: f44f45a9   ldp     x20, x19, [sp, #0x50]
+0x001a54b0: f65744a9   ldp     x22, x21, [sp, #0x40]
+0x001a54b4: f71b40f9   ldr     x23, [sp, #0x30]
+0x001a54b8: 5e8e5ff8   ldr     x30, [x18, #-8]!
+0x001a54bc: ff830191   add     sp, sp, #0x60
+0x001a54c0: c0035fd6   ret     
+0x001a54c4: 741200d0   adrp    x20, #0x3f3000
+0x001a54c8: 94c22f91   add     x20, x20, #0xbf0
+0x001a54cc: 800e40f9   ldr     x0, [x20, #0x18]
+0x001a54d0: a87d0094   bl      #0x1c4b70  -> _Z24BtifAvrcpAudioTrackStartPv
+0x001a54d4: 00f4fff0   adrp    x0, #0x28000
+0x001a54d8: 00203391   add     x0, x0, #0xcc8  ; "btif.a2dp_sink_decode"
+0x001a54dc: 52760694   bl      #0x342e24  -> _Z18alarm_new_periodicPKc
+0x001a54e0: 800200f9   str     x0, [x20]
+0x001a54e4: e00100b4   cbz     x0, #0x1a5520
+0x001a54e8: 421100d0   adrp    x2, #0x3cf000
+0x001a54ec: 42e00391   add     x2, x2, #0xf8  ; &_ZL20btif_decode_alarm_cbPv
+0x001a54f0: 81028052   mov     w1, #0x14
+0x001a54f4: e3031faa   mov     x3, xzr
+0x001a54f8: 11770694   bl      #0x34313c  -> _Z9alarm_setP7alarm_tmPFvPvES1_
+0x001a54fc: a81100d0   adrp    x8, #0x3db000
+0x001a5500: 08016c39   ldrb    w8, [x8, #0xb00]
+0x001a5504: 1f150071   cmp     w8, #5
+0x001a5508: 03fcff54   b.lo    #0x1a5488
+0x001a550c: e1f5ff90   adrp    x1, #0x61000
+0x001a5510: 21482291   add     x1, x1, #0x892  ; "Track Started and decode_alarm is set"
+0x001a5514: 80a08052   mov     w0, #0x504
+0x001a5518: 8871fd97   bl      #0x101b38  -> LogMsg
+0x001a551c: dbffff17   b       #0x1a5488
+0x001a5520: e1f5fff0   adrp    x1, #0x64000
+0x001a5524: 02f5ffb0   adrp    x2, #0x46000
+0x001a5528: 63f4fff0   adrp    x3, #0x34000
+0x001a552c: 211c3291   add     x1, x1, #0xc87  ; "bt_btif_a2dp_sink"
+0x001a5530: 42c43891   add     x2, x2, #0xe31  ; "%s: unable to allocate decode alarm"
+0x001a5534: 63d03d91   add     x3, x3, #0xf74  ; "btif_a2dp_sink_audio_handle_start_decoding"
+0x001a5538: c0008052   mov     w0, #6
+0x001a553c: f9a70894   bl      #0x3cf520
+0x001a5540: d2ffff17   b       #0x1a5488
+0x001a5544: 03a80894   bl      #0x3cf550
+0x001a5548: eaa70894   bl      #0x3cf4f0
+0x001a5814: ffc301d1   sub     sp, sp, #0x70
+0x001a5818: 5e8600f8   str     x30, [x18], #8
+0x001a581c: fd7b02a9   stp     x29, x30, [sp, #0x20]
+0x001a5820: fa6703a9   stp     x26, x25, [sp, #0x30]
+0x001a5824: f85f04a9   stp     x24, x23, [sp, #0x40]
+0x001a5828: f65705a9   stp     x22, x21, [sp, #0x50]
+0x001a582c: f44f06a9   stp     x20, x19, [sp, #0x60]
+0x001a5830: fd830091   add     x29, sp, #0x20
+0x001a5834: 57d03bd5   mrs     x23, tpidr_el0
+0x001a5838: e81640f9   ldr     x8, [x23, #0x28]
+0x001a583c: f30300aa   mov     x19, x0
+0x001a5840: a8831ff8   stur    x8, [x29, #-8]
+0x001a5844: 08084079   ldrh    w8, [x0, #4]
+0x001a5848: 0800088b   add     x8, x0, x8
+0x001a584c: 08450091   add     x8, x8, #0x11
+0x001a5850: e80b00f9   str     x8, [sp, #0x10]
+0x001a5854: 08044079   ldrh    w8, [x0, #2]
+0x001a5858: 14004079   ldrh    w20, [x0]
+0x001a585c: 15050051   sub     w21, w8, #1
+0x001a5860: f57f0129   stp     w21, wzr, [sp, #8]
+0x001a5864: 19710094   bl      #0x1c1cc8  -> _Z20btif_av_get_peer_sepv
+0x001a5868: b81100d0   adrp    x24, #0x3db000
+0x001a586c: 08036c39   ldrb    w8, [x24, #0xb00]
+0x001a5870: 091c0012   and     w9, w0, #0xff
+0x001a5874: 3f050071   cmp     w9, #1
+0x001a5878: a0060054   b.eq    #0x1a594c
+0x001a587c: 691200d0   adrp    x9, #0x3f3000
+0x001a5880: 29a16f39   ldrb    w9, [x9, #0xbe8]
+0x001a5884: 49060035   cbnz    w9, #0x1a594c
+0x001a5888: 1f150071   cmp     w8, #5
+0x001a588c: 23010054   b.lo    #0x1a58b0
+0x001a5890: 21f5fff0   adrp    x1, #0x4c000
+0x001a5894: 82f5ff90   adrp    x2, #0x55000
+0x001a5898: 21143491   add     x1, x1, #0xd05  ; "%s Number of SBC frames %d, frame_len %d"
+0x001a589c: 42bc2c91   add     x2, x2, #0xb2f  ; "btif_a2dp_sink_handle_inc_media"
+0x001a58a0: 80a08052   mov     w0, #0x504
+0x001a58a4: e303142a   mov     w3, w20
+0x001a58a8: e403152a   mov     w4, w21
+0x001a58ac: a370fd97   bl      #0x101b38  -> LogMsg
+0x001a58b0: 19c08352   mov     w25, #0x1e00
+0x001a58b4: d4060034   cbz     w20, #0x1a598c
+0x001a58b8: b5060034   cbz     w21, #0x1a598c
+0x001a58bc: 751200f0   adrp    x21, #0x3f4000
+0x001a58c0: 761200d0   adrp    x22, #0x3f3000
+0x001a58c4: 19c08352   mov     w25, #0x1e00
+0x001a58c8: b5a20f91   add     x21, x21, #0x3e8
+0x001a58cc: 3a008052   mov     w26, #1
+0x001a58d0: d6623091   add     x22, x22, #0xc18
+0x001a58d4: e1430091   add     x1, sp, #0x10
+0x001a58d8: e2230091   add     x2, sp, #8
+0x001a58dc: e4330091   add     x4, sp, #0xc
+0x001a58e0: e00316aa   mov     x0, x22
+0x001a58e4: e30315aa   mov     x3, x21
+0x001a58e8: f90f00b9   str     w25, [sp, #0xc]
+0x001a58ec: 29c00694   bl      #0x355990  -> OI_CODEC_SBC_DecodeFrame
+0x001a58f0: c0030035   cbnz    w0, #0x1a5968
+0x001a58f4: e80f40b9   ldr     w8, [sp, #0xc]
+0x001a58f8: 3903086b   subs    w25, w25, w8
+0x001a58fc: 03070054   b.lo    #0x1a59dc
+0x001a5900: 6a064079   ldrh    w10, [x19, #2]
+0x001a5904: e90b40b9   ldr     w9, [sp, #8]
+0x001a5908: 4a050051   sub     w10, w10, #1
+0x001a590c: 4a01096b   subs    w10, w10, w9
+0x001a5910: 63060054   b.lo    #0x1a59dc
+0x001a5914: 6b0a4079   ldrh    w11, [x19, #4]
+0x001a5918: 6a010a2b   adds    w10, w11, w10
+0x001a591c: 02060054   b.hs    #0x1a59dc
+0x001a5920: 2b050031   adds    w11, w9, #1
+0x001a5924: 6a0a0079   strh    w10, [x19, #4]
+0x001a5928: a2050054   b.hs    #0x1a59dc
+0x001a592c: 5f03146b   cmp     w26, w20
+0x001a5930: 6b060079   strh    w11, [x19, #2]
+0x001a5934: c2020054   b.hs    #0x1a598c
+0x001a5938: 08797f92   and     x8, x8, #0xfffffffe
+0x001a593c: b502088b   add     x21, x21, x8
+0x001a5940: 5a070011   add     w26, w26, #1
+0x001a5944: 89fcff35   cbnz    w9, #0x1a58d4
+0x001a5948: 11000014   b       #0x1a598c
+0x001a594c: 1f150071   cmp     w8, #5
+0x001a5950: e3020054   b.lo    #0x1a59ac
+0x001a5954: 61f6ffd0   adrp    x1, #0x73000
+0x001a5958: 21082991   add     x1, x1, #0xa42  ; "State Changed happened in this tick"
+0x001a595c: 80a08052   mov     w0, #0x504
+0x001a5960: 7670fd97   bl      #0x101b38  -> LogMsg
+0x001a5964: 12000014   b       #0x1a59ac
+0x001a5968: 08036c39   ldrb    w8, [x24, #0xb00]
+0x001a596c: 08010034   cbz     w8, #0x1a598c
+0x001a5970: c1f5ffb0   adrp    x1, #0x5e000
+0x001a5974: 82f5ff90   adrp    x2, #0x55000
+0x001a5978: e303002a   mov     w3, w0
+0x001a597c: 21703691   add     x1, x1, #0xd9c  ; "%s: Decoding failure: %d"
+0x001a5980: 42bc2c91   add     x2, x2, #0xb2f  ; "btif_a2dp_sink_handle_inc_media"
+0x001a5984: 00a08052   mov     w0, #0x500
+0x001a5988: 6c70fd97   bl      #0x101b38  -> LogMsg
+0x001a598c: 08c08352   mov     w8, #0x1e00
+0x001a5990: 024139eb   subs    x2, x8, w25, uxtw
+0x001a5994: 43020054   b.lo    #0x1a59dc
+0x001a5998: 681200d0   adrp    x8, #0x3f3000
+0x001a599c: 000546f9   ldr     x0, [x8, #0xc08]
+0x001a59a0: 611200f0   adrp    x1, #0x3f4000
+0x001a59a4: 21a00f91   add     x1, x1, #0x3e8
+0x001a59a8: 467d0094   bl      #0x1c4ec0  -> _Z28BtifAvrcpAudioTrackWriteDataPvS_i
+0x001a59ac: e81640f9   ldr     x8, [x23, #0x28]
+0x001a59b0: a9835ff8   ldur    x9, [x29, #-8]
+0x001a59b4: 1f0109eb   cmp     x8, x9
+0x001a59b8: 41010054   b.ne    #0x1a59e0
+0x001a59bc: fd7b42a9   ldp     x29, x30, [sp, #0x20]
+0x001a59c0: f44f46a9   ldp     x20, x19, [sp, #0x60]
+0x001a59c4: f65745a9   ldp     x22, x21, [sp, #0x50]
+0x001a59c8: f85f44a9   ldp     x24, x23, [sp, #0x40]
+0x001a59cc: fa6743a9   ldp     x26, x25, [sp, #0x30]
+0x001a59d0: 5e8e5ff8   ldr     x30, [x18, #-8]!
+0x001a59d4: ffc30191   add     sp, sp, #0x70
+0x001a59d8: c0035fd6   ret     
+0x001a59dc: c5a60894   bl      #0x3cf4f0
+0x001a59e0: dca60894   bl      #0x3cf550
+
+==== bte_av_sink_media_callback @ 0x1bef8c size=0x26c ====
+
+==== btif_a2dp_sink_enqueue_buf @ 0x1a52a4 size=0x2a8 ====
+
+==== btif_a2dp_sink_handle_inc_media @ 0x1a5814 size=0x1d0 ====

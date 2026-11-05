@@ -1,0 +1,6 @@
+id=btdual_patch
+name=Bluetooth dual A2DP (patched Qualcomm stack)
+version=v5
+versionCode=5
+author=ADBSTUFF
+description=Dual A2DP stage A: Bluetooth.apk keeps source+sink (2 dex branches); libbluetooth_qti.so: sink worker start, no source remote-start timer, rx_flush clear, and every source-registered stream slot also gets the sink SEPs (codec 7-9, sink callbacks). Remove this module to undo.

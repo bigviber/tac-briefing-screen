@@ -1,0 +1,47 @@
+
+==== _Z15BTA_AvVendorCmdhhhPht @ 0x126e54 size=0xb4
+0x00126e54: str	x30, [x18], #8
+0x00126e58: stp	x29, x30, [sp, #-0x50]!
+0x00126e5c: str	x25, [sp, #0x10]
+0x00126e60: stp	x24, x23, [sp, #0x20]
+0x00126e64: stp	x22, x21, [sp, #0x30]
+0x00126e68: stp	x20, x19, [sp, #0x40]
+0x00126e6c: mov	x29, sp
+0x00126e70: mov	w22, w4
+0x00126e74: and	x21, x22, #0xffff
+0x00126e78: mov	w25, w0
+0x00126e7c: add	x0, x21, #0x28
+0x00126e80: mov	x19, x3
+0x00126e84: mov	w23, w2
+0x00126e88: mov	w24, w1
+0x00126e8c: bl	#0x344d18  -> _Z10osi_mallocm
+0x00126e90: mov	w8, #0x1202
+0x00126e94: and	w9, w25, #0xff
+0x00126e98: mov	w10, #9
+0x00126e9c: strb	w23, [x0, #8]
+0x00126ea0: adrp	x11, #0x3de000
+0x00126ea4: strh	w8, [x0]
+0x00126ea8: strh	w9, [x0, #6]
+0x00126eac: sturh	w10, [x0, #9]
+0x00126eb0: ldr	x8, [x11, #0xf20]  ; [0x3def20]
+0x00126eb4: mov	x20, x0
+0x00126eb8: ldr	w8, [x8]
+0x00126ebc: strb	w24, [x0, #0x20]
+0x00126ec0: strh	w22, [x0, #0x18]
+0x00126ec4: str	w8, [x0, #0xc]
+0x00126ec8: cbz	x19, #0x126ee4
+0x00126ecc: add	x0, x20, #0x28
+0x00126ed0: mov	x1, x19
+0x00126ed4: mov	x2, x21
+0x00126ed8: str	x0, [x20, #0x10]
+0x00126edc: bl	#0x3cf740
+0x00126ee0: b	#0x126ee8
+0x00126ee4: str	xzr, [x20, #0x10]
+0x00126ee8: mov	x0, x20
+0x00126eec: ldp	x20, x19, [sp, #0x40]
+0x00126ef0: ldp	x22, x21, [sp, #0x30]
+0x00126ef4: ldp	x24, x23, [sp, #0x20]
+0x00126ef8: ldr	x25, [sp, #0x10]
+0x00126efc: ldp	x29, x30, [sp], #0x50
+0x00126f00: ldr	x30, [x18, #-8]!
+0x00126f04: b	#0x17fa18  -> _Z15bta_sys_sendmsgPv.cfi

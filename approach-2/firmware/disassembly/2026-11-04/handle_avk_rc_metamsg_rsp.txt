@@ -1,0 +1,649 @@
+
+==== _ZL25handle_avk_rc_metamsg_rspP16tBTA_AV_META_MSG @ 0x20d1d0 size=0xa1c
+0x0020d1d0: str	x30, [x18], #8
+0x0020d1d4: stp	x29, x30, [sp, #-0x60]!
+0x0020d1d8: stp	x28, x27, [sp, #0x10]
+0x0020d1dc: stp	x26, x25, [sp, #0x20]
+0x0020d1e0: stp	x24, x23, [sp, #0x30]
+0x0020d1e4: stp	x22, x21, [sp, #0x40]
+0x0020d1e8: stp	x20, x19, [sp, #0x50]
+0x0020d1ec: mov	x29, sp
+0x0020d1f0: sub	sp, sp, #0x250
+0x0020d1f4: mrs	x26, tpidr_el0
+0x0020d1f8: ldr	x8, [x26, #0x28]
+0x0020d1fc: add	x9, sp, #0x30
+0x0020d200: movi	v0.2d, #0000000000000000
+0x0020d204: mov	x19, x0
+0x0020d208: stur	x8, [x29, #-0x18]
+0x0020d20c: stp	xzr, xzr, [sp, #0x10]
+0x0020d210: str	xzr, [sp, #0x20]
+0x0020d214: stp	q0, q0, [x9, #0x1e0]
+0x0020d218: stp	q0, q0, [x9, #0x1c0]
+0x0020d21c: stp	q0, q0, [x9, #0x1a0]
+0x0020d220: stp	q0, q0, [x9, #0x180]
+0x0020d224: stp	q0, q0, [x9, #0x160]
+0x0020d228: stp	q0, q0, [x9, #0x140]
+0x0020d22c: stp	q0, q0, [x9, #0x120]
+0x0020d230: stp	q0, q0, [x9, #0x100]
+0x0020d234: stp	q0, q0, [x9, #0xe0]
+0x0020d238: stp	q0, q0, [x9, #0xc0]
+0x0020d23c: stp	q0, q0, [x9, #0xa0]
+0x0020d240: stp	q0, q0, [x9, #0x80]
+0x0020d244: stp	q0, q0, [x9, #0x60]
+0x0020d248: stp	q0, q0, [sp, #0x70]
+0x0020d24c: stp	q0, q0, [sp, #0x50]
+0x0020d250: stp	q0, q0, [sp, #0x30]
+0x0020d254: strh	wzr, [sp, #0xc]
+0x0020d258: ldrb	w0, [x0]
+0x0020d25c: bl	#0x20469c  -> _Z28btif_rc_get_device_by_handleh
+0x0020d260: adrp	x27, #0x3db000
+0x0020d264: cbz	x0, #0x20d2b0
+0x0020d268: add	x0, x0, #0xc
+0x0020d26c: bl	#0x2044c4  -> _Z22btif_rc_get_idx_by_bdaP10RawAddress
+0x0020d270: ldrb	w8, [x27, #0xb01]  ; [0x3dbb01]
+0x0020d274: cmn	w0, #1
+0x0020d278: b.eq	#0x20d2c4
+0x0020d27c: ldr	x9, [x19, #0x18]
+0x0020d280: ldrb	w4, [x19, #5]
+0x0020d284: adrp	x1, #0x68000
+0x0020d288: adrp	x2, #0x1d000
+0x0020d28c: ldrb	w3, [x9, #3]
+0x0020d290: mov	w20, w0
+0x0020d294: add	x1, x1, #0x636  ; "%s: opcode: %d rsp_code: %d  "
+0x0020d298: add	x2, x2, #0xd16  ; "handle_avk_rc_metamsg_rsp"
+0x0020d29c: mov	w0, #0x504
+0x0020d2a0: cmp	w8, #5
+0x0020d2a4: b.lo	#0x20d2e4
+0x0020d2a8: bl	#0x101b38  -> LogMsg
+0x0020d2ac: b	#0x20d2e8
+0x0020d2b0: ldrb	w8, [x27, #0xb01]  ; [0x3dbb01]
+0x0020d2b4: cbz	w8, #0x20dbb4
+0x0020d2b8: adrp	x1, #0x4d000
+0x0020d2bc: add	x1, x1, #0x533  ; "%s: p_dev is NULL"
+0x0020d2c0: b	#0x20d2d0
+0x0020d2c4: cbz	w8, #0x20dbb4
+0x0020d2c8: adrp	x1, #0x1d000
+0x0020d2cc: add	x1, x1, #0xc9f  ; "%s: idx is invalid"
+0x0020d2d0: adrp	x2, #0x1d000
+0x0020d2d4: add	x2, x2, #0xd16  ; "handle_avk_rc_metamsg_rsp"
+0x0020d2d8: mov	w0, #0x500
+0x0020d2dc: bl	#0x101b38  -> LogMsg
+0x0020d2e0: b	#0x20dbb4
+0x0020d2e4: bl	#0x101d1c  -> vnd_LogMsg
+0x0020d2e8: ldr	x0, [x19, #0x18]
+0x0020d2ec: add	x1, sp, #0x10
+0x0020d2f0: add	x2, sp, #0x30
+0x0020d2f4: add	x3, sp, #0xc
+0x0020d2f8: bl	#0x2827dc  -> _Z22AVRC_Ctrl_ParsResponseP9tAVRC_MSGP14tAVRC_RESPONSEPhPt
+0x0020d2fc: ldr	x9, [x19, #0x18]
+0x0020d300: ldrb	w10, [x9, #3]
+0x0020d304: cbz	w10, #0x20d340
+0x0020d308: ldrb	w8, [x27, #0xb01]  ; [0x3dbb01]
+0x0020d30c: cmp	w10, #0xff
+0x0020d310: b.eq	#0x20d384
+0x0020d314: ldrb	w3, [x19, #5]
+0x0020d318: ldrh	w4, [x19, #2]
+0x0020d31c: cmp	w8, #5
+0x0020d320: b.lo	#0x20d3bc
+0x0020d324: adrp	x1, #0x53000
+0x0020d328: adrp	x2, #0x1d000
+0x0020d32c: add	x1, x1, #0x4e6  ; "%s: Invalid Vendor Command code: %d len: %d. Not processing it."
+0x0020d330: add	x2, x2, #0xd16  ; "handle_avk_rc_metamsg_rsp"
+0x0020d334: mov	w0, #0x504
+0x0020d338: bl	#0x101b38  -> LogMsg
+0x0020d33c: b	#0x20dbb4
+0x0020d340: ldrb	w10, [x19, #5]
+0x0020d344: ldrb	w8, [x27, #0xb01]  ; [0x3dbb01]
+0x0020d348: and	w10, w10, #0xf8
+0x0020d34c: cmp	w10, #8
+0x0020d350: b.ne	#0x20d3ac
+0x0020d354: ldrb	w4, [sp, #0x10]
+0x0020d358: ldrb	w5, [x9]
+0x0020d35c: adrp	x1, #0x3e000
+0x0020d360: adrp	x2, #0x1d000
+0x0020d364: cmp	w8, #5
+0x0020d368: and	w3, w0, #0xff
+0x0020d36c: add	x1, x1, #0x55a  ; "%s parse status %d pdu = %d rsp_status = %d"
+0x0020d370: add	x2, x2, #0xd16  ; "handle_avk_rc_metamsg_rsp"
+0x0020d374: mov	w0, #0x504
+0x0020d378: b.lo	#0x20d468
+0x0020d37c: bl	#0x101b38  -> LogMsg
+0x0020d380: b	#0x20d46c
+0x0020d384: ldrb	w3, [sp, #0x10]
+0x0020d388: adrp	x1, #0x29000
+0x0020d38c: adrp	x2, #0x1d000
+0x0020d390: add	x1, x1, #0x6d9  ; "%s AVRC_OP_BROWSE pdu %d"
+0x0020d394: add	x2, x2, #0xd16  ; "handle_avk_rc_metamsg_rsp"
+0x0020d398: mov	w0, #0x504
+0x0020d39c: cmp	w8, #5
+0x0020d3a0: b.lo	#0x20d3d8
+0x0020d3a4: bl	#0x101b38  -> LogMsg
+0x0020d3a8: b	#0x20d3dc
+0x0020d3ac: ldrb	w3, [x19, #5]
+0x0020d3b0: ldrh	w4, [x19, #2]
+0x0020d3b4: cmp	w8, #4
+0x0020d3b8: b.hi	#0x20d324
+0x0020d3bc: adrp	x1, #0x53000
+0x0020d3c0: adrp	x2, #0x1d000
+0x0020d3c4: add	x1, x1, #0x4e6  ; "%s: Invalid Vendor Command code: %d len: %d. Not processing it."
+0x0020d3c8: add	x2, x2, #0xd16  ; "handle_avk_rc_metamsg_rsp"
+0x0020d3cc: mov	w0, #0x504
+0x0020d3d0: bl	#0x101d1c  -> vnd_LogMsg
+0x0020d3d4: b	#0x20dbb4
+0x0020d3d8: bl	#0x101d1c  -> vnd_LogMsg
+0x0020d3dc: ldrb	w8, [sp, #0x10]
+0x0020d3e0: cmp	w8, #0x70
+0x0020d3e4: b.eq	#0x20d4a4
+0x0020d3e8: cmp	w8, #0x72
+0x0020d3ec: b.eq	#0x20d530
+0x0020d3f0: cmp	w8, #0x71
+0x0020d3f4: b.ne	#0x20d5bc
+0x0020d3f8: adrp	x8, #0x3d9000
+0x0020d3fc: ldr	x8, [x8, #0x5e8]  ; [0x3d95e8]
+0x0020d400: ldr	w9, [x8]  ; [0x3d9000]
+0x0020d404: ldrh	w8, [x8, #4]
+0x0020d408: str	w9, [sp, #0x28]
+0x0020d40c: strh	w8, [sp, #0x2c]
+0x0020d410: ldrb	w0, [x19]
+0x0020d414: bl	#0x20469c  -> _Z28btif_rc_get_device_by_handleh
+0x0020d418: cbz	x0, #0x20d7a8
+0x0020d41c: ldrb	w3, [sp, #0x11]
+0x0020d420: ldrh	w8, [x0, #0x10]
+0x0020d424: ldr	w9, [x0, #0xc]
+0x0020d428: cmp	w3, #4
+0x0020d42c: strh	w8, [sp, #0x2c]
+0x0020d430: str	w9, [sp, #0x28]
+0x0020d434: b.ne	#0x20d814
+0x0020d438: ldrb	w22, [sp, #0x16]
+0x0020d43c: mov	w8, #0x28
+0x0020d440: movk	w8, #1, lsl #16
+0x0020d444: mul	x0, x22, x8
+0x0020d448: bl	#0x344d18  -> _Z10osi_mallocm
+0x0020d44c: mov	x21, x0
+0x0020d450: str	x22, [sp]
+0x0020d454: cbz	w22, #0x20d880
+0x0020d458: adrp	x24, #0x44000
+0x0020d45c: mov	w8, wzr
+0x0020d460: add	x24, x24, #0x9bd  ; "handle_get_folder_items_response"
+0x0020d464: b	#0x20d654
+0x0020d468: bl	#0x101d1c  -> vnd_LogMsg
+0x0020d46c: ldrb	w8, [sp, #0x10]
+0x0020d470: sub	w8, w8, #0x10
+0x0020d474: cmp	w8, #0x50
+0x0020d478: b.hi	#0x20db74
+0x0020d47c: adrp	x9, #0x1b000
+0x0020d480: add	x9, x9, #0x12a  ; ""
+0x0020d484: adr	x10, #0x20d494
+0x0020d488: ldrh	w11, [x9, x8, lsl #1]
+0x0020d48c: add	x10, x10, x11, lsl #2
+0x0020d490: br	x10
+0x0020d494: add	x1, sp, #0x10
+0x0020d498: mov	x0, x19
+0x0020d49c: bl	#0x205de4  -> _ZL30handle_get_capability_responseP16tBTA_AV_META_MSGP18tAVRC_GET_CAPS_RSP
+0x0020d4a0: b	#0x20db74
+0x0020d4a4: adrp	x8, #0x3d9000
+0x0020d4a8: ldr	x8, [x8, #0x5e8]  ; [0x3d95e8]
+0x0020d4ac: ldr	w9, [x8]  ; [0x3d9000]
+0x0020d4b0: ldrh	w8, [x8, #4]
+0x0020d4b4: str	w9, [sp, #0x28]
+0x0020d4b8: strh	w8, [sp, #0x2c]
+0x0020d4bc: ldrb	w0, [x19]
+0x0020d4c0: bl	#0x20469c  -> _Z28btif_rc_get_device_by_handleh
+0x0020d4c4: cbz	x0, #0x20d770
+0x0020d4c8: ldrb	w3, [sp, #0x11]
+0x0020d4cc: ldrh	w8, [x0, #0x10]
+0x0020d4d0: ldr	w9, [x0, #0xc]
+0x0020d4d4: cmp	w3, #4
+0x0020d4d8: strh	w8, [sp, #0x2c]
+0x0020d4dc: str	w9, [sp, #0x28]
+0x0020d4e0: b.ne	#0x20d7d4
+0x0020d4e4: adrp	x21, #0x400000
+0x0020d4e8: ldr	x8, [x21, #0x3e0]  ; [0x4003e0]
+0x0020d4ec: cbz	x8, #0x20d980
+0x0020d4f0: ldr	x8, [x8, #0x78]  ; [0x3d9078]
+0x0020d4f4: cbz	x8, #0x20d980
+0x0020d4f8: ldrb	w8, [x27, #0xb01]  ; [0x3dbb01]
+0x0020d4fc: adrp	x1, #0x26000
+0x0020d500: adrp	x2, #0x59000
+0x0020d504: adrp	x3, #0x5c000
+0x0020d508: adrp	x4, #0x56000
+0x0020d50c: add	x1, x1, #0xe8  ; "%s: HAL %s->%s"
+0x0020d510: add	x2, x2, #0x141  ; "handle_set_browsed_player_response"
+0x0020d514: add	x3, x3, #0x175  ; "bt_rc_ctrl_callbacks"
+0x0020d518: add	x4, x4, #0x27f  ; "set_browsed_player_cb"
+0x0020d51c: mov	w0, #0x502
+0x0020d520: cmp	w8, #3
+0x0020d524: b.lo	#0x20da60
+0x0020d528: bl	#0x101b38  -> LogMsg
+0x0020d52c: b	#0x20da64
+0x0020d530: adrp	x8, #0x3d9000
+0x0020d534: ldr	x8, [x8, #0x5e8]  ; [0x3d95e8]
+0x0020d538: ldr	w9, [x8]  ; [0x3d9000]
+0x0020d53c: ldrh	w8, [x8, #4]
+0x0020d540: str	w9, [sp, #0x28]
+0x0020d544: strh	w8, [sp, #0x2c]
+0x0020d548: ldrb	w0, [x19]
+0x0020d54c: bl	#0x20469c  -> _Z28btif_rc_get_device_by_handleh
+0x0020d550: cbz	x0, #0x20d78c
+0x0020d554: ldrb	w3, [sp, #0x11]
+0x0020d558: ldrh	w8, [x0, #0x10]
+0x0020d55c: ldr	w9, [x0, #0xc]
+0x0020d560: cmp	w3, #4
+0x0020d564: strh	w8, [sp, #0x2c]
+0x0020d568: str	w9, [sp, #0x28]
+0x0020d56c: b.ne	#0x20d7f0
+0x0020d570: adrp	x21, #0x400000
+0x0020d574: ldr	x8, [x21, #0x3e0]  ; [0x4003e0]
+0x0020d578: cbz	x8, #0x20d9b4
+0x0020d57c: ldr	x8, [x8, #0x70]  ; [0x3d9070]
+0x0020d580: cbz	x8, #0x20d9b4
+0x0020d584: ldrb	w8, [x27, #0xb01]  ; [0x3dbb01]
+0x0020d588: adrp	x1, #0x26000
+0x0020d58c: adrp	x2, #0x29000
+0x0020d590: adrp	x3, #0x5c000
+0x0020d594: adrp	x4, #0x20000
+0x0020d598: add	x1, x1, #0xe8  ; "%s: HAL %s->%s"
+0x0020d59c: add	x2, x2, #0x6f2  ; "handle_change_path_response"
+0x0020d5a0: add	x3, x3, #0x175  ; "bt_rc_ctrl_callbacks"
+0x0020d5a4: add	x4, x4, #0x992  ; "change_folder_path_cb"
+0x0020d5a8: mov	w0, #0x502
+0x0020d5ac: cmp	w8, #3
+0x0020d5b0: b.lo	#0x20da98
+0x0020d5b4: bl	#0x101b38  -> LogMsg
+0x0020d5b8: b	#0x20da9c
+0x0020d5bc: ldrb	w8, [x27, #0xb01]  ; [0x3dbb01]
+0x0020d5c0: cbz	w8, #0x20d7cc
+0x0020d5c4: ldr	x8, [x19, #0x18]
+0x0020d5c8: adrp	x1, #0x44000
+0x0020d5cc: adrp	x2, #0x1d000
+0x0020d5d0: add	x1, x1, #0x9de  ; "%s cannot handle browse pdu %d"
+0x0020d5d4: ldrb	w3, [x8, #3]  ; [0x3d9003]
+0x0020d5d8: add	x2, x2, #0xd16  ; "handle_avk_rc_metamsg_rsp"
+0x0020d5dc: b	#0x20d808
+0x0020d5e0: bl	#0x101d1c  -> vnd_LogMsg
+0x0020d5e4: mov	w8, #1
+0x0020d5e8: strb	w8, [x28]
+0x0020d5ec: mov	w8, #0x38
+0x0020d5f0: madd	x22, x23, x8, x22
+0x0020d5f4: ldrh	w8, [x22, #8]
+0x0020d5f8: mov	w9, #0x28
+0x0020d5fc: movk	w9, #1, lsl #16
+0x0020d600: madd	x9, x23, x9, x21
+0x0020d604: strh	w8, [x9, #8]
+0x0020d608: ldrb	w8, [x22, #0xa]
+0x0020d60c: add	x25, x9, #0x24  ; "............................).-..........................................................."
+0x0020d610: mov	w2, #0x10000
+0x0020d614: mov	x0, x25
+0x0020d618: strb	w8, [x9, #0xa]  ; [0x1b134]
+0x0020d61c: ldr	w8, [x22, #0xc]
+0x0020d620: mov	w1, wzr
+0x0020d624: str	w8, [x9, #0xc]  ; [0x1b136]
+0x0020d628: ldur	q0, [x22, #0x11]
+0x0020d62c: stur	q0, [x9, #0x11]
+0x0020d630: bl	#0x3cf530
+0x0020d634: ldr	x1, [x22, #0x30]
+0x0020d638: ldrh	w2, [x22, #0x2a]
+0x0020d63c: mov	x0, x25
+0x0020d640: bl	#0x3cf740
+0x0020d644: ldr	x9, [sp]
+0x0020d648: add	w8, w23, #1
+0x0020d64c: cmp	w9, w8, uxtb
+0x0020d650: b.ls	#0x20d880
+0x0020d654: ldr	x22, [sp, #0x18]
+0x0020d658: and	x23, x8, #0xff
+0x0020d65c: ldrb	w8, [x27, #0xb01]  ; [0x3dbb01]
+0x0020d660: mov	w9, #0x38
+0x0020d664: madd	x25, x23, x9, x22
+0x0020d668: ldrb	w3, [x25]  ; [0x1b14e]
+0x0020d66c: cmp	w8, #5
+0x0020d670: mov	w8, #0x28
+0x0020d674: movk	w8, #1, lsl #16
+0x0020d678: adrp	x1, #0x26000
+0x0020d67c: madd	x28, x23, x8, x21
+0x0020d680: mov	w0, #0x504
+0x0020d684: add	x1, x1, #0x741  ; "%s folder item type %d"
+0x0020d688: mov	x2, x24
+0x0020d68c: b.lo	#0x20d698
+0x0020d690: bl	#0x101b38  -> LogMsg
+0x0020d694: b	#0x20d69c
+0x0020d698: bl	#0x101d1c  -> vnd_LogMsg
+0x0020d69c: ldrb	w3, [x25]  ; [0x1b14e]
+0x0020d6a0: cmp	w3, #1
+0x0020d6a4: b.eq	#0x20d704
+0x0020d6a8: cmp	w3, #2
+0x0020d6ac: b.eq	#0x20d6e0
+0x0020d6b0: cmp	w3, #3
+0x0020d6b4: b.ne	#0x20d728
+0x0020d6b8: ldrb	w8, [x27, #0xb01]  ; [0x3dbb01]
+0x0020d6bc: adrp	x1, #0x74000
+0x0020d6c0: mov	w0, #0x504
+0x0020d6c4: mov	w3, #3
+0x0020d6c8: add	x1, x1, #0x2d6  ; "%s setting type to %d"
+0x0020d6cc: mov	x2, x24
+0x0020d6d0: cmp	w8, #5
+0x0020d6d4: b.lo	#0x20d75c
+0x0020d6d8: bl	#0x101b38  -> LogMsg
+0x0020d6dc: b	#0x20d760
+0x0020d6e0: ldrb	w8, [x27, #0xb01]  ; [0x3dbb01]
+0x0020d6e4: adrp	x1, #0x56000
+0x0020d6e8: mov	w0, #0x504
+0x0020d6ec: add	x1, x1, #0x353  ; "%s setting type to BTRC_ITEM_FOLDER"
+0x0020d6f0: mov	x2, x24
+0x0020d6f4: cmp	w8, #5
+0x0020d6f8: b.lo	#0x20d748
+0x0020d6fc: bl	#0x101b38  -> LogMsg
+0x0020d700: b	#0x20d74c
+0x0020d704: ldrb	w8, [x27, #0xb01]  ; [0x3dbb01]
+0x0020d708: adrp	x1, #0x3b000
+0x0020d70c: mov	w0, #0x504
+0x0020d710: add	x1, x1, #0x43f  ; "%s setting type to BTRC_ITEM_PLAYER"
+0x0020d714: mov	x2, x24
+0x0020d718: cmp	w8, #5
+0x0020d71c: b.lo	#0x20d5e0
+0x0020d720: bl	#0x101b38  -> LogMsg
+0x0020d724: b	#0x20d5e4
+0x0020d728: ldrb	w8, [x27, #0xb01]  ; [0x3dbb01]
+0x0020d72c: cbz	w8, #0x20d644
+0x0020d730: adrp	x1, #0x23000
+0x0020d734: mov	w0, #0x500
+0x0020d738: add	x1, x1, #0x963  ; "%s cannot understand folder item type %d"
+0x0020d73c: mov	x2, x24
+0x0020d740: bl	#0x101b38  -> LogMsg
+0x0020d744: b	#0x20d644
+0x0020d748: bl	#0x101d1c  -> vnd_LogMsg
+0x0020d74c: mov	x0, x25
+0x0020d750: mov	x1, x28
+0x0020d754: bl	#0x20f484  -> _Z27get_folder_item_type_folderPK10tAVRC_ITEMP19btrc_folder_items_t
+0x0020d758: b	#0x20d644
+0x0020d75c: bl	#0x101d1c  -> vnd_LogMsg
+0x0020d760: mov	x0, x25
+0x0020d764: mov	x1, x28
+0x0020d768: bl	#0x20f2b8  -> _Z26get_folder_item_type_mediaPK10tAVRC_ITEMP19btrc_folder_items_t
+0x0020d76c: b	#0x20d644
+0x0020d770: ldrb	w8, [x27, #0xb01]  ; [0x3dbb01]
+0x0020d774: cbz	w8, #0x20db74
+0x0020d778: adrp	x1, #0x4d000
+0x0020d77c: adrp	x2, #0x59000
+0x0020d780: add	x1, x1, #0x524  ; "%s: p_dev NULL"
+0x0020d784: add	x2, x2, #0x141  ; "handle_set_browsed_player_response"
+0x0020d788: b	#0x20d7c0
+0x0020d78c: ldrb	w8, [x27, #0xb01]  ; [0x3dbb01]
+0x0020d790: cbz	w8, #0x20db74
+0x0020d794: adrp	x1, #0x4d000
+0x0020d798: adrp	x2, #0x29000
+0x0020d79c: add	x1, x1, #0x524  ; "%s: p_dev NULL"
+0x0020d7a0: add	x2, x2, #0x6f2  ; "handle_change_path_response"
+0x0020d7a4: b	#0x20d7c0
+0x0020d7a8: ldrb	w8, [x27, #0xb01]  ; [0x3dbb01]
+0x0020d7ac: cbz	w8, #0x20db74
+0x0020d7b0: adrp	x1, #0x4d000
+0x0020d7b4: adrp	x2, #0x44000
+0x0020d7b8: add	x1, x1, #0x524  ; "%s: p_dev NULL"
+0x0020d7bc: add	x2, x2, #0x9bd  ; "handle_get_folder_items_response"
+0x0020d7c0: mov	w0, #0x500
+0x0020d7c4: bl	#0x101b38  -> LogMsg
+0x0020d7c8: b	#0x20db74
+0x0020d7cc: ldrb	w2, [x19, #4]!
+0x0020d7d0: b	#0x20db98
+0x0020d7d4: ldrb	w8, [x27, #0xb01]  ; [0x3dbb01]
+0x0020d7d8: cbz	w8, #0x20db74
+0x0020d7dc: adrp	x1, #0x50000
+0x0020d7e0: adrp	x2, #0x59000
+0x0020d7e4: add	x1, x1, #0x31e  ; "%s error %d"
+0x0020d7e8: add	x2, x2, #0x141  ; "handle_set_browsed_player_response"
+0x0020d7ec: b	#0x20d808
+0x0020d7f0: ldrb	w8, [x27, #0xb01]  ; [0x3dbb01]
+0x0020d7f4: cbz	w8, #0x20db74
+0x0020d7f8: adrp	x1, #0x56000
+0x0020d7fc: adrp	x2, #0x29000
+0x0020d800: add	x1, x1, #0x377  ; "%s error in handle_change_path_response %d"
+0x0020d804: add	x2, x2, #0x6f2  ; "handle_change_path_response"
+0x0020d808: mov	w0, #0x500
+0x0020d80c: bl	#0x101b38  -> LogMsg
+0x0020d810: b	#0x20db74
+0x0020d814: ldrb	w8, [x27, #0xb01]  ; [0x3dbb01]
+0x0020d818: cbz	w8, #0x20d834
+0x0020d81c: adrp	x1, #0x5c000
+0x0020d820: adrp	x2, #0x44000
+0x0020d824: add	x1, x1, #0x376  ; "%s: Error %d"
+0x0020d828: add	x2, x2, #0x9bd  ; "handle_get_folder_items_response"
+0x0020d82c: mov	w0, #0x500
+0x0020d830: bl	#0x101b38  -> LogMsg
+0x0020d834: adrp	x21, #0x400000
+0x0020d838: ldr	x8, [x21, #0x3e0]  ; [0x4003e0]
+0x0020d83c: cbz	x8, #0x20d9e8
+0x0020d840: ldr	x8, [x8, #0x68]  ; [0x3d9068]
+0x0020d844: cbz	x8, #0x20d9e8
+0x0020d848: ldrb	w8, [x27, #0xb01]  ; [0x3dbb01]
+0x0020d84c: adrp	x1, #0x26000
+0x0020d850: adrp	x2, #0x44000
+0x0020d854: adrp	x3, #0x5c000
+0x0020d858: adrp	x4, #0x2f000
+0x0020d85c: add	x1, x1, #0xe8  ; "%s: HAL %s->%s"
+0x0020d860: add	x2, x2, #0x9bd  ; "handle_get_folder_items_response"
+0x0020d864: add	x3, x3, #0x175  ; "bt_rc_ctrl_callbacks"
+0x0020d868: add	x4, x4, #0x397  ; "get_folder_items_cb"
+0x0020d86c: mov	w0, #0x502
+0x0020d870: cmp	w8, #3
+0x0020d874: b.lo	#0x20dacc
+0x0020d878: bl	#0x101b38  -> LogMsg
+0x0020d87c: b	#0x20dad0
+0x0020d880: adrp	x22, #0x400000
+0x0020d884: ldr	x8, [x22, #0x3e0]  ; [0x4003e0]
+0x0020d888: cbz	x8, #0x20da24
+0x0020d88c: ldr	x8, [x8, #0x68]  ; [0x3d9068]
+0x0020d890: cbz	x8, #0x20da24
+0x0020d894: ldrb	w8, [x27, #0xb01]  ; [0x3dbb01]
+0x0020d898: adrp	x1, #0x26000
+0x0020d89c: adrp	x2, #0x44000
+0x0020d8a0: adrp	x3, #0x5c000
+0x0020d8a4: adrp	x4, #0x2f000
+0x0020d8a8: add	x1, x1, #0xe8  ; "%s: HAL %s->%s"
+0x0020d8ac: add	x2, x2, #0x9bd  ; "handle_get_folder_items_response"
+0x0020d8b0: add	x3, x3, #0x175  ; "bt_rc_ctrl_callbacks"
+0x0020d8b4: add	x4, x4, #0x397  ; "get_folder_items_cb"
+0x0020d8b8: mov	w0, #0x502
+0x0020d8bc: cmp	w8, #3
+0x0020d8c0: b.lo	#0x20db08
+0x0020d8c4: bl	#0x101b38  -> LogMsg
+0x0020d8c8: b	#0x20db0c
+0x0020d8cc: add	x1, sp, #0x10
+0x0020d8d0: mov	x0, x19
+0x0020d8d4: bl	#0x206088  -> _ZL24handle_app_attr_responseP16tBTA_AV_META_MSGP23tAVRC_LIST_APP_ATTR_RSP
+0x0020d8d8: b	#0x20db74
+0x0020d8dc: add	x1, sp, #0x10
+0x0020d8e0: mov	x0, x19
+0x0020d8e4: bl	#0x206280  -> _ZL23handle_app_val_responseP16tBTA_AV_META_MSGP25tAVRC_LIST_APP_VALUES_RSP
+0x0020d8e8: b	#0x20db74
+0x0020d8ec: add	x1, sp, #0x10
+0x0020d8f0: mov	x0, x19
+0x0020d8f4: bl	#0x206698  -> _ZL27handle_app_cur_val_responseP16tBTA_AV_META_MSGP27tAVRC_GET_CUR_APP_VALUE_RSP
+0x0020d8f8: b	#0x20db74
+0x0020d8fc: mov	x0, x19
+0x0020d900: bl	#0x2053a0  -> _ZL32handle_set_app_attr_val_responseP16tBTA_AV_META_MSGP9tAVRC_RSP
+0x0020d904: b	#0x20db74
+0x0020d908: add	x1, sp, #0x10
+0x0020d90c: mov	x0, x19
+0x0020d910: bl	#0x206900  -> _ZL28handle_app_attr_txt_responseP16tBTA_AV_META_MSGP26tAVRC_GET_APP_ATTR_TXT_RSP
+0x0020d914: b	#0x20db74
+0x0020d918: add	x1, sp, #0x10
+0x0020d91c: mov	x0, x19
+0x0020d920: bl	#0x20e888  -> _ZL32handle_app_attr_val_txt_responseP16tBTA_AV_META_MSGP26tAVRC_GET_APP_ATTR_TXT_RSP
+0x0020d924: b	#0x20db74
+0x0020d928: add	x1, sp, #0x10
+0x0020d92c: mov	x0, x19
+0x0020d930: bl	#0x206c1c  -> _ZL29handle_get_elem_attr_responseP16tBTA_AV_META_MSGP19tAVRC_GET_ATTRS_RSP
+0x0020d934: b	#0x20db74
+0x0020d938: add	x1, sp, #0x10
+0x0020d93c: mov	x0, x19
+0x0020d940: bl	#0x206f70  -> _ZL30handle_get_playstatus_responseP16tBTA_AV_META_MSGP25tAVRC_GET_PLAY_STATUS_RSP
+0x0020d944: b	#0x20db74
+0x0020d948: add	x1, sp, #0x10
+0x0020d94c: mov	x0, x19
+0x0020d950: bl	#0x20e008  -> _ZL28handle_notification_responseP16tBTA_AV_META_MSGP19tAVRC_REG_NOTIF_RSP
+0x0020d954: ldrb	w8, [x19, #5]
+0x0020d958: cmp	w8, #0xf
+0x0020d95c: b.ne	#0x20db74
+0x0020d960: ldrb	w0, [x19, #4]
+0x0020d964: mov	w1, w20
+0x0020d968: bl	#0x2057fc  -> _ZL17clear_cmd_timeouthi
+0x0020d96c: b	#0x20dbb4
+0x0020d970: add	x1, sp, #0x10
+0x0020d974: mov	x0, x19
+0x0020d978: bl	#0x20f118  -> _ZL36handle_set_addressed_player_responseP16tBTA_AV_META_MSGP9tAVRC_RSP
+0x0020d97c: b	#0x20db74
+0x0020d980: adrp	x1, #0x68000
+0x0020d984: adrp	x2, #0x3a000
+0x0020d988: adrp	x3, #0x38000
+0x0020d98c: adrp	x4, #0x59000
+0x0020d990: adrp	x6, #0x76000
+0x0020d994: add	x1, x1, #0x510  ; "bt_btif_avrc"
+0x0020d998: add	x2, x2, #0xc30  ; "### ASSERT : %s %s line %d %s (%d) ###"
+0x0020d99c: add	x3, x3, #0x3a3  ; "vendor/qcom/opensource/commonsys/system/bt/btif/src/btif_rc.cc"
+0x0020d9a0: add	x4, x4, #0x141  ; "handle_set_browsed_player_response"
+0x0020d9a4: add	x6, x6, #0xc58  ; "Callback is NULL"
+0x0020d9a8: mov	w0, #6
+0x0020d9ac: mov	w5, #0x160d
+0x0020d9b0: b	#0x20da18
+0x0020d9b4: adrp	x1, #0x68000
+0x0020d9b8: adrp	x2, #0x3a000
+0x0020d9bc: adrp	x3, #0x38000
+0x0020d9c0: adrp	x4, #0x29000
+0x0020d9c4: adrp	x6, #0x76000
+0x0020d9c8: add	x1, x1, #0x510  ; "bt_btif_avrc"
+0x0020d9cc: add	x2, x2, #0xc30  ; "### ASSERT : %s %s line %d %s (%d) ###"
+0x0020d9d0: add	x3, x3, #0x3a3  ; "vendor/qcom/opensource/commonsys/system/bt/btif/src/btif_rc.cc"
+0x0020d9d4: add	x4, x4, #0x6f2  ; "handle_change_path_response"
+0x0020d9d8: add	x6, x6, #0xc58  ; "Callback is NULL"
+0x0020d9dc: mov	w0, #6
+0x0020d9e0: mov	w5, #0x15ee
+0x0020d9e4: b	#0x20da18
+0x0020d9e8: adrp	x1, #0x68000
+0x0020d9ec: adrp	x2, #0x3a000
+0x0020d9f0: adrp	x3, #0x38000
+0x0020d9f4: adrp	x4, #0x44000
+0x0020d9f8: adrp	x6, #0x76000
+0x0020d9fc: add	x1, x1, #0x510  ; "bt_btif_avrc"
+0x0020da00: add	x2, x2, #0xc30  ; "### ASSERT : %s %s line %d %s (%d) ###"
+0x0020da04: add	x3, x3, #0x3a3  ; "vendor/qcom/opensource/commonsys/system/bt/btif/src/btif_rc.cc"
+0x0020da08: add	x4, x4, #0x9bd  ; "handle_get_folder_items_response"
+0x0020da0c: add	x6, x6, #0xc58  ; "Callback is NULL"
+0x0020da10: mov	w0, #6
+0x0020da14: mov	w5, #0x1525
+0x0020da18: mov	w7, wzr
+0x0020da1c: bl	#0x3cf520
+0x0020da20: b	#0x20db74
+0x0020da24: adrp	x1, #0x68000
+0x0020da28: adrp	x2, #0x3a000
+0x0020da2c: adrp	x3, #0x38000
+0x0020da30: adrp	x4, #0x44000
+0x0020da34: adrp	x6, #0x76000
+0x0020da38: add	x1, x1, #0x510  ; "bt_btif_avrc"
+0x0020da3c: add	x2, x2, #0xc30  ; "### ASSERT : %s %s line %d %s (%d) ###"
+0x0020da40: add	x3, x3, #0x3a3  ; "vendor/qcom/opensource/commonsys/system/bt/btif/src/btif_rc.cc"
+0x0020da44: add	x4, x4, #0x9bd  ; "handle_get_folder_items_response"
+0x0020da48: add	x6, x6, #0xc58  ; "Callback is NULL"
+0x0020da4c: mov	w0, #6
+0x0020da50: mov	w5, #0x151d
+0x0020da54: mov	w7, wzr
+0x0020da58: bl	#0x3cf520
+0x0020da5c: b	#0x20db40
+0x0020da60: bl	#0x101d1c  -> vnd_LogMsg
+0x0020da64: ldr	x8, [x21, #0x3e0]  ; [0x4003e0]
+0x0020da68: mov	x0, #0xbd6f
+0x0020da6c: movk	x0, #0xe57d, lsl #16
+0x0020da70: movk	x0, #0x2be2, lsl #32
+0x0020da74: ldr	x21, [x8, #0x78]  ; [0x3d9078]
+0x0020da78: movk	x0, #0xf725, lsl #48
+0x0020da7c: mov	x1, x21
+0x0020da80: bl	#0x3cf680
+0x0020da84: ldr	w1, [sp, #0x18]
+0x0020da88: ldrb	w2, [sp, #0x1e]
+0x0020da8c: add	x0, sp, #0x28
+0x0020da90: blr	x21
+0x0020da94: b	#0x20db74
+0x0020da98: bl	#0x101d1c  -> vnd_LogMsg
+0x0020da9c: ldr	x8, [x21, #0x3e0]  ; [0x4003e0]
+0x0020daa0: mov	x0, #0x7c2b
+0x0020daa4: movk	x0, #0x1522, lsl #16
+0x0020daa8: movk	x0, #0xbe9, lsl #32
+0x0020daac: ldr	x21, [x8, #0x70]  ; [0x3d9070]
+0x0020dab0: movk	x0, #0x1075, lsl #48
+0x0020dab4: mov	x1, x21
+0x0020dab8: bl	#0x3cf680
+0x0020dabc: ldr	w1, [sp, #0x14]
+0x0020dac0: add	x0, sp, #0x28
+0x0020dac4: blr	x21
+0x0020dac8: b	#0x20db74
+0x0020dacc: bl	#0x101d1c  -> vnd_LogMsg
+0x0020dad0: ldr	x8, [x21, #0x3e0]  ; [0x4003e0]
+0x0020dad4: mov	x0, #0x9fd3
+0x0020dad8: movk	x0, #0xbb6d, lsl #16
+0x0020dadc: movk	x0, #0xd0cd, lsl #32
+0x0020dae0: ldr	x21, [x8, #0x68]  ; [0x3d9068]
+0x0020dae4: movk	x0, #0x8f66, lsl #48
+0x0020dae8: mov	x1, x21
+0x0020daec: bl	#0x3cf680
+0x0020daf0: ldrb	w1, [sp, #0x11]
+0x0020daf4: add	x0, sp, #0x28
+0x0020daf8: mov	x2, xzr
+0x0020dafc: mov	w3, wzr
+0x0020db00: blr	x21
+0x0020db04: b	#0x20db74
+0x0020db08: bl	#0x101d1c  -> vnd_LogMsg
+0x0020db0c: ldr	x8, [x22, #0x3e0]  ; [0x4003e0]
+0x0020db10: mov	x0, #0x9fd3
+0x0020db14: movk	x0, #0xbb6d, lsl #16
+0x0020db18: movk	x0, #0xd0cd, lsl #32
+0x0020db1c: ldr	x23, [x8, #0x68]  ; [0x3d9068]
+0x0020db20: movk	x0, #0x8f66, lsl #48
+0x0020db24: mov	x1, x23
+0x0020db28: bl	#0x3cf680
+0x0020db2c: add	x0, sp, #0x28
+0x0020db30: mov	w1, #4
+0x0020db34: mov	x2, x21
+0x0020db38: ldr	x3, [sp]
+0x0020db3c: blr	x23
+0x0020db40: ldrb	w8, [x27, #0xb01]  ; [0x3dbb01]
+0x0020db44: adrp	x1, #0x62000
+0x0020db48: adrp	x2, #0x44000
+0x0020db4c: add	x1, x1, #0x3f7  ; "%s HAL CBACK get_folder_items_cb finished"
+0x0020db50: add	x2, x2, #0x9bd  ; "handle_get_folder_items_response"
+0x0020db54: mov	w0, #0x504
+0x0020db58: cmp	w8, #5
+0x0020db5c: b.lo	#0x20db68
+0x0020db60: bl	#0x101b38  -> LogMsg
+0x0020db64: b	#0x20db6c
+0x0020db68: bl	#0x101d1c  -> vnd_LogMsg
+0x0020db6c: mov	x0, x21
+0x0020db70: bl	#0x344e50  -> _Z8osi_freePv.cfi
+0x0020db74: ldrb	w8, [x27, #0xb01]  ; [0x3dbb01]
+0x0020db78: ldrb	w2, [x19, #4]!
+0x0020db7c: cmp	w8, #5
+0x0020db80: b.lo	#0x20db98
+0x0020db84: adrp	x1, #0x68000
+0x0020db88: add	x1, x1, #0x654  ; "XX __func__ release transaction %d"
+0x0020db8c: mov	w0, #0x504
+0x0020db90: bl	#0x101b38  -> LogMsg
+0x0020db94: b	#0x20dba8
+0x0020db98: adrp	x1, #0x68000
+0x0020db9c: add	x1, x1, #0x654  ; "XX __func__ release transaction %d"
+0x0020dba0: mov	w0, #0x504
+0x0020dba4: bl	#0x101d1c  -> vnd_LogMsg
+0x0020dba8: ldrb	w0, [x19]
+0x0020dbac: mov	w1, w20
+0x0020dbb0: bl	#0x205534  -> _ZL19release_transactionhi
+0x0020dbb4: ldr	x8, [x26, #0x28]
+0x0020dbb8: ldur	x9, [x29, #-0x18]
+0x0020dbbc: cmp	x8, x9
+0x0020dbc0: b.ne	#0x20dbe8
+0x0020dbc4: add	sp, sp, #0x250
+0x0020dbc8: ldp	x20, x19, [sp, #0x50]
+0x0020dbcc: ldp	x22, x21, [sp, #0x40]
+0x0020dbd0: ldp	x24, x23, [sp, #0x30]
+0x0020dbd4: ldp	x26, x25, [sp, #0x20]
+0x0020dbd8: ldp	x28, x27, [sp, #0x10]
+0x0020dbdc: ldp	x29, x30, [sp], #0x60
+0x0020dbe0: ldr	x30, [x18, #-8]!
+0x0020dbe4: ret	
+0x0020dbe8: bl	#0x3cf550

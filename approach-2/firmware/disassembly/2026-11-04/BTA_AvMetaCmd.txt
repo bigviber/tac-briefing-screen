@@ -1,0 +1,26 @@
+
+==== _Z13BTA_AvMetaCmdhhhP6BT_HDR @ 0x127128 size=0x60
+0x00127128: str	x30, [x18], #8
+0x0012712c: stp	x29, x30, [sp, #-0x30]!
+0x00127130: stp	x22, x21, [sp, #0x10]
+0x00127134: stp	x20, x19, [sp, #0x20]
+0x00127138: mov	x29, sp
+0x0012713c: mov	w22, w0
+0x00127140: mov	w0, #0x18
+0x00127144: mov	x19, x3
+0x00127148: mov	w20, w2
+0x0012714c: mov	w21, w1
+0x00127150: bl	#0x344d18  -> _Z10osi_mallocm
+0x00127154: mov	w8, #0x1204
+0x00127158: and	w9, w22, #0xff
+0x0012715c: str	x19, [x0, #0x10]
+0x00127160: strb	w20, [x0, #0xa]
+0x00127164: strb	wzr, [x0, #8]
+0x00127168: strh	w8, [x0]
+0x0012716c: strh	w9, [x0, #6]
+0x00127170: strb	w21, [x0, #9]
+0x00127174: ldp	x20, x19, [sp, #0x20]
+0x00127178: ldp	x22, x21, [sp, #0x10]
+0x0012717c: ldp	x29, x30, [sp], #0x30
+0x00127180: ldr	x30, [x18, #-8]!
+0x00127184: b	#0x17fa18  -> _Z15bta_sys_sendmsgPv.cfi

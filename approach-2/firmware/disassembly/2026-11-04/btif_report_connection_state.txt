@@ -1,0 +1,106 @@
+
+==== _ZL28btif_report_connection_state23btav_connection_state_tP10RawAddress @ 0x1ba370 size=0x1a0
+0x001ba370: str	x30, [x18], #8
+0x001ba374: stp	x29, x30, [sp, #-0x30]!
+0x001ba378: str	x21, [sp, #0x10]
+0x001ba37c: stp	x20, x19, [sp, #0x20]
+0x001ba380: mov	x29, sp
+0x001ba384: adrp	x21, #0x3f6000
+0x001ba388: ldr	x8, [x21, #0xa70]  ; [0x3f6a70]
+0x001ba38c: mov	x19, x1
+0x001ba390: mov	w20, w0
+0x001ba394: cbz	x8, #0x1ba3dc
+0x001ba398: ldr	x8, [x8, #8]
+0x001ba39c: cbz	x8, #0x1ba430
+0x001ba3a0: adrp	x8, #0x3db000
+0x001ba3a4: ldrb	w8, [x8, #0xb01]  ; [0x3dbb01]
+0x001ba3a8: adrp	x1, #0x26000
+0x001ba3ac: adrp	x2, #0x1d000
+0x001ba3b0: adrp	x3, #0x5b000
+0x001ba3b4: adrp	x4, #0x3a000
+0x001ba3b8: add	x1, x1, #0xe8  ; "%s: HAL %s->%s"
+0x001ba3bc: add	x2, x2, #0x615  ; "btif_report_connection_state"
+0x001ba3c0: add	x3, x3, #0xb00  ; "bt_av_sink_callbacks"
+0x001ba3c4: add	x4, x4, #0xc88  ; "connection_state_cb"
+0x001ba3c8: mov	w0, #0x502
+0x001ba3cc: cmp	w8, #3
+0x001ba3d0: b.lo	#0x1ba464
+0x001ba3d4: bl	#0x101b38  -> LogMsg
+0x001ba3d8: b	#0x1ba468
+0x001ba3dc: adrp	x21, #0x3f6000
+0x001ba3e0: ldr	x8, [x21, #0xa08]  ; [0x3f6a08]
+0x001ba3e4: cbz	x8, #0x1ba4a8
+0x001ba3e8: ldr	x8, [x8, #8]  ; [0x3db008]
+0x001ba3ec: cbz	x8, #0x1ba4bc
+0x001ba3f0: adrp	x8, #0x3db000
+0x001ba3f4: ldrb	w8, [x8, #0xb01]  ; [0x3dbb01]
+0x001ba3f8: adrp	x1, #0x26000
+0x001ba3fc: adrp	x2, #0x1d000
+0x001ba400: adrp	x3, #0x23000
+0x001ba404: adrp	x4, #0x3a000
+0x001ba408: add	x1, x1, #0xe8  ; "%s: HAL %s->%s"
+0x001ba40c: add	x2, x2, #0x615  ; "btif_report_connection_state"
+0x001ba410: add	x3, x3, #0x319  ; "bt_av_src_callbacks"
+0x001ba414: add	x4, x4, #0xc88  ; "connection_state_cb"
+0x001ba418: mov	w0, #0x502
+0x001ba41c: cmp	w8, #3
+0x001ba420: b.lo	#0x1ba504
+0x001ba424: bl	#0x101b38  -> LogMsg
+0x001ba428: ldr	x8, [x21, #0xa08]  ; [0x3f6a08]
+0x001ba42c: b	#0x1ba46c
+0x001ba430: adrp	x1, #0x4f000
+0x001ba434: adrp	x2, #0x3a000
+0x001ba438: adrp	x3, #0x73000
+0x001ba43c: adrp	x4, #0x1d000
+0x001ba440: adrp	x6, #0x76000
+0x001ba444: add	x1, x1, #0xc8c  ; "btif_av"
+0x001ba448: add	x2, x2, #0xc30  ; "### ASSERT : %s %s line %d %s (%d) ###"
+0x001ba44c: add	x3, x3, #0xb47  ; "vendor/qcom/opensource/commonsys/system/bt/btif/src/btif_av.cc"
+0x001ba450: add	x4, x4, #0x615  ; "btif_report_connection_state"
+0x001ba454: add	x6, x6, #0xc58  ; "Callback is NULL"
+0x001ba458: mov	w0, #6
+0x001ba45c: mov	w5, #0x233
+0x001ba460: b	#0x1ba4ec
+0x001ba464: bl	#0x101d1c  -> vnd_LogMsg
+0x001ba468: ldr	x8, [x21, #0xa70]  ; [0x3f6a70]
+0x001ba46c: ldr	x1, [x8, #8]  ; [0x3db008]
+0x001ba470: mov	x0, #0x27a2
+0x001ba474: movk	x0, #0xf348, lsl #16
+0x001ba478: movk	x0, #0x3be5, lsl #32
+0x001ba47c: movk	x0, #0x63a2, lsl #48
+0x001ba480: str	x1, [x29, #0x18]
+0x001ba484: bl	#0x3cf680
+0x001ba488: mov	x0, x19
+0x001ba48c: mov	w1, w20
+0x001ba490: ldr	x2, [x29, #0x18]
+0x001ba494: ldp	x20, x19, [sp, #0x20]
+0x001ba498: ldr	x21, [sp, #0x10]
+0x001ba49c: ldp	x29, x30, [sp], #0x30
+0x001ba4a0: ldr	x30, [x18, #-8]!
+0x001ba4a4: br	x2
+0x001ba4a8: ldp	x20, x19, [sp, #0x20]
+0x001ba4ac: ldr	x21, [sp, #0x10]
+0x001ba4b0: ldp	x29, x30, [sp], #0x30
+0x001ba4b4: ldr	x30, [x18, #-8]!
+0x001ba4b8: ret	
+0x001ba4bc: adrp	x1, #0x4f000
+0x001ba4c0: adrp	x2, #0x3a000
+0x001ba4c4: adrp	x3, #0x73000
+0x001ba4c8: adrp	x4, #0x1d000
+0x001ba4cc: adrp	x6, #0x76000
+0x001ba4d0: add	x1, x1, #0xc8c  ; "btif_av"
+0x001ba4d4: add	x2, x2, #0xc30  ; "### ASSERT : %s %s line %d %s (%d) ###"
+0x001ba4d8: add	x3, x3, #0xb47  ; "vendor/qcom/opensource/commonsys/system/bt/btif/src/btif_av.cc"
+0x001ba4dc: add	x4, x4, #0x615  ; "btif_report_connection_state"
+0x001ba4e0: add	x6, x6, #0xc58  ; "Callback is NULL"
+0x001ba4e4: mov	w0, #6
+0x001ba4e8: mov	w5, #0x235
+0x001ba4ec: ldp	x20, x19, [sp, #0x20]
+0x001ba4f0: ldr	x21, [sp, #0x10]
+0x001ba4f4: mov	w7, wzr
+0x001ba4f8: ldp	x29, x30, [sp], #0x30
+0x001ba4fc: ldr	x30, [x18, #-8]!
+0x001ba500: b	#0x3cf520
+0x001ba504: bl	#0x101d1c  -> vnd_LogMsg
+0x001ba508: ldr	x8, [x21, #0xa08]  ; [0x3f6a08]
+0x001ba50c: b	#0x1ba46c

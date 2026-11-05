@@ -1,0 +1,287 @@
+0x001a1ef0: ff8301d1   sub     sp, sp, #0x60
+0x001a1ef4: 5e8600f8   str     x30, [x18], #8
+0x001a1ef8: fd7b02a9   stp     x29, x30, [sp, #0x20]
+0x001a1efc: f85f03a9   stp     x24, x23, [sp, #0x30]
+0x001a1f00: f65704a9   stp     x22, x21, [sp, #0x40]
+0x001a1f04: f44f05a9   stp     x20, x19, [sp, #0x50]
+0x001a1f08: fd830091   add     x29, sp, #0x20
+0x001a1f0c: 57d03bd5   mrs     x23, tpidr_el0
+0x001a1f10: e81640f9   ldr     x8, [x23, #0x28]
+0x001a1f14: f403022a   mov     w20, w2
+0x001a1f18: f603012a   mov     w22, w1
+0x001a1f1c: f30300aa   mov     x19, x0
+0x001a1f20: a8831ff8   stur    x8, [x29, #-8]
+0x001a1f24: e2330039   strb    w2, [sp, #0xc]
+0x001a1f28: 08190094   bl      #0x1a8348  -> _Z34btif_a2dp_source_is_hal_v2_enabledv
+0x001a1f2c: 60000036   tbz     w0, #0, #0x1a1f38
+0x001a1f30: 7edcff97   bl      #0x199128  -> _ZN9bluetooth5audio4a2dp19get_pending_commandEv
+0x001a1f34: 02000014   b       #0x1a1f3c
+0x001a1f38: d9090094   bl      #0x1a469c  -> _Z37btif_a2dp_control_get_pending_commandv
+0x001a1f3c: d81100d0   adrp    x24, #0x3db000
+0x001a1f40: 08036c39   ldrb    w8, [x24, #0xb00]
+0x001a1f44: f503002a   mov     w21, w0
+0x001a1f48: 1f090071   cmp     w8, #2
+0x001a1f4c: a3000054   b.lo    #0x1a1f60
+0x001a1f50: 81f6ffd0   adrp    x1, #0x73000
+0x001a1f54: 216c2691   add     x1, x1, #0x99b  ; "## ON A2DP STARTED ##"
+0x001a1f58: 20a08052   mov     w0, #0x501
+0x001a1f5c: f77efd97   bl      #0x101b38  -> LogMsg
+0x001a1f60: 530600b4   cbz     x19, #0x1a2028
+0x001a1f64: 08036c39   ldrb    w8, [x24, #0xb00]
+0x001a1f68: 1f090071   cmp     w8, #2
+0x001a1f6c: 63010054   b.lo    #0x1a1f98
+0x001a1f70: 640a4039   ldrb    w4, [x19, #2]
+0x001a1f74: 65124039   ldrb    w5, [x19, #4]
+0x001a1f78: 660e4039   ldrb    w6, [x19, #3]
+0x001a1f7c: e1f4fff0   adrp    x1, #0x40000
+0x001a1f80: a2f6ffb0   adrp    x2, #0x76000
+0x001a1f84: c3020012   and     w3, w22, #1
+0x001a1f88: 21083b91   add     x1, x1, #0xec2  ; "%s: pending_start = %d status = %d suspending = %d initiator = %d"
+0x001a1f8c: 42c02891   add     x2, x2, #0xa30  ; "btif_a2dp_on_started"
+0x001a1f90: 20a08052   mov     w0, #0x501
+0x001a1f94: e97efd97   bl      #0x101b38  -> LogMsg
+0x001a1f98: 630a4039   ldrb    w3, [x19, #2]
+0x001a1f9c: a3050034   cbz     w3, #0x1a2050
+0x001a1fa0: d6050036   tbz     w22, #0, #0x1a2058
+0x001a1fa4: 08036c39   ldrb    w8, [x24, #0xb00]
+0x001a1fa8: 1f090071   cmp     w8, #2
+0x001a1fac: e3000054   b.lo    #0x1a1fc8
+0x001a1fb0: 01f5fff0   adrp    x1, #0x44000
+0x001a1fb4: a2f6ffb0   adrp    x2, #0x76000
+0x001a1fb8: 215c0391   add     x1, x1, #0xd7  ; "%s: A2DP start request failed: status = %d"
+0x001a1fbc: 42c02891   add     x2, x2, #0xa30  ; "btif_a2dp_on_started"
+0x001a1fc0: 20a08052   mov     w0, #0x501
+0x001a1fc4: dd7efd97   bl      #0x101b38  -> LogMsg
+0x001a1fc8: d61100d0   adrp    x22, #0x3db000
+0x001a1fcc: 80f4ff90   adrp    x0, #0x31000
+0x001a1fd0: d6023791   add     x22, x22, #0xdc0
+0x001a1fd4: 82f4ff90   adrp    x2, #0x31000
+0x001a1fd8: 00043f91   add     x0, x0, #0xfc1  ; "persist.vendor.bt.a2dp.hal.implementation"
+0x001a1fdc: 42f80991   add     x2, x2, #0x27e  ; "false"
+0x001a1fe0: e10316aa   mov     x1, x22
+0x001a1fe4: e3b50894   bl      #0x3cf770
+0x001a1fe8: 00010034   cbz     w0, #0x1a2008
+0x001a1fec: c80240b9   ldr     w8, [x22]
+0x001a1ff0: c9124039   ldrb    w9, [x22, #4]
+0x001a1ff4: 8a4e8e52   mov     w10, #0x7274
+0x001a1ff8: aaaeac72   movk    w10, #0x6575, lsl #16
+0x001a1ffc: 08010a4a   eor     w8, w8, w10
+0x001a2000: 0801092a   orr     w8, w8, w9
+0x001a2004: 080c0034   cbz     w8, #0x1a2184
+0x001a2008: ff360094   bl      #0x1afc04  -> _Z29btif_av_is_split_a2dp_enabledv
+0x001a200c: a0090036   tbz     w0, #0, #0x1a2140
+0x001a2010: ce180094   bl      #0x1a8348  -> _Z34btif_a2dp_source_is_hal_v2_enabledv
+0x001a2014: e0090037   tbnz    w0, #0, #0x1a2150
+0x001a2018: 20008052   mov     w0, #1
+0x001a201c: 34008052   mov     w20, #1
+0x001a2020: 512f0094   bl      #0x1add64  -> _Z26btif_a2dp_audio_on_startedh
+0x001a2024: b5000014   b       #0x1a22f8
+0x001a2028: f7360094   bl      #0x1afc04  -> _Z29btif_av_is_split_a2dp_enabledv
+0x001a202c: a0010036   tbz     w0, #0, #0x1a2060
+0x001a2030: 373b0194   bl      #0x1f0d0c  -> _ZN9bluetooth7headset23btif_hf_is_call_vr_idleEv
+0x001a2034: 40050036   tbz     w0, #0, #0x1a20dc
+0x001a2038: e1330091   add     x1, sp, #0xc
+0x001a203c: c0048052   mov     w0, #0x26
+0x001a2040: 22008052   mov     w2, #1
+0x001a2044: 34008052   mov     w20, #1
+0x001a2048: 9e5d0094   bl      #0x1b96c0  -> _Z22btif_dispatch_sm_event18btif_av_sm_event_tPvi
+0x001a204c: b6000014   b       #0x1a2324
+0x001a2050: 68124039   ldrb    w8, [x19, #4]
+0x001a2054: 08060034   cbz     w8, #0x1a2114
+0x001a2058: f4031f2a   mov     w20, wzr
+0x001a205c: a7000014   b       #0x1a22f8
+0x001a2060: bf0e0071   cmp     w21, #3
+0x001a2064: 41050054   b.ne    #0x1a210c
+0x001a2068: b8180094   bl      #0x1a8348  -> _Z34btif_a2dp_source_is_hal_v2_enabledv
+0x001a206c: c0070036   tbz     w0, #0, #0x1a2164
+0x001a2070: e0430091   add     x0, sp, #0x10
+0x001a2074: ff1300b9   str     wzr, [sp, #0x10]
+0x001a2078: 41ddff97   bl      #0x19957c  -> _ZN9bluetooth5audio4a2dp18ack_stream_startedERK14tA2DP_CTRL_ACK
+0x001a207c: 137f0094   bl      #0x1c1cc8  -> _Z20btif_av_get_peer_sepv
+0x001a2080: 081c0012   and     w8, w0, #0xff
+0x001a2084: 1f050071   cmp     w8, #1
+0x001a2088: 21040054   b.ne    #0x1a210c
+0x001a208c: d4e0ff97   bl      #0x19a3dc  -> _ZN9bluetooth5audio4a2dp16get_session_typeEv
+0x001a2090: 081c0012   and     w8, w0, #0xff
+0x001a2094: 1f050071   cmp     w8, #1
+0x001a2098: a1030054   b.ne    #0x1a210c
+0x001a209c: b3f6ff90   adrp    x19, #0x76000
+0x001a20a0: b4f6ff90   adrp    x20, #0x76000
+0x001a20a4: 73322891   add     x19, x19, #0xa0c  ; "%s: start audio as it is SW session"
+0x001a20a8: 94c22891   add     x20, x20, #0xa30  ; "btif_a2dp_on_started"
+0x001a20ac: 80a08052   mov     w0, #0x504
+0x001a20b0: e10313aa   mov     x1, x19
+0x001a20b4: e20314aa   mov     x2, x20
+0x001a20b8: a07efd97   bl      #0x101b38  -> LogMsg
+0x001a20bc: 80a08052   mov     w0, #0x504
+0x001a20c0: e10313aa   mov     x1, x19
+0x001a20c4: e20314aa   mov     x2, x20
+0x001a20c8: 157ffd97   bl      #0x101d1c  -> vnd_LogMsg
+0x001a20cc: d6620094   bl      #0x1bac24  -> _Z27btif_av_reset_reconfig_flagv
+0x001a20d0: c0170094   bl      #0x1a7fd0  -> _Z32btif_a2dp_source_start_audio_reqv
+0x001a20d4: 34008052   mov     w20, #1
+0x001a20d8: 93000014   b       #0x1a2324
+0x001a20dc: 08036c39   ldrb    w8, [x24, #0xb00]
+0x001a20e0: a8000034   cbz     w8, #0x1a20f4
+0x001a20e4: 81f6ffb0   adrp    x1, #0x73000
+0x001a20e8: 21c42691   add     x1, x1, #0x9b1  ; "call in progress, do not start offload"
+0x001a20ec: 00a08052   mov     w0, #0x500
+0x001a20f0: 927efd97   bl      #0x101b38  -> LogMsg
+0x001a20f4: 95180094   bl      #0x1a8348  -> _Z34btif_a2dp_source_is_hal_v2_enabledv
+0x001a20f8: e0030036   tbz     w0, #0, #0x1a2174
+0x001a20fc: 48008052   mov     w8, #2
+0x001a2100: e0430091   add     x0, sp, #0x10
+0x001a2104: e81300b9   str     w8, [sp, #0x10]
+0x001a2108: 1dddff97   bl      #0x19957c  -> _ZN9bluetooth5audio4a2dp18ack_stream_startedERK14tA2DP_CTRL_ACK
+0x001a210c: 34008052   mov     w20, #1
+0x001a2110: 85000014   b       #0x1a2324
+0x001a2114: 680e4039   ldrb    w8, [x19, #3]
+0x001a2118: 08050034   cbz     w8, #0x1a21b8
+0x001a211c: f6f90736   tbz     w22, #0, #0x1a2058
+0x001a2120: b9360094   bl      #0x1afc04  -> _Z29btif_av_is_split_a2dp_enabledv
+0x001a2124: c0070036   tbz     w0, #0, #0x1a221c
+0x001a2128: e1330091   add     x1, sp, #0xc
+0x001a212c: c0048052   mov     w0, #0x26
+0x001a2130: 22008052   mov     w2, #1
+0x001a2134: 34008052   mov     w20, #1
+0x001a2138: 625d0094   bl      #0x1b96c0  -> _Z22btif_dispatch_sm_event18btif_av_sm_event_tPvi
+0x001a213c: 6f000014   b       #0x1a22f8
+0x001a2140: bf0e0071   cmp     w21, #3
+0x001a2144: 810d0054   b.ne    #0x1a22f4
+0x001a2148: 80180094   bl      #0x1a8348  -> _Z34btif_a2dp_source_is_hal_v2_enabledv
+0x001a214c: 00060036   tbz     w0, #0, #0x1a220c
+0x001a2150: e8008052   mov     w8, #7
+0x001a2154: e0430091   add     x0, sp, #0x10
+0x001a2158: e81300b9   str     w8, [sp, #0x10]
+0x001a215c: 08ddff97   bl      #0x19957c  -> _ZN9bluetooth5audio4a2dp18ack_stream_startedERK14tA2DP_CTRL_ACK
+0x001a2160: 65000014   b       #0x1a22f4
+0x001a2164: e0031f2a   mov     w0, wzr
+0x001a2168: 15080094   bl      #0x1a41bc  -> _Z21btif_a2dp_command_ack14tA2DP_CTRL_ACK
+0x001a216c: 34008052   mov     w20, #1
+0x001a2170: 6d000014   b       #0x1a2324
+0x001a2174: 40008052   mov     w0, #2
+0x001a2178: fb2e0094   bl      #0x1add64  -> _Z26btif_a2dp_audio_on_startedh
+0x001a217c: 34008052   mov     w20, #1
+0x001a2180: 69000014   b       #0x1a2324
+0x001a2184: 88160012   and     w8, w20, #0x3f
+0x001a2188: 00050051   sub     w0, w8, #1
+0x001a218c: 9f700094   bl      #0x1be408  -> _Z25btif_av_get_addr_by_indexi
+0x001a2190: 08fc60d3   lsr     x8, x0, #0x20
+0x001a2194: e01300b9   str     w0, [sp, #0x10]
+0x001a2198: e82b0079   strh    w8, [sp, #0x14]
+0x001a219c: 6b180094   bl      #0x1a8348  -> _Z34btif_a2dp_source_is_hal_v2_enabledv
+0x001a21a0: a0020036   tbz     w0, #0, #0x1a21f4
+0x001a21a4: 28008052   mov     w8, #1
+0x001a21a8: e0230091   add     x0, sp, #8
+0x001a21ac: e80b00b9   str     w8, [sp, #8]
+0x001a21b0: f3dcff97   bl      #0x19957c  -> _ZN9bluetooth5audio4a2dp18ack_stream_startedERK14tA2DP_CTRL_ACK
+0x001a21b4: 36000014   b       #0x1a228c
+0x001a21b8: 64180094   bl      #0x1a8348  -> _Z34btif_a2dp_source_is_hal_v2_enabledv
+0x001a21bc: 60000037   tbnz    w0, #0, #0x1a21c8
+0x001a21c0: e003142a   mov     w0, w20
+0x001a21c4: 7e160094   bl      #0x1a7bbc  -> _Z28btif_a2dp_source_setup_codech
+0x001a21c8: 8f360094   bl      #0x1afc04  -> _Z29btif_av_is_split_a2dp_enabledv
+0x001a21cc: 40090036   tbz     w0, #0, #0x1a22f4
+0x001a21d0: 74f4ff90   adrp    x20, #0x2e000
+0x001a21d4: 94b22991   add     x20, x20, #0xa6c  ; "Do not Initiate VSC exchange on remote start"
+0x001a21d8: 80a08052   mov     w0, #0x504
+0x001a21dc: e10314aa   mov     x1, x20
+0x001a21e0: 567efd97   bl      #0x101b38  -> LogMsg
+0x001a21e4: 80a08052   mov     w0, #0x504
+0x001a21e8: e10314aa   mov     x1, x20
+0x001a21ec: cc7efd97   bl      #0x101d1c  -> vnd_LogMsg
+0x001a21f0: 41000014   b       #0x1a22f4
+0x001a21f4: 84360094   bl      #0x1afc04  -> _Z29btif_av_is_split_a2dp_enabledv
+0x001a21f8: 40040036   tbz     w0, #0, #0x1a2280
+0x001a21fc: 20008052   mov     w0, #1
+0x001a2200: d92e0094   bl      #0x1add64  -> _Z26btif_a2dp_audio_on_startedh
+0x001a2204: 3d320094   bl      #0x1aeaf8  -> _Z34btif_a2dp_audio_reset_pending_cmdsv
+0x001a2208: 21000014   b       #0x1a228c
+0x001a220c: 20008052   mov     w0, #1
+0x001a2210: 34008052   mov     w20, #1
+0x001a2214: ea070094   bl      #0x1a41bc  -> _Z21btif_a2dp_command_ack14tA2DP_CTRL_ACK
+0x001a2218: 38000014   b       #0x1a22f8
+0x001a221c: bf0e0071   cmp     w21, #3
+0x001a2220: a1060054   b.ne    #0x1a22f4
+0x001a2224: 49180094   bl      #0x1a8348  -> _Z34btif_a2dp_source_is_hal_v2_enabledv
+0x001a2228: 60090036   tbz     w0, #0, #0x1a2354
+0x001a222c: e0430091   add     x0, sp, #0x10
+0x001a2230: ff1300b9   str     wzr, [sp, #0x10]
+0x001a2234: d2dcff97   bl      #0x19957c  -> _ZN9bluetooth5audio4a2dp18ack_stream_startedERK14tA2DP_CTRL_ACK
+0x001a2238: a47e0094   bl      #0x1c1cc8  -> _Z20btif_av_get_peer_sepv
+0x001a223c: 081c0012   and     w8, w0, #0xff
+0x001a2240: 1f050071   cmp     w8, #1
+0x001a2244: 81050054   b.ne    #0x1a22f4
+0x001a2248: 65e0ff97   bl      #0x19a3dc  -> _ZN9bluetooth5audio4a2dp16get_session_typeEv
+0x001a224c: 081c0012   and     w8, w0, #0xff
+0x001a2250: 1f050071   cmp     w8, #1
+0x001a2254: 01050054   b.ne    #0x1a22f4
+0x001a2258: f4f4ffd0   adrp    x20, #0x40000
+0x001a225c: 94123c91   add     x20, x20, #0xf04  ; "start audio as it is SW session"
+0x001a2260: 80a08052   mov     w0, #0x504
+0x001a2264: e10314aa   mov     x1, x20
+0x001a2268: 347efd97   bl      #0x101b38  -> LogMsg
+0x001a226c: 80a08052   mov     w0, #0x504
+0x001a2270: e10314aa   mov     x1, x20
+0x001a2274: aa7efd97   bl      #0x101d1c  -> vnd_LogMsg
+0x001a2278: 56170094   bl      #0x1a7fd0  -> _Z32btif_a2dp_source_start_audio_reqv
+0x001a227c: 1e000014   b       #0x1a22f4
+0x001a2280: 20008052   mov     w0, #1
+0x001a2284: ce070094   bl      #0x1a41bc  -> _Z21btif_a2dp_command_ack14tA2DP_CTRL_ACK
+0x001a2288: 75090094   bl      #0x1a485c  -> _Z28btif_a2dp_pending_cmds_resetv
+0x001a228c: a91100f0   adrp    x9, #0x3d9000
+0x001a2290: e81340b9   ldr     w8, [sp, #0x10]
+0x001a2294: 29f542f9   ldr     x9, [x9, #0x5e8]
+0x001a2298: ea2b4079   ldrh    w10, [sp, #0x14]
+0x001a229c: 2b0140b9   ldr     w11, [x9]
+0x001a22a0: 29094079   ldrh    w9, [x9, #4]
+0x001a22a4: 08010b4a   eor     w8, w8, w11
+0x001a22a8: 4901094a   eor     w9, w10, w9
+0x001a22ac: 0801092a   orr     w8, w8, w9
+0x001a22b0: 28020034   cbz     w8, #0x1a22f4
+0x001a22b4: e1430091   add     x1, sp, #0x10
+0x001a22b8: e0038052   mov     w0, #0x1f
+0x001a22bc: c2008052   mov     w2, #6
+0x001a22c0: 005d0094   bl      #0x1b96c0  -> _Z22btif_dispatch_sm_event18btif_av_sm_event_tPvi
+0x001a22c4: c81100b0   adrp    x8, #0x3db000
+0x001a22c8: 08056c39   ldrb    w8, [x8, #0xb01]
+0x001a22cc: 01f4ffb0   adrp    x1, #0x23000
+0x001a22d0: a2f6ff90   adrp    x2, #0x76000
+0x001a22d4: 21140291   add     x1, x1, #0x85  ; "%s:Trigger disconnect for peer device on Start fail by Remote"
+0x001a22d8: 42c02891   add     x2, x2, #0xa30  ; "btif_a2dp_on_started"
+0x001a22dc: 80a08052   mov     w0, #0x504
+0x001a22e0: 1f150071   cmp     w8, #5
+0x001a22e4: 63000054   b.lo    #0x1a22f0
+0x001a22e8: 147efd97   bl      #0x101b38  -> LogMsg
+0x001a22ec: 02000014   b       #0x1a22f4
+0x001a22f0: 8b7efd97   bl      #0x101d1c  -> vnd_LogMsg
+0x001a22f4: 34008052   mov     w20, #1
+0x001a22f8: f46d0094   bl      #0x1bdac8  -> _Z29btif_av_current_device_is_twsv
+0x001a22fc: 40010036   tbz     w0, #0, #0x1a2324
+0x001a2300: 680a4039   ldrb    w8, [x19, #2]
+0x001a2304: 08010034   cbz     w8, #0x1a2324
+0x001a2308: 68164039   ldrb    w8, [x19, #5]
+0x001a230c: 1ffd0371   cmp     w8, #0xff
+0x001a2310: a1000054   b.ne    #0x1a2324
+0x001a2314: 3c360094   bl      #0x1afc04  -> _Z29btif_av_is_split_a2dp_enabledv
+0x001a2318: 60000036   tbz     w0, #0, #0x1a2324
+0x001a231c: 20008052   mov     w0, #1
+0x001a2320: 912e0094   bl      #0x1add64  -> _Z26btif_a2dp_audio_on_startedh
+0x001a2324: e81640f9   ldr     x8, [x23, #0x28]
+0x001a2328: a9835ff8   ldur    x9, [x29, #-8]
+0x001a232c: 1f0109eb   cmp     x8, x9
+0x001a2330: 81010054   b.ne    #0x1a2360
+0x001a2334: fd7b42a9   ldp     x29, x30, [sp, #0x20]
+0x001a2338: e003142a   mov     w0, w20
+0x001a233c: f44f45a9   ldp     x20, x19, [sp, #0x50]
+0x001a2340: f65744a9   ldp     x22, x21, [sp, #0x40]
+0x001a2344: f85f43a9   ldp     x24, x23, [sp, #0x30]
+0x001a2348: 5e8e5ff8   ldr     x30, [x18, #-8]!
+0x001a234c: ff830191   add     sp, sp, #0x60
+0x001a2350: c0035fd6   ret     
+0x001a2354: e0031f2a   mov     w0, wzr
+0x001a2358: 99070094   bl      #0x1a41bc  -> _Z21btif_a2dp_command_ack14tA2DP_CTRL_ACK
+0x001a235c: e6ffff17   b       #0x1a22f4
+0x001a2360: 7cb40894   bl      #0x3cf550
+
+==== btif_a2dp_on_started @ 0x1a1ef0 size=0x474 ====

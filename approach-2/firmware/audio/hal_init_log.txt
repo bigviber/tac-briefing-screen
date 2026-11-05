@@ -1,0 +1,18 @@
+   839   839 D msm8974_platform: platform_init: enter
+   839   839 D audio_hw_utils: audio_extn_utils_open_snd_mixer: snd_card_name: bengal-idp-snd-card
+   839   839 D msm8974_platform: platform_init: Opened sound card:0
+   839   839 I audio_hw_extn: audio_extn_set_snd_card_split: snd_card_name(bengal-idp-snd-card) device(bengal) snd_card(idp) form_factor(snd)
+   839   839 I msm8974_platform: update_codec_type_and_interface: snd_card_name: bengal-idp-snd-card
+   839   839 D audio_hw_hfp: Updating HFP_PCM_DEV_ID as 39 from platform XML
+   839   839 E platform_info: process_backend_name: Device SND_DEVICE_OUT_VOICE_TTY_VCO_HEADSET not found, no ACDB ID set!
+   839   839 E platform_info: process_backend_name: Device SND_DEVICE_IN_HANDSET_STEREO_DMIC not found, no ACDB ID set!
+   839   839 E platform_info: process_backend_name: Device SND_DEVICE_IN_SPEAKER_STEREO_DMIC not found, no ACDB ID set!
+   839   839 E platform_info: process_backend_name: Device SND_DEVICE_OUT_VOICE_SPEAKER_AND_VOICE_HEADPHONES not found, no ACDB ID set!
+   839   839 E platform_info: process_backend_name: Device SND_DEVICE_OUT_VOICE_SPEAKER_AND_VOICE_ANC_HEADSET not found, no ACDB ID set!
+   839   839 D msm8974_platform: platform_init: Loading mixer file: /vendor/etc/mixer_paths.xml
+   839   839 I audio_hw_extn: audio_extn_set_snd_card_split: snd_card_name(bengal-idp-snd-card) device(bengal) snd_card(idp) form_factor(snd)
+   839   839 E platform_info: param tag only supported with CONFIG_PARAMS section
+   839   839 E platform_info: param tag only supported with CONFIG_PARAMS section
+   839   839 D ACDB-LOADER: acdb_loader_init_v4: snd_card_name:bengal-idp-snd-card, cvd_version:2.4, instance_id_supported:1
+   839   839 D msm8974_platform: platform_init: Fluence_Type(0) max_mic_count(4) mic_type(0xf) fluence_in_voice_call(0) fluence_in_voice_rec(0) fluence_in_spkr_mode(0) fluence_in_hfp_call(0) fluence_sb_
+   839   839 D msm8974_platform: platform_init: exit

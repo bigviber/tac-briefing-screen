@@ -1,0 +1,1848 @@
+--------- beginning of main
+08-10 17:23:06.030  1913  1913 I NavigationBarController: register productivity change listener failure , try again!
+08-10 17:23:06.031  1913  1913 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 17:23:06.123  5322  5322 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 0 <<<<<<
+08-10 17:23:06.126  5322  5322 I AndroidRuntime: Using default boot image
+08-10 17:23:06.126  5322  5322 I AndroidRuntime: Leaving lock profiling enabled
+08-10 17:23:06.133  5323  5323 D AndroidRuntime: >>>>>> START com.android.internal.os.RuntimeInit uid 0 <<<<<<
+08-10 17:23:06.137  5323  5323 I AndroidRuntime: Using default boot image
+08-10 17:23:06.137  5323  5323 I AndroidRuntime: Leaving lock profiling enabled
+08-10 17:23:06.227  2228  2228 D QtiCarrierConfigHelper: WARNING, no carrier configs on phone Id: 0
+08-10 17:23:06.227  1913  1913 D LenovoBatteryWarningReceiver: action = android.intent.action.BATTERY_CHANGED
+08-10 17:23:06.228  1913  1913 D LenovoBatteryWarningReceiver: mTemp  248
+08-10 17:23:06.228  1913  1913 D LenovoBatteryWarningReceiver: mHealth  2
+08-10 17:23:06.228  1913  1913 D LenovoBatteryWarningReceiver: mShutdownBatteryTemperature  590
+08-10 17:23:06.228  1913  1913 D ChargeProtectionService: BroadcastReceiver.onReceive:android.intent.action.BATTERY_CHANGED mEnabled=true
+08-10 17:23:06.228  1913  1913 D ChargeProtectionService: mEnabled enter:true  ，mPluggedIn ：true  ,mBatteryStatus : 3
+08-10 17:23:06.228  1913  1913 D ChargeProtectionService: stopCharging:
+08-10 17:23:06.241  1913  1913 D ChargeProtectionService: updateCharging > STOP_CHARGING_LEVEL:60
+08-10 17:23:06.241  1913  1913 D KeyguardUpdateMonitor: received broadcast android.intent.action.BATTERY_CHANGED
+08-10 17:23:06.247  1913  2017 D Tile.BatterySaverTile.pm: setListening ingore lifecycle for pm
+08-10 17:23:06.248  1913  1913 D StatusBar: ACTION_BATTERY_CHANGED, updateChargingViewValue
+08-10 17:23:06.248  1913  1913 I StatusBar: chargePlug=2, maxChargingMicroAmp=0,isPlugin=false,mErrorShowDialog=false
+08-10 17:23:06.248  1913  1913 D KeyguardUpdateMonitor: handleBatteryUpdate
+08-10 17:23:06.252  5322  5322 D app_process: Time zone APEX ICU file found: /apex/com.android.tzdata/etc/icu/icu_tzdata.dat
+08-10 17:23:06.252  5322  5322 D app_process: I18n APEX ICU file found: /apex/com.android.i18n/etc/icu/icudt66l.dat
+08-10 17:23:06.269  5322  5322 I app_process: The ClassLoaderContext is a special shared library.
+08-10 17:23:06.273  5323  5323 D app_process: Time zone APEX ICU file found: /apex/com.android.tzdata/etc/icu/icu_tzdata.dat
+08-10 17:23:06.273  5323  5323 D app_process: I18n APEX ICU file found: /apex/com.android.i18n/etc/icu/icudt66l.dat
+08-10 17:23:06.285  5323  5323 I app_process: The ClassLoaderContext is a special shared library.
+08-10 17:23:06.295  5322  5322 W app_process: JNI RegisterNativeMethods: attempt to register 0 native methods for android.media.AudioAttributes
+08-10 17:23:06.306  5322  5322 D AndroidRuntime: Calling main entry com.android.commands.content.Content
+08-10 17:23:06.308  5323  5323 W app_process: JNI RegisterNativeMethods: attempt to register 0 native methods for android.media.AudioAttributes
+08-10 17:23:06.319  5323  5323 D AndroidRuntime: Calling main entry com.android.commands.svc.Svc
+--------- beginning of system
+08-10 17:23:06.320  1425  1842 E WindowManager: updateSurfaceSize>>>>0_0
+08-10 17:23:06.323  1425  1842 E WindowManager: updateSurfaceSize>>>>0_0
+08-10 17:23:06.324  1425  2928 W BluetoothManagerService: checkPackage(): called with null packageName from 0
+08-10 17:23:06.324  1425  2928 D BluetoothManagerService: enable(null):  mBluetooth =null mBinding = false mState = OFF
+08-10 17:23:06.324  1425  2928 D BluetoothManagerService: enable returning
+08-10 17:23:06.324  1425  1464 D BluetoothManagerService: MESSAGE_ENABLE(0): mBluetooth = null
+08-10 17:23:06.324  1425  1464 D BluetoothManagerService: MESSAGE_ENABLE: handleEnable
+08-10 17:23:06.324  1425  1464 D BluetoothManagerService: binding Bluetooth service
+08-10 17:23:06.324  5323  5323 D AndroidRuntime: Shutting down VM
+08-10 17:23:06.326  5322  5322 D AndroidRuntime: Shutting down VM
+08-10 17:23:06.331  1425  1464 D CompatibilityChangeReporter: Compat change id reported: 135634846; UID 1002; state: DISABLED
+08-10 17:23:06.333  1425  1464 D CompatibilityChangeReporter: Compat change id reported: 135754954; UID 1002; state: ENABLED
+08-10 17:23:06.363   707   707 D Zygote  : Forked child process 5351
+08-10 17:23:06.370  1425  1474 I ActivityManager: Start proc 5351:com.android.bluetooth/1002 for service {com.android.bluetooth/com.android.bluetooth.btservice.AdapterService}
+08-10 17:23:06.375  2228  2228 D QtiCarrierConfigHelper: WARNING, no carrier configs on phone Id: 0
+08-10 17:23:06.375  1913  1913 D LenovoBatteryWarningReceiver: action = android.intent.action.BATTERY_CHANGED
+08-10 17:23:06.375  1913  1913 D LenovoBatteryWarningReceiver: mTemp  247
+08-10 17:23:06.375  1913  1913 D LenovoBatteryWarningReceiver: mHealth  2
+08-10 17:23:06.375  1913  1913 D LenovoBatteryWarningReceiver: mShutdownBatteryTemperature  590
+08-10 17:23:06.376  1913  1913 D ChargeProtectionService: BroadcastReceiver.onReceive:android.intent.action.BATTERY_CHANGED mEnabled=true
+08-10 17:23:06.376  1913  1913 D ChargeProtectionService: mEnabled enter:true  ，mPluggedIn ：true  ,mBatteryStatus : 3
+08-10 17:23:06.376  1913  1913 D ChargeProtectionService: stopCharging:
+08-10 17:23:06.383  1913  1913 D ChargeProtectionService: updateCharging > STOP_CHARGING_LEVEL:60
+08-10 17:23:06.383  1913  1913 D KeyguardUpdateMonitor: received broadcast android.intent.action.BATTERY_CHANGED
+08-10 17:23:06.385  1913  1913 D StatusBar: ACTION_BATTERY_CHANGED, updateChargingViewValue
+08-10 17:23:06.385  1913  1913 I StatusBar: chargePlug=2, maxChargingMicroAmp=0,isPlugin=false,mErrorShowDialog=false
+08-10 17:23:06.386  1913  2017 D Tile.BatterySaverTile.pm: setListening ingore lifecycle for pm
+08-10 17:23:06.386  1913  1913 D KeyguardUpdateMonitor: handleBatteryUpdate
+08-10 17:23:06.402  5351  5351 E droid.bluetoot: Not starting debugger since process cannot load the jdwp agent.
+08-10 17:23:06.415  1425  1842 D CompatibilityInfo: mCompatibilityFlags - 4
+08-10 17:23:06.415  1425  1842 D CompatibilityInfo: applicationDensity - 240
+08-10 17:23:06.415  1425  1842 D CompatibilityInfo: applicationScale - 1.0
+08-10 17:23:06.417  1425  1842 D CompatibilityInfo: mCompatibilityFlags - 4
+08-10 17:23:06.417  1425  1842 D CompatibilityInfo: applicationDensity - 240
+08-10 17:23:06.417  1425  1842 D CompatibilityInfo: applicationScale - 1.0
+08-10 17:23:06.430  1425  1465 W WindowManager: Unable to start animation, surface is null or no children.
+08-10 17:23:06.430  1425  1465 V WindowManager: Policy visibility false: Window{97c354f u0 Toast}
+08-10 17:23:06.438  1425  1842 I system_server: oneway function results will be dropped but finished with status OK and parcel size 4
+08-10 17:23:06.439  1425  1842 I system_server: oneway function results will be dropped but finished with status OK and parcel size 4
+08-10 17:23:06.442  5351  5351 I droid.bluetoot: The ClassLoaderContext is a special shared library.
+08-10 17:23:06.445  1425  1842 I system_server: oneway function results will be dropped but finished with status OK and parcel size 4
+08-10 17:23:06.446  5351  5351 I droid.bluetoot: The ClassLoaderContext is a special shared library.
+08-10 17:23:06.455  1913  1913 D KeyguardUpdateMonitor: received broadcast android.intent.action.BATTERY_CHANGED
+08-10 17:23:06.456  1425  1842 I system_server: oneway function results will be dropped but finished with status OK and parcel size 4
+08-10 17:23:06.457  1913  1913 D StatusBar: ACTION_BATTERY_CHANGED, updateChargingViewValue
+08-10 17:23:06.457  1913  1913 I StatusBar: chargePlug=2, maxChargingMicroAmp=0,isPlugin=false,mErrorShowDialog=false
+08-10 17:23:06.457  1913  1913 D LenovoBatteryWarningReceiver: action = android.intent.action.BATTERY_CHANGED
+08-10 17:23:06.458  1913  1913 D LenovoBatteryWarningReceiver: mTemp  248
+08-10 17:23:06.458  1913  1913 D LenovoBatteryWarningReceiver: mHealth  2
+08-10 17:23:06.458  1913  1913 D LenovoBatteryWarningReceiver: mShutdownBatteryTemperature  590
+08-10 17:23:06.458  1913  1913 D ChargeProtectionService: BroadcastReceiver.onReceive:android.intent.action.BATTERY_CHANGED mEnabled=true
+08-10 17:23:06.458  1913  1913 D ChargeProtectionService: mEnabled enter:true  ，mPluggedIn ：true  ,mBatteryStatus : 3
+08-10 17:23:06.458  1913  1913 D ChargeProtectionService: stopCharging:
+08-10 17:23:06.459  2228  2228 D QtiCarrierConfigHelper: WARNING, no carrier configs on phone Id: 0
+08-10 17:23:06.460  1913  1913 D ChargeProtectionService: updateCharging > STOP_CHARGING_LEVEL:60
+08-10 17:23:06.461  1913  1913 D KeyguardUpdateMonitor: handleBatteryUpdate
+08-10 17:23:06.463  1913  2017 D Tile.BatterySaverTile.pm: setListening ingore lifecycle for pm
+08-10 17:23:06.468  5351  5351 I Perf    : Connecting to perf service.
+08-10 17:23:06.477  5351  5351 D NetworkSecurityConfig: No Network Security Config specified, using platform default
+08-10 17:23:06.478  5351  5351 D NetworkSecurityConfig: No Network Security Config specified, using platform default
+08-10 17:23:06.497  5351  5351 E BluetoothVendorHfJni: register_com_android_bluetooth_hfp_vendorhfservice:
+08-10 17:23:06.499  5351  5351 E BluetoothVendorJni: register_com_android_bluetooth_btservice_vendor:
+08-10 17:23:06.499  5351  5351 E BluetoothVendorSocketJni: register_com_android_bluetooth_btservice_vendor_socket:
+08-10 17:23:06.503  5351  5351 D BluetoothOppFileProvider: Initialized
+08-10 17:23:06.511  5351  5351 I BluetoothBATServiceJni: classInitNative: Enter 
+08-10 17:23:06.511  5351  5351 I BluetoothBATServiceJni: classInitNative: succeeds
+08-10 17:23:06.513  5351  5351 D AdapterServiceConfig:  addAudioProfiles profileHeadsetService
+08-10 17:23:06.513  5351  5351 I AdapterServiceConfig: addAudioProfiles isA2dpSink :true
+08-10 17:23:06.531  1913  1913 I NavigationBarController: register productivity change listener failure , try again!
+08-10 17:23:06.532  1913  1913 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 17:23:06.537  5351  5351 I droid.bluetoot: [0810/172306.537241:INFO:com_android_bluetooth_btservice_AdapterService.cpp(644)] hal_util_load_bt_library loaded HAL: btinterface=0x713146aca0, handle=0x54702971133aea65
+08-10 17:23:06.537  5351  5351 D BluetoothAdapterService: getAdapterService() - returning null
+08-10 17:23:06.537  5351  5351 E AdapterServiceConfig: adapterService is null
+08-10 17:23:06.538  5351  5351 V AdapterServiceConfig: Adding HeadsetService
+08-10 17:23:06.538  5351  5351 D AdapterServiceConfig:  addAudioProfiles profileA2dpService
+08-10 17:23:06.538  5351  5351 I AdapterServiceConfig: addAudioProfiles isA2dpSink :true
+08-10 17:23:06.538  5351  5351 I AdapterServiceConfig:  Profile A2dpService Not added 
+08-10 17:23:06.538  5351  5351 D AdapterServiceConfig:  addAudioProfiles profileHidHostService
+08-10 17:23:06.538  5351  5351 I AdapterServiceConfig: addAudioProfiles isA2dpSink :true
+08-10 17:23:06.538  5351  5351 D BluetoothAdapterService: getAdapterService() - returning null
+08-10 17:23:06.538  5351  5351 E AdapterServiceConfig: adapterService is null
+08-10 17:23:06.538  5351  5351 V AdapterServiceConfig: Adding HidHostService
+08-10 17:23:06.538  5351  5351 D AdapterServiceConfig:  addAudioProfiles profilePanService
+08-10 17:23:06.538  5351  5351 I AdapterServiceConfig: addAudioProfiles isA2dpSink :true
+08-10 17:23:06.538  5351  5351 D BluetoothAdapterService: getAdapterService() - returning null
+08-10 17:23:06.538  5351  5351 E AdapterServiceConfig: adapterService is null
+08-10 17:23:06.538  5351  5351 V AdapterServiceConfig: Adding PanService
+08-10 17:23:06.538  5351  5351 D AdapterServiceConfig:  addAudioProfiles profileGattService
+08-10 17:23:06.538  5351  5351 I AdapterServiceConfig: addAudioProfiles isA2dpSink :true
+08-10 17:23:06.538  5351  5351 D BluetoothAdapterService: getAdapterService() - returning null
+08-10 17:23:06.538  5351  5351 E AdapterServiceConfig: adapterService is null
+08-10 17:23:06.538  5351  5351 V AdapterServiceConfig: Adding GattService
+08-10 17:23:06.538  5351  5351 D AdapterServiceConfig:  addAudioProfiles profileBluetoothMapService
+08-10 17:23:06.538  5351  5351 I AdapterServiceConfig: addAudioProfiles isA2dpSink :true
+08-10 17:23:06.538  5351  5351 D BluetoothAdapterService: getAdapterService() - returning null
+08-10 17:23:06.538  5351  5351 E AdapterServiceConfig: adapterService is null
+08-10 17:23:06.538  5351  5351 V AdapterServiceConfig: Adding BluetoothMapService
+08-10 17:23:06.538  5351  5351 D AdapterServiceConfig:  addAudioProfiles profileAvrcpControllerService
+08-10 17:23:06.538  5351  5351 I AdapterServiceConfig: addAudioProfiles isA2dpSink :true
+08-10 17:23:06.538  5351  5351 D BluetoothAdapterService: getAdapterService() - returning null
+08-10 17:23:06.538  5351  5351 E AdapterServiceConfig: adapterService is null
+08-10 17:23:06.538  5351  5351 V AdapterServiceConfig: Adding AvrcpControllerService
+08-10 17:23:06.538  5351  5351 D AdapterServiceConfig:  addAudioProfiles profileSapService
+08-10 17:23:06.538  5351  5351 I AdapterServiceConfig: addAudioProfiles isA2dpSink :true
+08-10 17:23:06.538  5351  5351 D BluetoothAdapterService: getAdapterService() - returning null
+08-10 17:23:06.538  5351  5351 E AdapterServiceConfig: adapterService is null
+08-10 17:23:06.538  5351  5351 V AdapterServiceConfig: Adding SapService
+08-10 17:23:06.538  5351  5351 D AdapterServiceConfig:  addAudioProfiles profileBluetoothOppService
+08-10 17:23:06.538  5351  5351 I AdapterServiceConfig: addAudioProfiles isA2dpSink :true
+08-10 17:23:06.539  5351  5351 D BluetoothAdapterService: getAdapterService() - returning null
+08-10 17:23:06.539  5351  5351 E AdapterServiceConfig: adapterService is null
+08-10 17:23:06.539  5351  5351 V AdapterServiceConfig: Adding BluetoothOppService
+08-10 17:23:06.539  5351  5351 D AdapterServiceConfig:  addAudioProfiles profileBluetoothPbapService
+08-10 17:23:06.539  5351  5351 I AdapterServiceConfig: addAudioProfiles isA2dpSink :true
+08-10 17:23:06.539  5351  5351 D BluetoothAdapterService: getAdapterService() - returning null
+08-10 17:23:06.539  5351  5351 E AdapterServiceConfig: adapterService is null
+08-10 17:23:06.539  5351  5351 V AdapterServiceConfig: Adding BluetoothPbapService
+08-10 17:23:06.539  5351  5351 D AdapterServiceConfig:  addAudioProfiles profileBATService
+08-10 17:23:06.539  5351  5351 I AdapterServiceConfig: addAudioProfiles isA2dpSink :true
+08-10 17:23:06.539  5351  5351 D BluetoothAdapterService: getAdapterService() - returning null
+08-10 17:23:06.539  5351  5351 E AdapterServiceConfig: adapterService is null
+08-10 17:23:06.539  5351  5351 D AdapterServiceConfig:  isBAEnabled = false isSplitEnabled true
+08-10 17:23:06.539  5351  5351 I AdapterServiceConfig:  Profile BATService Not added 
+08-10 17:23:06.542  5351  5351 D BluetoothAdapterService: onCreate()
+08-10 17:23:06.543  5351  5351 I BluetoothAdapterService: Current user: 0 Owner user: 0
+08-10 17:23:06.547  5351  5351 I BluetoothVendorJni: classInitNative: succeeds
+08-10 17:23:06.547  5351  5351 D AdapterState: make() - Creating AdapterState
+08-10 17:23:06.549  5351  5351 I BluetoothVendorSocketJni: classInitNative: succeeds
+08-10 17:23:06.549  5351  5372 I AdapterState: OFF : entered 
+08-10 17:23:06.549  5351  5351 D ApplicationPackageManager: hasSystemFeatrue android.software.leanback_only android.uid.bluetooth:1002
+08-10 17:23:06.549  5351  5372 D AdapterProperties: Setting state to OFF
+08-10 17:23:06.550  5351  5351 I bt_btif : QTI OMR1 stack: init: start restricted = 0 : single user = 0
+08-10 17:23:06.551  5351  5373 I bt_osi_thread: run_thread: thread id 5373, thread name stack_manager started
+08-10 17:23:06.551  5351  5373 I bt_stack_manager: event_init_stack is initializing the stack
+08-10 17:23:06.556  5351  5376 I bt_osi_thread: run_thread: thread id 5376, thread name alarm_default_ca started
+08-10 17:23:06.557  5351  5377 I bt_osi_thread: run_thread: thread id 5377, thread name alarm_dispatcher started
+08-10 17:23:06.557  5351  5373 I bt_btif_core: btif_init_bluetooth entered
+08-10 17:23:06.558  5351  5373 D bt_device_interop: interop_init_feature_name_id_map
+08-10 17:23:06.571  5351  5373 D bt_osi_config: config_parse no key/value separator found on line 472.
+08-10 17:23:06.582  5351  5373 W bt_device_interop:  feature:: 0, key :: 08:62:66, value :: Address_Based
+08-10 17:23:06.583  5351  5373 W bt_device_interop:  feature:: 0, key :: 38:2C:4A:C9, value :: Address_Based
+08-10 17:23:06.583  5351  5373 W bt_device_interop:  feature:: 0, key :: 38:2C:4A:E6, value :: Address_Based
+08-10 17:23:06.583  5351  5373 W bt_device_interop:  feature:: 0, key :: 54:A0:50:D9, value :: Address_Based
+08-10 17:23:06.583  5351  5373 W bt_device_interop:  feature:: 0, key :: AC:9E:17, value :: Address_Based
+08-10 17:23:06.583  5351  5373 W bt_device_interop:  feature:: 0, key :: F0:79:59, value :: Address_Based
+08-10 17:23:06.583  5351  5373 W bt_device_interop:  feature:: 0, key :: 80:E4:DA:70, value :: Address_Based
+08-10 17:23:06.583  5351  5373 W bt_device_interop:  feature:: 0, key :: 1C:96:5A, value :: Address_Based
+08-10 17:23:06.583  5351  5373 W bt_device_interop:  feature:: 0, key :: 80:EA:CA, value :: Address_Based
+08-10 17:23:06.583  5351  5373 W bt_device_interop:  feature:: 0, key :: 51:01:00, value :: Address_Based
+08-10 17:23:06.583  5351  5373 W bt_device_interop:  feature:: 0, key :: 61:01:00, value :: Address_Based
+08-10 17:23:06.584  5351  5373 W bt_device_interop:  feature:: 2, key :: A0:E9:DB, value :: Address_Based
+08-10 17:23:06.584  5351  5373 W bt_device_interop:  feature:: 2, key :: 00:14:02, value :: Address_Based
+08-10 17:23:06.584  5351  5373 W bt_device_interop:  feature:: 2, key :: 1C:48:F9, value :: Address_Based
+08-10 17:23:06.584  5351  5373 W bt_device_interop:  feature:: 2, key :: 44:5E:F3, value :: Address_Based
+08-10 17:23:06.584  5351  5373 W bt_device_interop:  feature:: 2, key :: D4:9C:28, value :: Address_Based
+08-10 17:23:06.584  5351  5373 W bt_device_interop:  feature:: 2, key :: 00:18:6B, value :: Address_Based
+08-10 17:23:06.584  5351  5373 W bt_device_interop:  feature:: 2, key :: B8:AD:3E, value :: Address_Based
+08-10 17:23:06.584  5351  5373 W bt_device_interop:  feature:: 2, key :: 00:11:B1, value :: Address_Based
+08-10 17:23:06.584  5351  5373 W bt_device_interop:  feature:: 2, key :: A4:15:66, value :: Address_Based
+08-10 17:23:06.584  5351  5373 W bt_device_interop:  feature:: 2, key :: 00:14:F1, value :: Address_Based
+08-10 17:23:06.584  5351  5373 W bt_device_interop:  feature:: 2, key :: 00:26:7E, value :: Address_Based
+08-10 17:23:06.584  5351  5373 W bt_device_interop:  feature:: 2, key :: 90:03:B7, value :: Address_Based
+08-10 17:23:06.584  5351  5373 W bt_device_interop:  feature:: 2, key :: 04:F8:C2, value :: Address_Based
+08-10 17:23:06.584  5351  5373 W bt_device_interop:  feature:: 2, key :: 00:18:91, value :: Address_Based
+08-10 17:23:06.584  5351  5373 W bt_device_interop:  feature:: 2, key :: 00:24:1C, value :: Address_Based
+08-10 17:23:06.585  5351  5373 W bt_device_interop:  feature:: 2, key :: 00:08:8b, value :: Address_Based
+08-10 17:23:06.585  5351  5373 W bt_device_interop:  feature:: 2, key :: 94:16:25, value :: Address_Based
+08-10 17:23:06.585  5351  5373 W bt_device_interop:  feature:: 2, key :: 00:25:DB, value :: Address_Based
+08-10 17:23:06.585  5351  5373 W bt_device_interop:  feature:: 3, key :: 34:C7:31, value :: Address_Based
+08-10 17:23:06.585  5351  5373 W bt_device_interop:  feature:: 3, key :: 00:07:04, value :: Address_Based
+08-10 17:23:06.585  5351  5373 W bt_device_interop:  feature:: 3, key :: E0:75:0A, value :: Address_Based
+08-10 17:23:06.585  5351  5373 W bt_device_interop:  feature:: 3, key :: Audi, value :: Name_Based
+08-10 17:23:06.585  5351  5373 W bt_device_interop:  feature:: 3, key :: BMW, value :: Name_Based
+08-10 17:23:06.585  5351  5373 W bt_device_interop:  feature:: 3, key :: Parrot, value :: Name_Based
+08-10 17:23:06.585  5351  5373 W bt_device_interop:  feature:: 3, key :: Car, value :: Name_Based
+08-10 17:23:06.585  5351  5373 W bt_device_interop:  feature:: 3, key :: NISSAN, value :: Name_Based
+08-10 17:23:06.585  5351  5373 W bt_device_interop:  feature:: 4, key :: 00:0F:F6, value :: Address_Based
+08-10 17:23:06.585  5351  5373 W bt_device_interop:  feature:: 5, key :: 00:18:91, value :: Address_Based
+08-10 17:23:06.586  5351  5373 W bt_device_interop:  feature:: 5, key :: 00:21:4F, value :: Address_Based
+08-10 17:23:06.587  5351  5373 W bt_device_interop:  feature:: 5, key :: 20:15:06, value :: Address_Based
+08-10 17:23:06.587  5351  5373 W bt_device_interop:  feature:: 5, key :: 9C:DF:03, value :: Address_Based
+08-10 17:23:06.587  5351  5373 W bt_device_interop:  feature:: 5, key :: 04:52:C7, value :: Address_Based
+08-10 17:23:06.587  5351  5373 W bt_device_interop:  feature:: 5, key :: 30:14:4A, value :: Address_Based
+08-10 17:23:06.587  5351  5373 W bt_device_interop:  feature:: 5, key :: 00:54:AF, value :: Address_Based
+08-10 17:23:06.587  5351  5373 W bt_device_interop:  feature:: 5, key :: 7C:1C:4E, value :: Address_Based
+08-10 17:23:06.587  5351  5373 W bt_device_interop:  feature:: 5, key :: 50:65:83, value :: Address_Based
+08-10 17:23:06.587  5351  5373 W bt_device_interop:  feature:: 5, key :: 00:1E:7C, value :: Address_Based
+08-10 17:23:06.587  5351  5373 W bt_device_interop:  feature:: 5, key :: C8:84:47, value :: Address_Based
+08-10 17:23:06.587  5351  5373 W bt_device_interop:  feature:: 5, key :: D0:8A:55, value :: Address_Based
+08-10 17:23:06.587  5351  5373 W bt_device_interop:  feature:: 5, key :: 48:F0:7B, value :: Address_Based
+08-10 17:23:06.587  5351  5373 W bt_device_interop:  feature:: 5, key :: 00:0A:08, value :: Address_Based
+08-10 17:23:06.587  5351  5373 W bt_device_interop:  feature:: 5, key :: 00:11:2D, value :: Address_Based
+08-10 17:23:06.587  5351  5373 W bt_device_interop:  feature:: 5, key :: A8:54:B2, value :: Address_Based
+08-10 17:23:06.587  5351  5373 W bt_device_interop:  feature:: 5, key :: AC:7A:4D, value :: Address_Based
+08-10 17:23:06.587  5351  5373 W bt_device_interop:  feature:: 5, key :: E8:EC:A3, value :: Address_Based
+08-10 17:23:06.587  5351  5373 W bt_device_interop:  feature:: 22, key :: 00:12:A1, value :: Address_Based
+08-10 17:23:06.587  5351  5373 W bt_device_interop:  feature:: 22, key :: Targus BT Laser Notebook Mouse, value :: Name_Based
+08-10 17:23:06.587  5351  5373 W bt_device_interop:  feature:: 7, key :: Motorola Keyboard KZ500, value :: Name_Based
+08-10 17:23:06.587  5351  5373 D bt_device_interop: Entry is already present in the list
+08-10 17:23:06.587  5351  5373 W bt_device_interop:  feature:: 7, key :: Motorola Keyboard KZ500 v122, value :: Name_Based
+08-10 17:23:06.587  5351  5373 W bt_device_interop:  feature:: 7, key :: 0x22b8-0x093D, value :: Vndr_Prdt_Based
+08-10 17:23:06.587  5351  5373 W bt_device_interop:  feature:: 8, key :: 20:4C:10, value :: Address_Based
+08-10 17:23:06.587  5351  5373 W bt_device_interop:  feature:: 8, key :: 0x004C, value :: Manufacturer_Based
+08-10 17:23:06.587  5351  5373 W bt_device_interop:  feature:: 11, key :: 00:14:09, value :: Address_Based
+08-10 17:23:06.587  5351  5373 W bt_device_interop:  feature:: 11, key :: 00:06:F5, value :: Address_Based
+08-10 17:23:06.587  5351  5373 W bt_device_interop:  feature:: 12, key :: BSMBB09DS, value :: Name_Based
+08-10 17:23:06.587  5351  5373 W bt_device_interop:  feature:: 12, key :: ELECOM, value :: Name_Based
+08-10 17:23:06.588  5351  5373 W bt_device_interop:  feature:: 19, key :: 00:02:5B:4A, value :: Address_Based
+08-10 17:23:06.588  5351  5373 W bt_device_interop:  feature:: 26, key :: FC:C2:DE, value :: Address_Based
+08-10 17:23:06.588  5351  5373 W bt_device_interop:  feature:: 26, key :: 00:26:B4, value :: Address_Based
+08-10 17:23:06.588  5351  5373 W bt_device_interop:  feature:: 26, key :: 00:04:3E, value :: Address_Based
+08-10 17:23:06.588  5351  5373 W bt_device_interop:  feature:: 26, key :: 00:23:01, value :: Address_Based
+08-10 17:23:06.588  5351  5373 W bt_device_interop:  feature:: 26, key :: 1C:48:F9, value :: Address_Based
+08-10 17:23:06.588  5351  5373 W bt_device_interop:  feature:: 26, key :: 00:54:AF, value :: Address_Based
+08-10 17:23:06.588  5351  5373 W bt_device_interop:  feature:: 26, key :: 00:26:E8, value :: Address_Based
+08-10 17:23:06.588  5351  5373 W bt_device_interop:  feature:: 26, key :: 00:37:6D, value :: Address_Based
+08-10 17:23:06.588  5351  5373 W bt_device_interop:  feature:: 26, key :: 9C:3A:AF, value :: Address_Based
+08-10 17:23:06.588  5351  5373 W bt_device_interop:  feature:: 26, key :: 00:18:91, value :: Address_Based
+08-10 17:23:06.588  5351  5373 W bt_device_interop:  feature:: 26, key :: 0C:E0:E4, value :: Address_Based
+08-10 17:23:06.588  5351  5373 W bt_device_interop:  feature:: 26, key :: 00:07:04, value :: Address_Based
+08-10 17:23:06.588  5351  5373 W bt_device_interop:  feature:: 26, key :: A4:15:66, value :: Address_Based
+08-10 17:23:06.588  5351  5373 W bt_device_interop:  feature:: 26, key :: D0:13:1E, value :: Address_Based
+08-10 17:23:06.588  5351  5373 W bt_device_interop:  feature:: 26, key :: 8F:20:B4, value :: Address_Based
+08-10 17:23:06.588  5351  5373 W bt_device_interop:  feature:: 26, key :: A8:B9:B3, value :: Address_Based
+08-10 17:23:06.588  5351  5373 W bt_device_interop:  feature:: 26, key :: 00:0D:F0, value :: Address_Based
+08-10 17:23:06.588  5351  5373 W bt_device_interop:  feature:: 26, key :: 00:08:E0, value :: Address_Based
+08-10 17:23:06.588  5351  5373 W bt_device_interop:  feature:: 26, key :: 00:25:52, value :: Address_Based
+08-10 17:23:06.588  5351  5373 W bt_device_interop:  feature:: 26, key :: 1C:52:16, value :: Address_Based
+08-10 17:23:06.588  5351  5373 W bt_device_interop:  feature:: 26, key :: 00:06:66, value :: Address_Based
+08-10 17:23:06.588  5351  5373 W bt_device_interop:  feature:: 26, key :: 00:24:E4, value :: address_Based
+08-10 17:23:06.588  5351  5373 W bt_device_interop:  feature:: 26, key :: 00:1C:D8, value :: Address_Based
+08-10 17:23:06.588  5351  5373 W bt_device_interop:  feature:: 26, key :: AC:FD:CE, value :: Address_Based
+08-10 17:23:06.588  5351  5373 W bt_device_interop:  feature:: 26, key :: 08:76:95, value :: Address_Based
+08-10 17:23:06.588  5351  5373 W bt_device_interop:  feature:: 26, key :: 00:00:45, value :: Address_Based
+08-10 17:23:06.588  5351  5373 W bt_device_interop:  feature:: 26, key :: EB:06:EF, value :: Address_Based
+08-10 17:23:06.588  5351  5373 W bt_device_interop:  feature:: 26, key :: 74:95:EC, value :: Address_Based
+08-10 17:23:06.588  5351  5373 W bt_device_interop:  feature:: 26, key :: AC:FD:93, value :: Address_Based
+08-10 17:23:06.588  5351  5373 W bt_device_interop:  feature:: 26, key :: AA:A8:AC, value :: Address_Based
+08-10 17:23:06.588  5351  5373 W bt_device_interop:  feature:: 26, key :: B8:D5:0B, value :: Address_Based
+08-10 17:23:06.588  5351  5373 W bt_device_interop:  feature:: 26, key :: 50:1A:A5, value :: Address_Based
+08-10 17:23:06.588  5351  5373 W bt_device_interop:  feature:: 26, key :: B0:67:2F, value :: Address_Based
+08-10 17:23:06.589  5351  5373 W bt_device_interop:  feature:: 17, key :: 00:0D:FD, value :: Address_Based
+08-10 17:23:06.589  5351  5373 W bt_device_interop:  feature:: 17, key :: 00:1B:DC, value :: Address_Based
+08-10 17:23:06.589  5351  5373 W bt_device_interop:  feature:: 17, key :: 00:07:04, value :: Address_Based
+08-10 17:23:06.589  5351  5373 W bt_device_interop:  feature:: 17, key :: A4:15:66, value :: Address_Based
+08-10 17:23:06.589  5351  5373 W bt_device_interop:  feature:: 17, key :: 00:54:AF, value :: Address_Based
+08-10 17:23:06.589  5351  5373 W bt_device_interop:  feature:: 17, key :: 00:23:7F, value :: Address_Based
+08-10 17:23:06.589  5351  5373 W bt_device_interop:  feature:: 17, key :: B8:69:C2, value :: Address_Based
+08-10 17:23:06.589  5351  5373 W bt_device_interop:  feature:: 14, key :: 28:A1:83, value :: Address_Based
+08-10 17:23:06.589  5351  5373 W bt_device_interop:  feature:: 14, key :: A0:14:3D, value :: Address_Based
+08-10 17:23:06.589  5351  5373 W bt_device_interop:  feature:: 14, key :: 90:03:B7, value :: Address_Based
+08-10 17:23:06.589  5351  5373 W bt_device_interop:  feature:: 14, key :: 00:21:3c, value :: Address_Based
+08-10 17:23:06.589  5351  5373 W bt_device_interop:  feature:: 14, key :: 9C:DF:03, value :: Address_Based
+08-10 17:23:06.589  5351  5373 W bt_device_interop:  feature:: 14, key :: E0:75:0A, value :: Address_Based
+08-10 17:23:06.589  5351  5373 W bt_device_interop:  feature:: 14, key :: 48:F0:7B, value :: Address_Based
+08-10 17:23:06.589  5351  5373 W bt_device_interop:  feature:: 14, key :: 04:52:C7, value :: Address_Based
+08-10 17:23:06.589  5351  5373 W bt_device_interop:  feature:: 14, key :: 30:C3:D9, value :: Address_Based
+08-10 17:23:06.589  5351  5373 W bt_device_interop:  feature:: 14, key :: 00:E0:4C, value :: Address_Based
+08-10 17:23:06.589  5351  5373 W bt_device_interop:  feature:: 14, key :: abramtek M1, value :: Name_Based
+08-10 17:23:06.589  5351  5373 W bt_device_interop:  feature:: 14, key :: Buick Verano, value :: Name_Based
+08-10 17:23:06.589  5351  5373 W bt_device_interop:  feature:: 15, key :: B0:00:73, value :: Address_Based
+08-10 17:23:06.589  5351  5373 W bt_device_interop:  feature:: 15, key :: Audi_MMI_2781, value :: Name_Based
+08-10 17:23:06.589  5351  5373 W bt_device_interop:  feature:: 15, key :: 28:83:35, value :: Address_Based
+08-10 17:23:06.589  5351  5373 W bt_device_interop:  feature:: 16, key :: B8:AD:3E, value :: Address_Based
+08-10 17:23:06.589  5351  5373 W bt_device_interop:  feature:: 16, key :: LG HBSA100, value :: Name_Based
+08-10 17:23:06.589  5351  5373 W bt_device_interop:  feature:: 16, key :: LG HBS1100, value :: Name_Based
+08-10 17:23:06.589  5351  5373 W bt_device_interop:  feature:: 16, key :: 00:18:09, value :: Address_Based
+08-10 17:23:06.589  5351  5373 W bt_device_interop:  feature:: 16, key :: MDR-XB80BS, value :: Name_Based
+08-10 17:23:06.589  5351  5373 W bt_device_interop:  feature:: 16, key :: 7C:04:D0, value :: Address_Based
+08-10 17:23:06.590  5351  5373 W bt_device_interop:  feature:: 16, key :: 24:F6:77, value :: Address_Based
+08-10 17:23:06.590  5351  5373 W bt_device_interop:  feature:: 16, key :: AirPods, value :: Name_Based
+08-10 17:23:06.590  5351  5373 W bt_device_interop:  feature:: 16, key :: 48:D6:D5, value :: Address_Based
+08-10 17:23:06.590  5351  5373 W bt_device_interop:  feature:: 16, key :: Pixel Buds 7943, value :: Name_Based
+08-10 17:23:06.590  5351  5373 W bt_device_interop:  feature:: 16, key :: 8C:DE:52, value :: Address_Based
+08-10 17:23:06.590  5351  5373 W bt_device_interop:  feature:: 16, key :: SRS-X33, value :: Name_Based
+08-10 17:23:06.590  5351  5373 W bt_device_interop:  feature:: 16, key :: 04:5D:4B, value :: Address_Based
+08-10 17:23:06.590  5351  5373 W bt_device_interop:  feature:: 16, key :: WH-1000XM2, value :: Name_Based
+08-10 17:23:06.590  5351  5373 W bt_device_interop:  feature:: 16, key :: h.ear (MDR-100ABN), value :: Name_Based
+08-10 17:23:06.590  5351  5373 W bt_device_interop:  feature:: 16, key :: WI-1000X, value :: Name_Based
+08-10 17:23:06.590  5351  5373 W bt_device_interop:  feature:: 16, key :: WH-H800 (h.ear), value :: Name_Based
+08-10 17:23:06.590  5351  5373 W bt_device_interop:  feature:: 16, key :: MDR-1000X, value :: Name_Based
+08-10 17:23:06.590  5351  5373 W bt_device_interop:  feature:: 16, key :: WI-H700 (h.ear), value :: Name_Based
+08-10 17:23:06.590  5351  5373 W bt_device_interop:  feature:: 16, key :: WH-H900N (h.ear), value :: Name_Based
+08-10 17:23:06.590  5351  5373 W bt_device_interop:  feature:: 16, key :: 10:4F:A8, value :: Address_Based
+08-10 17:23:06.590  5351  5373 W bt_device_interop:  feature:: 16, key :: MDR-1ABT, value :: Name_Based
+08-10 17:23:06.590  5351  5373 W bt_device_interop:  feature:: 16, key :: h.ear (MDR-EX750BT), value :: Name_Based
+08-10 17:23:06.590  5351  5373 W bt_device_interop:  feature:: 16, key :: AC:9B:0A, value :: Address_Based
+08-10 17:23:06.590  5351  5373 W bt_device_interop:  feature:: 16, key :: MDR-ZX770BN, value :: Name_Based
+08-10 17:23:06.590  5351  5373 W bt_device_interop:  feature:: 16, key :: 04:52:C7, value :: Address_Based
+08-10 17:23:06.590  5351  5373 W bt_device_interop:  feature:: 16, key :: Bose QuietComfort 35, value :: Name_Based
+08-10 17:23:06.590  5351  5373 W bt_device_interop:  feature:: 16, key :: 94:B2:CC, value :: Address_Based
+08-10 17:23:06.590  5351  5373 W bt_device_interop:  feature:: 16, key :: AVH-X5890BT, value :: Name_Based
+08-10 17:23:06.590  5351  5373 W bt_device_interop:  feature:: 16, key :: AVH-A208BT, value :: Name_Based
+08-10 17:23:06.590  5351  5373 W bt_device_interop:  feature:: 16, key :: 74:5E:1C, value :: Address_Based
+08-10 17:23:06.590  5351  5373 W bt_device_interop:  feature:: 16, key :: AVH-X5790BT, value :: Name_Based
+08-10 17:23:06.590  5351  5373 W bt_device_interop:  feature:: 16, key :: 00:1D:86, value :: Address_Based
+08-10 17:23:06.590  5351  5373 W bt_device_interop:  feature:: 16, key :: Car Multimedia, value :: Name_Based
+08-10 17:23:06.590  5351  5373 W bt_device_interop:  feature:: 16, key :: DDX6, value :: Name_Based
+08-10 17:23:06.590  5351  5373 W bt_device_interop:  feature:: 16, key :: 90:03:B7, value :: Address_Based
+08-10 17:23:06.590  5351  5373 W bt_device_interop:  feature:: 16, key :: Parrot ASTEROID, value :: Name_Based
+08-10 17:23:06.590  5351  5373 W bt_device_interop:  feature:: 16, key :: 0C:E0:E4, value :: Address_Based
+08-10 17:23:06.591  5351  5373 W bt_device_interop:  feature:: 16, key :: PLT_BBTPRO, value :: Name_Based
+08-10 17:23:06.591  5351  5373 W bt_device_interop:  feature:: 16, key :: A4:15:66, value :: Address_Based
+08-10 17:23:06.591  5351  5373 W bt_device_interop:  feature:: 16, key :: Tracks Air, value :: Name_Based
+08-10 17:23:06.591  5351  5373 W bt_device_interop:  feature:: 16, key :: 00:1A:7D, value :: Address_Based
+08-10 17:23:06.591  5351  5373 W bt_device_interop:  feature:: 16, key :: 66 Audio BTS, value :: Name_Based
+08-10 17:23:06.591  5351  5373 W bt_device_interop:  feature:: 16, key :: 88:E6:03, value :: Address_Based
+08-10 17:23:06.591  5351  5373 W bt_device_interop:  feature:: 16, key :: XB10, value :: Name_Based
+08-10 17:23:06.591  5351  5373 W bt_device_interop:  feature:: 16, key :: B8:69:C2, value :: Address_Based
+08-10 17:23:06.591  5351  5373 W bt_device_interop:  feature:: 16, key :: SRS-XB3, value :: Name_Based
+08-10 17:23:06.591  5351  5373 W bt_device_interop:  feature:: 16, key :: 30:C3:D9, value :: Address_Based
+08-10 17:23:06.591  5351  5373 W bt_device_interop:  feature:: 16, key :: MB Bluetooth 84389, value :: Name_Based
+08-10 17:23:06.591  5351  5373 W bt_device_interop:  feature:: 16, key :: 00:02:5B, value :: Address_Based
+08-10 17:23:06.591  5351  5373 W bt_device_interop:  feature:: 16, key :: HATS_00025B0085E9, value :: Name_Based
+08-10 17:23:06.591  5351  5373 W bt_device_interop:  feature:: 16, key :: A8:BE:27, value :: Address_Based
+08-10 17:23:06.591  5351  5373 W bt_device_interop:  feature:: 16, key :: BeatsX, value :: Name_Based
+08-10 17:23:06.591  5351  5373 W bt_device_interop:  feature:: 16, key :: E0:D1:E6, value :: Address_Based
+08-10 17:23:06.591  5351  5373 W bt_device_interop:  feature:: 16, key :: MINIJAMBOX by Jawbone, value :: Name_Based
+08-10 17:23:06.591  5351  5373 W bt_device_interop:  feature:: 16, key :: 2C:41:A1, value :: Address_Based
+08-10 17:23:06.591  5351  5373 W bt_device_interop:  feature:: 16, key :: Bose SoundSport, value :: Name_Based
+08-10 17:23:06.591  5351  5373 W bt_device_interop:  feature:: 16, key :: Bose QC35 II, value :: Name_Based
+08-10 17:23:06.591  5351  5373 W bt_device_interop:  feature:: 16, key :: DC:A4:CA, value :: Address_Based
+08-10 17:23:06.591  5351  5373 W bt_device_interop:  feature:: 16, key :: Beats Solo³, value :: Name_Based
+08-10 17:23:06.591  5351  5373 W bt_device_interop:  feature:: 16, key :: 58:E2:8F, value :: Address_Based
+08-10 17:23:06.591  5351  5373 W bt_device_interop:  feature:: 16, key :: BeatsStudio Wireless, value :: Name_Based
+08-10 17:23:06.591  5351  5373 W bt_device_interop:  feature:: 16, key :: FC:4B:BC, value :: Address_Based
+08-10 17:23:06.591  5351  5373 W bt_device_interop:  feature:: 16, key :: XAV-AX100, value :: Name_Based
+08-10 17:23:06.591  5351  5373 W bt_device_interop:  feature:: 16, key :: 00:18:6b, value :: Address_Based
+08-10 17:23:06.592  5351  5373 W bt_device_interop:  feature:: 16, key :: LG HBS730, value :: Name_Based
+08-10 17:23:06.592  5351  5373 W bt_device_interop:  feature:: 16, key :: 8C:57:9B, value :: Address_Based
+08-10 17:23:06.592  5351  5373 W bt_device_interop:  feature:: 16, key :: h.ear go (SRS-HG1), value :: Name_Based
+08-10 17:23:06.592  5351  5373 W bt_device_interop:  feature:: 16, key :: 40:ED:98, value :: Address_Based
+08-10 17:23:06.592  5351  5373 W bt_device_interop:  feature:: 16, key :: FiiO BTR1K, value :: Name_Based
+08-10 17:23:06.592  5351  5373 W bt_device_interop:  feature:: 16, key :: 0C:A6:94, value :: Address_Based
+08-10 17:23:06.592  5351  5373 W bt_device_interop:  feature:: 16, key :: HK Soho Wireless, value :: Name_Based
+08-10 17:23:06.592  5351  5373 W bt_device_interop:  feature:: 16, key :: 00:09:A7, value :: Address_Based
+08-10 17:23:06.592  5351  5373 W bt_device_interop:  feature:: 16, key :: Beoplay H4, value :: Name_Based
+08-10 17:23:06.592  5351  5373 W bt_device_interop:  feature:: 16, key :: 70:26:05, value :: Address_Based
+08-10 17:23:06.592  5351  5373 W bt_device_interop:  feature:: 16, key :: WF-SP700N, value :: Name_Based
+08-10 17:23:06.592  5351  5373 W bt_device_interop:  feature:: 16, key :: Pixel Buds, value :: Name_Based
+08-10 17:23:06.592  5351  5373 D bt_device_interop: Entry is already present in the list
+08-10 17:23:06.592  5351  5373 W bt_device_interop:  feature:: 16, key :: 00:09:a7, value :: Address_Based
+08-10 17:23:06.592  5351  5373 W bt_device_interop:  feature:: 16, key :: Beoplay E8, value :: Name_Based
+08-10 17:23:06.592  5351  5373 W bt_device_interop:  feature:: 16, key :: Bose SoundWear, value :: Name_Based
+08-10 17:23:06.592  5351  5373 W bt_device_interop:  feature:: 16, key :: Bose Free SoundSport, value :: Name_Based
+08-10 17:23:06.592  5351  5373 W bt_device_interop:  feature:: 16, key :: Samsung Level On, value :: Name_Based
+08-10 17:23:06.592  5351  5373 W bt_device_interop:  feature:: 16, key :: a0:56:b2, value :: Address_Based
+08-10 17:23:06.592  5351  5373 W bt_device_interop:  feature:: 16, key :: BMW 08939, value :: Name_Based
+08-10 17:23:06.592  5351  5373 W bt_device_interop:  feature:: 16, key :: MB Bluetooth, value :: Name_Based
+08-10 17:23:06.592  5351  5373 W bt_device_interop:  feature:: 16, key :: 94:e3:6d, value :: Address_Based
+08-10 17:23:06.592  5351  5373 W bt_device_interop:  feature:: 16, key :: BMW 99999, value :: Name_Based
+08-10 17:23:06.592  5351  5373 W bt_device_interop:  feature:: 16, key :: E4:19:C1, value :: Address_Based
+08-10 17:23:06.592  5351  5373 W bt_device_interop:  feature:: 16, key :: FreeBuds 3, value :: Name_Based
+08-10 17:23:06.592  5351  5373 W bt_device_interop:  feature:: 16, key :: 28:83:35, value :: Address_Based
+08-10 17:23:06.592  5351  5373 W bt_device_interop:  feature:: 16, key :: Level U Pro (5F23), value :: Name_Based
+08-10 17:23:06.592  5351  5373 W bt_device_interop:  feature:: 21, key :: 00:1B:DC-0x0012, value :: SSR_Max_Lat_Based
+08-10 17:23:06.592  5351  5373 W bt_device_interop:  feature:: 21, key :: DC:2C:26-0x0000, value :: SSR_Max_Lat_Based
+08-10 17:23:06.593  5351  5373 W bt_device_interop:  feature:: 21, key :: 54:46:6B-0x0001, value :: SSR_Max_Lat_Based
+08-10 17:23:06.593  5351  5373 W bt_device_interop:  feature:: 25, key :: 98:7b:f3, value :: Address_Based
+08-10 17:23:06.593  5351  5373 W bt_device_interop:  feature:: 27, key :: 04:52:c7, value :: Address_Based
+08-10 17:23:06.593  5351  5373 W bt_device_interop:  feature:: 27, key :: AirPods Pro, value :: Name_Based
+08-10 17:23:06.593  5351  5373 W bt_device_interop:  feature:: 27, key :: 24:A8:7D, value :: Address_Based
+08-10 17:23:06.593  5351  5373 W bt_device_interop:  feature:: 28, key :: 00:08:8a, value :: Address_Based
+08-10 17:23:06.593  5351  5373 W bt_device_interop:  feature:: 28, key :: JABRA EASYGO, value :: Name_Based
+08-10 17:23:06.593  5351  5373 W bt_device_interop:  feature:: 28, key :: 55:55:55, value :: Address_Based
+08-10 17:23:06.593  5351  5373 W bt_device_interop:  feature:: 29, key :: 00:09:93, value :: Address_Based
+08-10 17:23:06.593  5351  5373 W bt_device_interop:  feature:: 29, key :: 74:6f:f7, value :: Address_Based
+08-10 17:23:06.593  5351  5373 W bt_device_interop:  feature:: 29, key :: A0:56:B2:4F, value :: Address_Based
+08-10 17:23:06.593  5351  5373 W bt_device_interop:  feature:: 29, key :: 00:54:AF, value :: Address_Based
+08-10 17:23:06.593  5351  5373 W bt_device_interop:  feature:: 29, key :: 00:00:2E, value :: Address_Based
+08-10 17:23:06.593  5351  5373 W bt_device_interop:  feature:: 29, key :: A0:56:B2:5A, value :: Address_Based
+08-10 17:23:06.593  5351  5373 W bt_device_interop:  feature:: 9, key :: 08:62:66, value :: Address_Based
+08-10 17:23:06.593  5351  5373 W bt_device_interop:  feature:: 9, key :: 38:2C:4A:C9, value :: Address_Based
+08-10 17:23:06.593  5351  5373 W bt_device_interop:  feature:: 9, key :: 38:2C:4A:E6, value :: Address_Based
+08-10 17:23:06.593  5351  5373 W bt_device_interop:  feature:: 9, key :: 54:A0:50:D9, value :: Address_Based
+08-10 17:23:06.593  5351  5373 W bt_device_interop:  feature:: 9, key :: AC:9E:17, value :: Address_Based
+08-10 17:23:06.593  5351  5373 W bt_device_interop:  feature:: 9, key :: F0:79:59, value :: Address_Based
+08-10 17:23:06.593  5351  5373 W bt_device_interop:  feature:: 23, key :: 00:1D:86, value :: Address_Based
+08-10 17:23:06.593  5351  5373 W bt_device_interop:  feature:: 23, key :: KMM-BT51*HD, value :: Name_Based
+08-10 17:23:06.593  5351  5373 W bt_device_interop:  feature:: 10, key :: Pixel C Keyboard, value :: Name_Based
+08-10 17:23:06.594  5351  5373 W bt_device_interop:  feature:: 10, key :: MiMouse, value :: Name_Based
+08-10 17:23:06.594  5351  5373 W bt_device_interop:  feature:: 10, key :: HTC Fetch, value :: Name_Based
+08-10 17:23:06.594  5351  5373 W bt_device_interop:  feature:: 31, key :: LG Lighting, value :: Name_Based
+08-10 17:23:06.594  5351  5373 W bt_device_interop:  feature:: 31, key :: KS_5w4Zu, value :: Name_Based
+08-10 17:23:06.594  5351  5373 W bt_device_interop:  feature:: 31, key :: ZUK, value :: Name_Based
+08-10 17:23:06.594  5351  5373 W bt_device_interop:  feature:: 31, key :: ITAG, value :: Name_Based
+08-10 17:23:06.594  5351  5373 W bt_device_interop:  feature:: 31, key :: Pokemon GO Plus, value :: Name_Based
+08-10 17:23:06.594  5351  5373 W bt_device_interop:  feature:: 31, key :: FeiZhiX8/X8Pro, value :: Name_Based
+08-10 17:23:06.594  5351  5373 W bt_device_interop:  feature:: 31, key :: FeiZhiAPEX, value :: Name_Based
+08-10 17:23:06.594  5351  5373 W bt_device_interop:  feature:: 33, key :: 2c:dc:ad:08, value :: Address_Based
+08-10 17:23:06.594  5351  5373 W bt_device_interop:  feature:: 33, key :: 74:6f:f7, value :: Address_Based
+08-10 17:23:06.594  5351  5373 W bt_device_interop:  feature:: 33, key :: 90:03:b7, value :: Address_Based
+08-10 17:23:06.594  5351  5373 W bt_device_interop:  feature:: 33, key :: 00:06:F5, value :: Address_Based
+08-10 17:23:06.594  5351  5373 W bt_device_interop:  feature:: 34, key :: 50:65:83, value :: Address_Based
+08-10 17:23:06.594  5351  5373 W bt_device_interop:  feature:: 34, key :: 28:3f:69, value :: Address_Based
+08-10 17:23:06.594  5351  5373 W bt_device_interop:  feature:: 34, key :: AirPods, value :: Name_Based
+08-10 17:23:06.594  5351  5373 W bt_device_interop:  feature:: 34, key :: 0x0094, value :: Manufacturer_Based
+08-10 17:23:06.594  5351  5373 W bt_device_interop:  feature:: 36, key :: 10:b7:f6, value :: Address_Based
+08-10 17:23:06.594  5351  5373 W bt_device_interop:  feature:: 41, key :: 00:0E:9F, value :: Address_Based
+08-10 17:23:06.594  5351  5373 W bt_device_interop:  feature:: 37, key :: 98:B6:E9, value :: Address_Based
+08-10 17:23:06.594  5351  5373 W bt_device_interop:  feature:: 39, key :: 04:4E:AF, value :: Address_Based
+08-10 17:23:06.595  5351  5373 W bt_device_interop:  feature:: 39, key :: HB20, value :: Name_Based
+08-10 17:23:06.595  5351  5373 W bt_device_interop:  feature:: 39, key :: HB 20, value :: Name_Based
+08-10 17:23:06.595  5351  5373 W bt_device_interop:  feature:: 40, key :: com.google.android.music, value :: Name_Based
+08-10 17:23:06.595  5351  5373 W bt_device_interop:  feature:: 40, key :: com.nhn.android.music, value :: Name_Based
+08-10 17:23:06.595  5351  5373 W bt_device_interop:  feature:: 40, key :: com.gaana, value :: Name_Based
+08-10 17:23:06.595  5351  5373 W bt_device_interop:  feature:: 40, key :: com.google.android.apps.youtube.music, value :: Name_Based
+08-10 17:23:06.595  5351  5373 W bt_device_interop:  feature:: 42, key :: BC:30:7E, value :: Address_Based
+08-10 17:23:06.595  5351  5373 W bt_device_interop:  feature:: 42, key :: 2C:DC:AD, value :: Address_Based
+08-10 17:23:06.595  5351  5373 W bt_device_interop:  feature:: 42, key :: 00:1E:43, value :: Address_Based
+08-10 17:23:06.595  5351  5373 W bt_device_interop:  feature:: 42, key :: 9C:DF:03, value :: Address_Based
+08-10 17:23:06.595  5351  5373 W bt_device_interop:  feature:: 42, key :: 00:0A:08, value :: Address_Based
+08-10 17:23:06.595  5351  5373 W bt_device_interop:  feature:: 42, key :: 00:04:79, value :: Address_Based
+08-10 17:23:06.595  5351  5373 W bt_device_interop:  feature:: 42, key :: 28:A1:83, value :: Address_Based
+08-10 17:23:06.595  5351  5373 W bt_device_interop:  feature:: 42, key :: 24:df:6a, value :: Address_Based
+08-10 17:23:06.595  5351  5373 W bt_device_interop:  feature:: 42, key :: 38:78:62, value :: Address_Based
+08-10 17:23:06.595  5351  5373 W bt_device_interop:  feature:: 42, key :: Audi, value :: Name_Based
+08-10 17:23:06.595  5351  5373 W bt_device_interop:  feature:: 42, key :: Porsche, value :: Name_Based
+08-10 17:23:06.595  5351  5373 W bt_device_interop:  feature:: 43, key :: 00:23:3D, value :: Address_Based
+08-10 17:23:06.595  5351  5373 W bt_device_interop:  feature:: 44, key :: 10:4F:A8, value :: Address_Based
+08-10 17:23:06.595  5351  5373 W bt_device_interop:  feature:: 45, key :: 00:15:83, value :: Address_Based
+08-10 17:23:06.596  5351  5373 W bt_device_interop:  feature:: 45, key :: 2a:eb:00, value :: Address_Based
+08-10 17:23:06.596  5351  5373 W bt_device_interop:  feature:: 45, key :: 30:53:00, value :: Address_Based
+08-10 17:23:06.596  5351  5373 W bt_device_interop:  feature:: 45, key :: 00:17:53, value :: Address_Based
+08-10 17:23:06.596  5351  5373 W bt_device_interop:  feature:: 45, key :: 40:ef:4c, value :: Address_Based
+08-10 17:23:06.596  5351  5373 W bt_device_interop:  feature:: 45, key :: 00:07:04, value :: Address_Based
+08-10 17:23:06.596  5351  5373 W bt_device_interop:  feature:: 46, key :: f4:15:fd, value :: Address_Based
+08-10 17:23:06.596  5351  5373 W bt_device_interop:  feature:: 47, key :: Geely_BT, value :: Name_Based
+08-10 17:23:06.596  5351  5373 W bt_device_interop:  feature:: 48, key :: Microsoft Bluetooth Mouse, value :: Name_Based
+08-10 17:23:06.597  5351  5373 W bt_device_profile: profile_config_init load config file succesful : /data/misc/bluedroid/bt_profile.conf
+08-10 17:23:06.597  5351  5373 W bt_device_profile:  AVRCP_ID: key :: avrcp_0103_support, value :: false
+08-10 17:23:06.597  5351  5373 W bt_device_profile:  AVRCP_ID: entry->profile_feature_type.avrcp_feature_entry.avrcp_0103_support false
+08-10 17:23:06.597  5351  5373 W bt_device_profile:  AVRCP_ID: key :: avrcp_coverart_support, value :: true
+08-10 17:23:06.597  5351  5373 W bt_device_profile:  AVRCP_ID: &entry->profile_feature_type.avrcp_feature_entry.avrcp_coverart_support true
+08-10 17:23:06.597  5351  5373 D bt_device_profile: Entry is already present in the list
+08-10 17:23:06.597  5351  5373 W bt_device_profile:  PBAP_ID: key :: pbap_0102_support, value :: true
+08-10 17:23:06.597  5351  5373 W bt_device_profile:  PBAP_ID: key :: use_sim_support, value :: true
+08-10 17:23:06.597  5351  5373 D bt_device_profile: Entry is already present in the list
+08-10 17:23:06.597  5351  5373 W bt_device_profile:  MAP_ID: key :: map_email_support, value :: true
+08-10 17:23:06.597  5351  5373 W bt_device_profile:  MAP_ID: key :: map_0104_support, value :: true
+08-10 17:23:06.597  5351  5373 D bt_device_profile: Entry is already present in the list
+08-10 17:23:06.597  5351  5373 W bt_device_profile:  MAX_POW_ID: key :: BLE_max_pow_support, value :: 0x80
+08-10 17:23:06.597  5351  5373 W bt_device_profile:  MAX_POW_ID: BLE_pow :: 80
+08-10 17:23:06.597  5351  5373 W bt_device_profile:  OPP_ID: key :: opp_0100_support, value :: false
+08-10 17:23:06.598  5351  5373 I bt_stack_config: init attempt to load stack conf from /etc/bluetooth/bt_stack.conf
+08-10 17:23:06.600  5351  5378 I bt_osi_thread: run_thread: thread id 5378, thread name bt_jni_workqueue started
+08-10 17:23:06.600  5351  5373 I bt_btif_core: btif_init_bluetooth finished
+08-10 17:23:06.601  5351  5378 I bt_btif_core: run_message_loop entered
+08-10 17:23:06.601  5351  5373 I bt_stack_manager: event_init_stack finished
+08-10 17:23:06.602  5351  5351 I bt_btif : get_profile_interface: id = socket
+08-10 17:23:06.604  5351  5378 E bt_btif_storage: btif_storage_get_adapter_property: Controller not ready! Unable to return Bluetooth Address
+08-10 17:23:06.604  5351  5378 E BluetoothServiceJni: adapter_properties_callback: Status 1 is incorrect
+08-10 17:23:06.607  1425  1425 D BluetoothManagerService: Bluetooth Adapter name changed to Lenovo Tab P11
+08-10 17:23:06.607  5351  5378 D AdapterProperties: Name is: Lenovo Tab P11
+08-10 17:23:06.607  1425  1425 D BluetoothManagerService: Stored Bluetooth name: Lenovo Tab P11
+08-10 17:23:06.607  5351  5351 I bt_btif : get_profile_interface: id = sdp
+08-10 17:23:06.616  5351  5351 D BluetoothDatabase: start()
+08-10 17:23:06.619  5351  5351 D BluetoothDatabase: Load Database
+08-10 17:23:06.619  5351  5351 I BluetoothAdapterService: Phone policy enabled
+08-10 17:23:06.622  5351  5351 D BluetoothBondStateMachine: make
+08-10 17:23:06.623  5351  5351 D BluetoothActiveDeviceManager: start()
+08-10 17:23:06.624  5351  5380 I BluetoothBondStateMachine: StableState(): Entering Off State
+08-10 17:23:06.632  5351  5381 D BluetoothActiveDeviceManager: onAudioDevicesAdded
+08-10 17:23:06.632  5351  5381 D BluetoothActiveDeviceManager: Audio device added: Lenovo TB-J606F type: 2
+08-10 17:23:06.632  5351  5381 D BluetoothActiveDeviceManager: Audio device added: Lenovo TB-J606F type: 18
+08-10 17:23:06.632  5351  5381 D BluetoothActiveDeviceManager: Audio device added: Lenovo TB-J606F type: 15
+08-10 17:23:06.632  5351  5381 D BluetoothActiveDeviceManager: Audio device added: Lenovo TB-J606F type: 18
+08-10 17:23:06.632  5351  5381 D BluetoothActiveDeviceManager: Audio device added: Lenovo TB-J606F type: 15
+08-10 17:23:06.632  5351  5381 D BluetoothActiveDeviceManager: Audio device added: Lenovo TB-J606F type: 25
+08-10 17:23:06.632  5351  5381 D BluetoothActiveDeviceManager: Audio device added: Lenovo TB-J606F type: 16
+08-10 17:23:06.633  5351  5351 D BluetoothAdapterService: setAdapterService() - trying to set service to com.android.bluetooth.btservice.AdapterService@f926425
+08-10 17:23:06.635  5351  5351 I droid.bluetoot: [0810/172306.635552:INFO:com_android_bluetooth_btservice_vendor.cpp(849)] load_bt_configstore_lib loaded HAL: bt_configstore_interface_t=0x71315d3968, bt_configstore_lib_handle=0xf42a25f69fdbd8ab
+08-10 17:23:06.635  5351  5351 I bt_config_store: getVendorProperties 
+08-10 17:23:06.642   837   837 I vendor.qti.hardware.btconfigstore@2.0-BTConfigStore: getVendorProperties:: Bluetooth soc type set to: cherokee, ret: 8
+08-10 17:23:06.642   837   837 I vendor.qti.hardware.btconfigstore@2.0-BTConfigStore: getVendorProperties:: persist.vendor.qcom.bluetooth.enable.splita2dp: true, ret: 4
+08-10 17:23:06.642   837   837 I vendor.qti.hardware.btconfigstore@2.0-BTConfigStore: getVendorProperties:: persist.vendor.qcom.bluetooth.a2dp_offload_cap: sbc-aptx-aptxtws-aptxhd-aac-ldac, ret: 32
+08-10 17:23:06.642   837   837 I vendor.qti.hardware.btconfigstore@2.0-BTConfigStore: getVendorProperties:: ro.vendor.bluetooth.wipower: false, ret: 5
+08-10 17:23:06.642   837   837 I vendor.qti.hardware.btconfigstore@2.0-BTConfigStore: getVendorProperties:: persist.vendor.qcom.bluetooth.aac_frm_ctl.enabled: false, ret: 5
+08-10 17:23:06.642   837   837 I vendor.qti.hardware.btconfigstore@2.0-BTConfigStore: getVendorProperties:: persist.vendor.qcom.bluetooth.enable.swb: true, ret: 4
+08-10 17:23:06.642   837   837 I vendor.qti.hardware.btconfigstore@2.0-BTConfigStore: getVendorProperties:: persist.vendor.qcom.bluetooth.enable.swbpm: true, ret: 4
+08-10 17:23:06.642   837   837 I vendor.qti.hardware.btconfigstore@2.0-BTConfigStore: getVendorProperties:: persist.vendor.qcom.bluetooth.a2dp_mcast_test.enabled: false, ret: 5
+08-10 17:23:06.642   837   837 I vendor.qti.hardware.btconfigstore@2.0-BTConfigStore: getVendorProperties:: persist.vendor.qcom.bluetooth.twsp_state.enabled: false, ret: 5
+08-10 17:23:06.642   837   837 I vendor.qti.hardware.btconfigstore@2.0-BTConfigStore: getVendorProperties:: persist.vendor.qcom.bluetooth.max_power_support: false, ret: 5
+08-10 17:23:06.643  5351  5351 I bt_config_store: prop type: BT_PROP_SOC_TYPE, prop_value: cherokee
+08-10 17:23:06.643  5351  5351 I bt_config_store: prop type: BT_PROP_SPILT_A2DP, prop_value: true
+08-10 17:23:06.643  5351  5351 I bt_config_store: prop type: BT_PROP_A2DP_OFFLOAD_CAP, prop_value: sbc-aptx-aptxtws-aptxhd-aac-ldac
+08-10 17:23:06.643  5351  5351 I bt_config_store: prop type: BT_PROP_WIPOWER, prop_value: false
+08-10 17:23:06.643  5351  5351 I bt_config_store: prop type: BT_PROP_AAC_FRAME_CTL, prop_value: false
+08-10 17:23:06.643  5351  5351 I bt_config_store:  not handled propType = 6
+08-10 17:23:06.643  5351  5351 I bt_config_store: prop type: not handled, prop_value: true
+08-10 17:23:06.643  5351  5351 I bt_config_store:  not handled propType = 7
+08-10 17:23:06.643  5351  5351 I bt_config_store: prop type: not handled, prop_value: true
+08-10 17:23:06.643  5351  5351 I bt_config_store:  not handled propType = 8
+08-10 17:23:06.643  5351  5351 I bt_config_store: prop type: not handled, prop_value: false
+08-10 17:23:06.643  5351  5351 I bt_config_store:  not handled propType = 9
+08-10 17:23:06.643  5351  5351 I bt_config_store: prop type: not handled, prop_value: false
+08-10 17:23:06.643  5351  5351 I bt_config_store:  not handled propType = 11
+08-10 17:23:06.643  5351  5351 I bt_config_store: prop type: not handled, prop_value: false
+08-10 17:23:06.643  5351  5351 I BluetoothVendorJni: initNative:: soc_name = cherokee
+08-10 17:23:06.643  5351  5351 I BluetoothVendorJni: initNative:: a2dp_offload_Cap = sbc-aptx-aptxtws-aptxhd-aac-ldac
+08-10 17:23:06.643  5351  5351 I bt_btif : get_profile_interface: id = vendor
+08-10 17:23:06.643  5351  5351 I bt_btif_vendor: init
+08-10 17:23:06.643  5351  5351 I bt_btif_vendor: init done
+08-10 17:23:06.643  5351  5351 D BluetoothVendorService: Qti Stack enabled status: true
+08-10 17:23:06.643  5351  5351 I BluetoothVendorJni: getSocNameNative
+08-10 17:23:06.643  5351  5351 D BluetoothVendorService: socName: cherokee
+08-10 17:23:06.643  5351  5351 I BluetoothVendorJni: getA2apOffloadCapabilityNative
+08-10 17:23:06.643  5351  5351 D BluetoothVendorService: a2dpOffloadCap: sbc-aptx-aptxtws-aptxhd-aac-ldac
+08-10 17:23:06.643  5351  5351 I BluetoothVendorJni: isSplitA2dpEnabledNative
+08-10 17:23:06.643  5351  5351 D BluetoothVendorService: splitA2dpEnabled: true
+08-10 17:23:06.643  5351  5351 I BluetoothVendorJni: isSwbEnabledNative
+08-10 17:23:06.643  5351  5351 D BluetoothVendorService: isSwbEnabled: true
+08-10 17:23:06.643  5351  5351 I BluetoothVendorJni: isSwbPmEnabledNative
+08-10 17:23:06.643  5351  5351 D BluetoothVendorService: isSwbPmEnabled: true
+08-10 17:23:06.643  5351  5351 I bt_btif : get_profile_interface: id = vendorSocket
+08-10 17:23:06.646  5351  5351 I AdapterProperties: init(), maxConnectedAudioDevices, default=5, propertyOverlayed=5, finalValue=5
+08-10 17:23:06.648  5351  5351 D BluetoothAdapterService: onBind()
+08-10 17:23:06.649  1425  1425 D BluetoothManagerService: BluetoothServiceConnection: com.android.bluetooth.btservice.AdapterService
+08-10 17:23:06.649  1425  1464 D BluetoothManagerService: MESSAGE_BLUETOOTH_SERVICE_CONNECTED: 1
+08-10 17:23:06.652  5351  5368 D BluetoothAdapterService: enable() - Enable called with quiet mode status =  false
+08-10 17:23:06.652  1425  1464 D BluetoothManagerService: MESSAGE_INFORM_ADAPTER_SERVICE_UP
+08-10 17:23:06.652  5351  5372 I AdapterState: BLE_TURNING_ON : entered 
+08-10 17:23:06.652  5351  5372 D AdapterProperties: Setting state to BLE_TURNING_ON
+08-10 17:23:06.652  1425  1464 D BluetoothManagerService: Broadcasting onBluetoothServiceUp() to 21 receivers.
+08-10 17:23:06.652  5351  5372 D BluetoothAdapterService: updateAdapterState() - Broadcasting state BLE_TURNING_ON to 1 receivers.
+08-10 17:23:06.653  2557  4655 D BluetoothAdapter: onBluetoothServiceUp: android.bluetooth.IBluetooth$Stub$Proxy@c5e4db8
+08-10 17:23:06.653  2557  2574 D BluetoothAdapter: onBluetoothServiceUp: android.bluetooth.IBluetooth$Stub$Proxy@4255791
+08-10 17:23:06.653  2557  3843 D BluetoothAdapter: onBluetoothServiceUp: android.bluetooth.IBluetooth$Stub$Proxy@99c3af7
+08-10 17:23:06.653  2557  4035 D BluetoothAdapter: onBluetoothServiceUp: android.bluetooth.IBluetooth$Stub$Proxy@3868d64
+08-10 17:23:06.653  2557  3505 D BluetoothAdapter: onBluetoothServiceUp: android.bluetooth.IBluetooth$Stub$Proxy@fbaa6f6
+08-10 17:23:06.653  5351  5368 D BluetoothAdapter: onBluetoothServiceUp: com.android.bluetooth.btservice.AdapterService$AdapterServiceBinder@1f64468
+08-10 17:23:06.654  2309  2523 D BluetoothAdapter: onBluetoothServiceUp: android.bluetooth.IBluetooth$Stub$Proxy@f7340cf
+08-10 17:23:06.654  2557  3505 D BluetoothAdapter: onBluetoothServiceUp: android.bluetooth.IBluetooth$Stub$Proxy@eb6dbcd
+08-10 17:23:06.654  5240  5298 D BluetoothAdapter: onBluetoothServiceUp: android.bluetooth.IBluetooth$Stub$Proxy@3c7ea6
+08-10 17:23:06.654  2557  3843 D BluetoothAdapter: onBluetoothServiceUp: android.bluetooth.IBluetooth$Stub$Proxy@8623c82
+08-10 17:23:06.655  3196  3231 D BluetoothAdapter: onBluetoothServiceUp: android.bluetooth.IBluetooth$Stub$Proxy@5459d0d
+08-10 17:23:06.655  2557  4035 D BluetoothAdapter: onBluetoothServiceUp: android.bluetooth.IBluetooth$Stub$Proxy@ecf8f93
+08-10 17:23:06.655  5351  5379 D BluetoothDatabase: compactLastConnectionTime: Compacting metadata after load
+08-10 17:23:06.655  5351  5379 I BluetoothDatabase: cacheMetadata
+08-10 17:23:06.655  5351  5379 V BluetoothDatabase: cacheMetadata: found device LocalStorage
+08-10 17:23:06.655  5351  5379 V BluetoothDatabase: cacheMetadata: Database is ready
+08-10 17:23:06.656  1913  2149 D BluetoothAdapter: onBluetoothServiceUp: android.bluetooth.IBluetooth$Stub$Proxy@e25a1d6
+08-10 17:23:06.656  1425  1464 D BluetoothAdapter: onBluetoothServiceUp: android.bluetooth.IBluetooth$Stub$Proxy@d2e1726
+08-10 17:23:06.656  3218  4589 D BluetoothAdapter: onBluetoothServiceUp: android.bluetooth.IBluetooth$Stub$Proxy@71063c5
+08-10 17:23:06.656  2557  3843 D BluetoothAdapter: onBluetoothServiceUp: android.bluetooth.IBluetooth$Stub$Proxy@ad11bd0
+08-10 17:23:06.656  1425  1464 D BluetoothManagerService: MESSAGE_BLUETOOTH_STATE_CHANGE: OFF > BLE_TURNING_ON
+08-10 17:23:06.656  1425  1464 D BluetoothManagerService: Sending BLE State Change: OFF > BLE_TURNING_ON
+08-10 17:23:06.656  2557  4655 D BluetoothAdapter: onBluetoothServiceUp: android.bluetooth.IBluetooth$Stub$Proxy@46267c9
+08-10 17:23:06.656  2557  3505 D BluetoothAdapter: onBluetoothServiceUp: android.bluetooth.IBluetooth$Stub$Proxy@7fb9ece
+08-10 17:23:06.656  2557  2574 D BluetoothAdapter: onBluetoothServiceUp: android.bluetooth.IBluetooth$Stub$Proxy@1d991ef
+08-10 17:23:06.657  2557  4035 D BluetoothAdapter: onBluetoothServiceUp: android.bluetooth.IBluetooth$Stub$Proxy@1f424fc
+08-10 17:23:06.671  5351  5372 D BluetoothAdapterService: bleOnProcessStart()
+08-10 17:23:06.671  5351  5372 D AdapterServiceConfig:  addAudioProfiles profileHeadsetService
+08-10 17:23:06.671  5351  5372 I AdapterServiceConfig: addAudioProfiles isA2dpSink :true
+08-10 17:23:06.671  5351  5372 D BluetoothAdapterService: getAdapterService() - returning com.android.bluetooth.btservice.AdapterService@f926425
+08-10 17:23:06.671  5351  5372 V AdapterServiceConfig: isSplitA2dpEnabled: true
+08-10 17:23:06.672  5351  5372 V AdapterServiceConfig: Adding HeadsetService
+08-10 17:23:06.672  5351  5372 D AdapterServiceConfig:  addAudioProfiles profileA2dpService
+08-10 17:23:06.672  5351  5372 I AdapterServiceConfig: addAudioProfiles isA2dpSink :true
+08-10 17:23:06.672  5351  5372 I AdapterServiceConfig:  Profile A2dpService Not added 
+08-10 17:23:06.672  5351  5372 D AdapterServiceConfig:  addAudioProfiles profileHidHostService
+08-10 17:23:06.672  5351  5372 I AdapterServiceConfig: addAudioProfiles isA2dpSink :true
+08-10 17:23:06.672  5351  5372 D BluetoothAdapterService: getAdapterService() - returning com.android.bluetooth.btservice.AdapterService@f926425
+08-10 17:23:06.672  5351  5372 V AdapterServiceConfig: isSplitA2dpEnabled: true
+08-10 17:23:06.672  5351  5372 V AdapterServiceConfig: Adding HidHostService
+08-10 17:23:06.672  5351  5372 D AdapterServiceConfig:  addAudioProfiles profilePanService
+08-10 17:23:06.672  5351  5372 I AdapterServiceConfig: addAudioProfiles isA2dpSink :true
+08-10 17:23:06.672  5351  5372 D BluetoothAdapterService: getAdapterService() - returning com.android.bluetooth.btservice.AdapterService@f926425
+08-10 17:23:06.672  5351  5372 V AdapterServiceConfig: isSplitA2dpEnabled: true
+08-10 17:23:06.672  5351  5372 V AdapterServiceConfig: Adding PanService
+08-10 17:23:06.672  5351  5372 D AdapterServiceConfig:  addAudioProfiles profileGattService
+08-10 17:23:06.672  5351  5372 I AdapterServiceConfig: addAudioProfiles isA2dpSink :true
+08-10 17:23:06.672  5351  5372 D BluetoothAdapterService: getAdapterService() - returning com.android.bluetooth.btservice.AdapterService@f926425
+08-10 17:23:06.672  5351  5372 V AdapterServiceConfig: isSplitA2dpEnabled: true
+08-10 17:23:06.672  5351  5372 V AdapterServiceConfig: Adding GattService
+08-10 17:23:06.672  5351  5372 D AdapterServiceConfig:  addAudioProfiles profileBluetoothMapService
+08-10 17:23:06.672  5351  5372 I AdapterServiceConfig: addAudioProfiles isA2dpSink :true
+08-10 17:23:06.672  5351  5372 D BluetoothAdapterService: getAdapterService() - returning com.android.bluetooth.btservice.AdapterService@f926425
+08-10 17:23:06.672  5351  5372 V AdapterServiceConfig: isSplitA2dpEnabled: true
+08-10 17:23:06.672  5351  5372 V AdapterServiceConfig: Adding BluetoothMapService
+08-10 17:23:06.673  5351  5372 D AdapterServiceConfig:  addAudioProfiles profileAvrcpControllerService
+08-10 17:23:06.673  5351  5372 I AdapterServiceConfig: addAudioProfiles isA2dpSink :true
+08-10 17:23:06.673  5351  5372 D BluetoothAdapterService: getAdapterService() - returning com.android.bluetooth.btservice.AdapterService@f926425
+08-10 17:23:06.673  5351  5372 V AdapterServiceConfig: isSplitA2dpEnabled: true
+08-10 17:23:06.673  5351  5372 V AdapterServiceConfig: Adding AvrcpControllerService
+08-10 17:23:06.673  5351  5372 D AdapterServiceConfig:  addAudioProfiles profileSapService
+08-10 17:23:06.673  5351  5372 I AdapterServiceConfig: addAudioProfiles isA2dpSink :true
+08-10 17:23:06.673  5351  5372 D BluetoothAdapterService: getAdapterService() - returning com.android.bluetooth.btservice.AdapterService@f926425
+08-10 17:23:06.673  5351  5372 V AdapterServiceConfig: isSplitA2dpEnabled: true
+08-10 17:23:06.673  5351  5372 V AdapterServiceConfig: Adding SapService
+08-10 17:23:06.673  5351  5372 D AdapterServiceConfig:  addAudioProfiles profileBluetoothOppService
+08-10 17:23:06.673  5351  5372 I AdapterServiceConfig: addAudioProfiles isA2dpSink :true
+08-10 17:23:06.673  5351  5372 D BluetoothAdapterService: getAdapterService() - returning com.android.bluetooth.btservice.AdapterService@f926425
+08-10 17:23:06.673  5351  5372 V AdapterServiceConfig: isSplitA2dpEnabled: true
+08-10 17:23:06.673  5351  5372 V AdapterServiceConfig: Adding BluetoothOppService
+08-10 17:23:06.673  5351  5372 D AdapterServiceConfig:  addAudioProfiles profileBluetoothPbapService
+08-10 17:23:06.673  5351  5372 I AdapterServiceConfig: addAudioProfiles isA2dpSink :true
+08-10 17:23:06.673  5351  5372 D BluetoothAdapterService: getAdapterService() - returning com.android.bluetooth.btservice.AdapterService@f926425
+08-10 17:23:06.673  5351  5372 V AdapterServiceConfig: isSplitA2dpEnabled: true
+08-10 17:23:06.673  5351  5372 V AdapterServiceConfig: Adding BluetoothPbapService
+08-10 17:23:06.674  5351  5372 D AdapterServiceConfig:  addAudioProfiles profileBATService
+08-10 17:23:06.674  5351  5372 I AdapterServiceConfig: addAudioProfiles isA2dpSink :true
+08-10 17:23:06.674  5351  5372 D BluetoothAdapterService: getAdapterService() - returning com.android.bluetooth.btservice.AdapterService@f926425
+08-10 17:23:06.674  5351  5372 V AdapterServiceConfig: isSplitA2dpEnabled: true
+08-10 17:23:06.674  5351  5372 D AdapterServiceConfig:  isBAEnabled = false isSplitEnabled true
+08-10 17:23:06.674  5351  5372 I AdapterServiceConfig:  Profile BATService Not added 
+08-10 17:23:06.674  5351  5372 D BluetoothAdapterService: BleOnProcessStart() - Make Bond State Machine
+08-10 17:23:06.689  1425  1842 D CompatibilityInfo: mCompatibilityFlags - 4
+08-10 17:23:06.689  1425  1842 D CompatibilityInfo: applicationDensity - 240
+08-10 17:23:06.689  1425  1842 D CompatibilityInfo: applicationScale - 1.0
+08-10 17:23:06.692  5351  5351 D BtGatt.GattService: classInitNative called
+08-10 17:23:06.693  5351  5351 I BtGatt.JNI: classInitNative(L1024): classInitNative: Success!
+08-10 17:23:06.696  5351  5351 D BtGatt.DebugUtils: handleDebugAction() action=null
+08-10 17:23:06.697  5351  5351 D BluetoothAdapterService: getAdapterService() - returning com.android.bluetooth.btservice.AdapterService@f926425
+08-10 17:23:06.698  5351  5351 D GattService: Received start request. Starting profile...
+08-10 17:23:06.698  5351  5351 D BluetoothAdapterService: getAdapterService() - returning com.android.bluetooth.btservice.AdapterService@f926425
+08-10 17:23:06.703  5351  5351 D BtGatt.GattService: start()
+08-10 17:23:06.705  5351  5351 I bt_btif : get_profile_interface: id = gatt
+08-10 17:23:06.708  5351  5351 D BluetoothAdapterService: getAdapterService() - returning com.android.bluetooth.btservice.AdapterService@f926425
+08-10 17:23:06.708  5351  5351 D BtGatt.AdvertiseManager: advertise manager created
+08-10 17:23:06.725  5351  5351 D BluetoothAdapterService: getAdapterService() - returning com.android.bluetooth.btservice.AdapterService@f926425
+08-10 17:23:06.725  5351  5351 D BtGatt.SyncManager: advertise manager created
+08-10 17:23:06.725  5351  5351 D BtGatt.GattService: setGattService(): set to: com.android.bluetooth.gatt.GattService@b26e567
+08-10 17:23:06.725  5351  5351 D GattService:  profile started successfully
+08-10 17:23:06.727  5351  5351 W BluetoothAdapterService: onProfileServiceStateChange() - Gatt profile service started..
+08-10 17:23:06.727  5351  5351 I bt_btif : QTI OMR1 stack: enable
+08-10 17:23:06.727  5351  5373 E bt_vnd_log: init_vnd_Logger, Logger Not enabled from config file
+08-10 17:23:06.727  5351  5373 I bt_stack_manager: event_start_up_stack is bringing up the stack
+08-10 17:23:06.728  5351  5373 I bt_core_module: module_start_up Starting module "btif_config_module"
+08-10 17:23:06.728  5351  5373 I bt_core_module: module_start_up Started module "btif_config_module"
+08-10 17:23:06.728  5351  5373 I bt_core_module: module_start_up Starting module "device_iot_config_module"
+08-10 17:23:06.728  5351  5373 I bt_core_module: module_start_up Started module "device_iot_config_module"
+08-10 17:23:06.728  5351  5373 I bt_core_module: module_start_up Starting module "btsnoop_module"
+08-10 17:23:06.728  5351  5373 I droid.bluetoot: [0810/172306.728428:INFO:btsnoop.cc(249)] start_up: Snoop Logs disabled
+08-10 17:23:06.728  5351  5373 I droid.bluetoot: [0810/172306.728521:INFO:btsnoop.cc(418)] delete_btsnoop_files: Deleting snoop logs if they exist. filtered = 1
+08-10 17:23:06.728  5351  5373 I droid.bluetoot: [0810/172306.728630:INFO:btsnoop.cc(418)] delete_btsnoop_files: Deleting snoop logs if they exist. filtered = 0
+08-10 17:23:06.736  1913  1913 D LenovoBatteryWarningReceiver: action = android.intent.action.BATTERY_CHANGED
+08-10 17:23:06.736  1913  1913 D LenovoBatteryWarningReceiver: mTemp  247
+08-10 17:23:06.736  2228  2228 D QtiCarrierConfigHelper: WARNING, no carrier configs on phone Id: 0
+08-10 17:23:06.736  1913  1913 D LenovoBatteryWarningReceiver: mHealth  2
+08-10 17:23:06.736  1913  1913 D LenovoBatteryWarningReceiver: mShutdownBatteryTemperature  590
+08-10 17:23:06.736  1913  1913 D ChargeProtectionService: BroadcastReceiver.onReceive:android.intent.action.BATTERY_CHANGED mEnabled=true
+08-10 17:23:06.736  1913  1913 D ChargeProtectionService: mEnabled enter:true  ，mPluggedIn ：true  ,mBatteryStatus : 3
+08-10 17:23:06.736  1913  1913 D ChargeProtectionService: stopCharging:
+08-10 17:23:06.742  5351  5373 D bt_snoop: start_up: vendor_logging_level values is 65535 
+08-10 17:23:06.743  5351  5373 I bt_core_module: module_start_up Started module "btsnoop_module"
+08-10 17:23:06.743  5351  5373 I bt_core_module: module_start_up Starting module "hci_module"
+08-10 17:23:06.743  5351  5373 I bt_hci  : hci_module_start_up
+08-10 17:23:06.743  1913  1913 D ChargeProtectionService: updateCharging > STOP_CHARGING_LEVEL:60
+08-10 17:23:06.744  1913  1913 D KeyguardUpdateMonitor: received broadcast android.intent.action.BATTERY_CHANGED
+08-10 17:23:06.744  5351  5390 I bt_osi_thread: run_thread: thread id 5390, thread name hci_thread started
+08-10 17:23:06.744  5351  5373 D bt_osi_wakelock: wakelock_initialize_native opening wake locks
+08-10 17:23:06.745  5351  5373 D bt_hci  : hci_module_start_up starting async portion
+08-10 17:23:06.745  5351  5390 I bt_hci  : hci_initialize
+08-10 17:23:06.746  1913  1913 D StatusBar: ACTION_BATTERY_CHANGED, updateChargingViewValue
+08-10 17:23:06.746  1913  1913 I StatusBar: chargePlug=2, maxChargingMicroAmp=0,isPlugin=false,mErrorShowDialog=false
+08-10 17:23:06.747  1913  1913 D KeyguardUpdateMonitor: handleBatteryUpdate
+08-10 17:23:06.747  1913  2017 D Tile.BatterySaverTile.pm: setListening ingore lifecycle for pm
+08-10 17:23:06.748  5351  5390 I bt_hci  : hci_initialize: IBluetoothHci::getService() returned 0xb40000724a679950 (remote)
+08-10 17:23:06.749   837   837 W vendor.qti.bluetooth@1.0-bluetooth_hci: BluetoothHci::initialize()
+08-10 17:23:06.749   837   837 W vendor.qti.bluetooth@1.0-data_handler: DataHandler:: Init()
+08-10 17:23:06.749   837   837 W vendor.qti.bluetooth@1.0-data_handler: SOC property  set to cherokee
+08-10 17:23:06.749   837   837 I vendor.qti.bluetooth@1.0-data_handler: data_service_setup_sighandler: Entry
+08-10 17:23:06.749   837   837 D vendor.qti.bluetooth@1.0-data_handler: isProtocolAdded:
+08-10 17:23:06.749   837   837 I vendor.qti.bluetooth@1.0-data_handler: isProtocolAdded: status:0
+08-10 17:23:06.749   837   837 I vendor.qti.bluetooth@1.0-data_handler: Open init_status 0 
+08-10 17:23:06.749   837   837 I vendor.qti.bluetooth@1.0-data_handler: Open: soc_need_reload_patch = 1
+08-10 17:23:06.750   837   837 D vendor.qti.bluetooth@1.0-wake_lock: Init wakelock is initiated 
+08-10 17:23:06.750   837   837 I vendor.qti.bluetooth@1.0-bluetooth_hci: initialize: linking to deathRecipient
+08-10 17:23:06.751   837  5392 D vendor.qti.bluetooth@1.0-data_handler: StartInitTimer: Init timer started
+08-10 17:23:06.751   837  5392 I vendor.qti.bluetooth@1.0-uart_controller: soc need reload patch = 1
+08-10 17:23:06.751   837  5392 D vendor.qti.bluetooth@1.0-power_manager: SetPower: enable: 0
+08-10 17:23:06.751   837  5392 E vendor.qti.bluetooth@1.0-power_manager: 
+08-10 17:23:06.751   837  5392 E vendor.qti.bluetooth@1.0-power_manager: PowerUpChip enable(0) retentionMode(0)
+08-10 17:23:06.751   837  5392 D vendor.qti.bluetooth@1.0-power_manager: SetPower: enable: 1
+08-10 17:23:06.751   837  5392 E vendor.qti.bluetooth@1.0-power_manager: 
+08-10 17:23:06.751   837  5392 E vendor.qti.bluetooth@1.0-power_manager: PowerUpChip enable(1) retentionMode(0)
+08-10 17:23:06.752   837  5392 D vendor.qti.bluetooth@1.0-wake_lock: Acquire wakelock is acquired 
+08-10 17:23:06.752   837  5392 D vendor.qti.bluetooth@1.0-uart_transport: Init:> soc_type: 3, need_reload: 1
+08-10 17:23:06.752   837  5392 D vendor.qti.bluetooth@1.0-uart_transport: CleanUp:> soc_type: 3, need_reload: 1
+08-10 17:23:06.752   837  5392 D vendor.qti.bluetooth@1.0-uart_transport: userial clock off
+08-10 17:23:06.762   837  5392 I vendor.qti.bluetooth@1.0-uart_transport: InitTransport: opening /dev/ttyHS0
+08-10 17:23:06.764   837  5392 D vendor.qti.bluetooth@1.0-uart_transport: userial clock on
+08-10 17:23:06.764   837  5392 I vendor.qti.bluetooth@1.0-uart_transport: GetBaudRate: Current Baudrate = 2400 bps
+08-10 17:23:06.764   837  5392 I vendor.qti.bluetooth@1.0-uart_transport: InitTransport: device fd = 8 open @2400 bps
+08-10 17:23:06.795   837  5392 I vendor.qti.bluetooth@1.0-uart_transport: CleanUp:send out shutdown signal
+08-10 17:23:06.795   837  5392 D vendor.qti.bluetooth@1.0-uart_transport: userial clock off
+08-10 17:23:06.932   837  5392 I vendor.qti.bluetooth@1.0-uart_transport: DeInitTransport: Transport is being closed!
+08-10 17:23:06.956  1425  1842 W NotificationService: Toast already killed. pkg=com.topjohnwu.magisk token=android.os.BinderProxy@974977b
+08-10 17:23:06.958  1913  1913 E toast   : command showtoast
+08-10 17:23:06.959  1913  1913 I chatty  : uid=10080(com.android.systemui) identical 27 lines
+08-10 17:23:06.959  1913  1913 E toast   : command showtoast
+08-10 17:23:07.007  1425  3352 V WindowManager: Creating surface in session android.view.SurfaceSession@e28e17e window WindowStateAnimator{2b5402d Toast} w=396 h=75 x=0 y=0 format=-3 flags=4
+08-10 17:23:07.033   837  5392 I vendor.qti.bluetooth@1.0-uart_transport: InitTransport: opening /dev/ttyHS0
+08-10 17:23:07.035   837  5392 D vendor.qti.bluetooth@1.0-uart_transport: userial clock on
+08-10 17:23:07.045  1425  1466 V WindowManager: performShow on Window{52b3057 u0 Toast}: mDrawState=READY_TO_SHOW readyForDisplay=true starting=false during animation: policyVis=true parentHidden=false tok.visibleRequested=false tok.visible=false animating=false tok animating=false Callers=com.android.server.wm.WindowState.performShowLocked:4479 com.android.server.wm.WindowStateAnimator.commitFinishDrawingLocked:379 com.android.server.wm.DisplayContent.lambda$new$8$DisplayContent:909 com.android.server.wm.-$$Lambda$DisplayContent$qxt4izS31fb0LF2uo_OF9DMa7gc.accept:4 
+08-10 17:23:07.046  1425  1466 V WindowManager: Showing Window{52b3057 u0 Toast}: mDrawState=READY_TO_SHOW readyForDisplay=true starting=false during animation: policyVis=true parentHidden=false tok.visibleRequested=false tok.visible=false animating=false tok animating=false Callers=com.android.server.wm.WindowState.performShowLocked:4494 com.android.server.wm.WindowStateAnimator.commitFinishDrawingLocked:379 com.android.server.wm.DisplayContent.lambda$new$8$DisplayContent:909 com.android.server.wm.-$$Lambda$DisplayContent$qxt4izS31fb0LF2uo_OF9DMa7gc.accept:4 
+08-10 17:23:07.047  1913  1913 I NavigationBarController: register productivity change listener failure , try again!
+08-10 17:23:07.050  1913  1913 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 17:23:07.051  1425  1466 V WindowManager: Showing Surface(name=Toast)/@0x24493b0 during relayout
+08-10 17:23:07.171   837  5392 I vendor.qti.bluetooth@1.0-uart_transport: GetBaudRate: Current Baudrate = 115200 bps
+08-10 17:23:07.171   837  5392 I vendor.qti.bluetooth@1.0-uart_transport: InitTransport: device fd = 8 open @115200 bps
+08-10 17:23:07.173   837  5392 I vendor.qti.bluetooth@1.0-uart_transport: Init:send out poweron signal
+08-10 17:23:07.173   837  5392 D vendor.qti.bluetooth@1.0-uart_transport: userial clock off
+08-10 17:23:07.180   837  5392 I vendor.qti.bluetooth@1.0-uart_transport: DeInitTransport: Transport is being closed!
+08-10 17:23:07.180   837  5392 I vendor.qti.bluetooth@1.0-uart_transport: InitTransport: opening /dev/ttyHS0
+08-10 17:23:07.183   837  5392 D vendor.qti.bluetooth@1.0-uart_transport: userial clock on
+08-10 17:23:07.183   837  5392 I vendor.qti.bluetooth@1.0-uart_transport: InitTransport: HW flow control enabled
+08-10 17:23:07.187   837  5392 I vendor.qti.bluetooth@1.0-uart_transport: GetBaudRate: Current Baudrate = 115200 bps
+08-10 17:23:07.187   837  5392 I vendor.qti.bluetooth@1.0-uart_transport: InitTransport: device fd = 8 open @115200 bps
+08-10 17:23:07.187   837  5392 D vendor.qti.bluetooth@1.0-uart_transport: userial clock off
+08-10 17:23:07.224  1425  1466 I WindowManager: Window WindowStateAnimator{8e2a343 Toast} destroying surface Surface(name=Toast)/@0x6ddca3e, session Session{2dd4d9 1913:u0a10080}
+08-10 17:23:07.288   837  5392 D vendor.qti.bluetooth@1.0-power_manager: CheckSwCtrl: Check SW_CTRL & save value in kernel
+08-10 17:23:07.288   837  5392 D vendor.qti.bluetooth@1.0-patch_dl_manager: PatchDLManager
+08-10 17:23:07.288   837  5392 D vendor.qti.bluetooth@1.0-ibs_handler: IsEnabled: SIBS enabled: true
+08-10 17:23:07.288   837  5392 D vendor.qti.bluetooth@1.0-ibs_handler: IbsHandler
+08-10 17:23:07.288   837  5392 D vendor.qti.bluetooth@1.0-ibs_handler: InitInt: tty_fd = 8
+08-10 17:23:07.289   837  5392 D vendor.qti.bluetooth@1.0-bluetooth_address: GetLocalAddress
+08-10 17:23:07.299     1     1 W /system/bin/init: type=1107 audit(0.0:899): uid=0 auid=4294967295 ses=4294967295 subj=u:r:init:s0 msg='avc: denied { set } for property=ro.vendor.bt.bdaddr_path pid=837 uid=1002 gid=1002 scontext=u:r:hal_bluetooth_default:s0 tcontext=u:object_r:vendor_default_prop:s0 tclass=property_service permissive=0'
+08-10 17:23:07.300   837  5392 E vendor.qti.bluetooth@1.0-bluetooth_address: CMD result: 1
+08-10 17:23:07.302   837  5392 W libc    : Unable to set property "ro.vendor.bt.bdaddr_path" to "/mnt/vendor/persist/bt_mac.bin": error code: 0x18
+08-10 17:23:07.310   837  5392 D vendor.qti.bluetooth@1.0-bluetooth_address: GetLocalAddress: QMI initialization START 
+08-10 17:23:07.310   837  5392 I vendor.qti.bluetooth@1.0-uart_transport: ## userial_vendor_ioctl: UART Flow On 
+08-10 17:23:07.310   837  5392 I vendor.qti.bluetooth@1.0-patch_dl_manager: Wipower not enabled
+08-10 17:23:07.310   837  5392 I vendor.qti.bluetooth@1.0-patch_dl_manager:  SocInit 
+08-10 17:23:07.310   837  5392 D vendor.qti.bluetooth@1.0-patch_dl_manager: PatchVerReq: Sending Get Version CMD to SOC
+08-10 17:23:07.310   837  5392 D vendor.qti.bluetooth@1.0-patch_dl_manager: HciSendVsCmd: Get Version Cmd sent to SOC
+08-10 17:23:07.316   837  5392 I vendor.qti.bluetooth@1.0-patch_dl_manager: 	 Current Product ID		: 0x0000000a
+08-10 17:23:07.316   837  5392 I vendor.qti.bluetooth@1.0-patch_dl_manager: 	 Current Patch Version		: 0x0001
+08-10 17:23:07.316   837  5392 I vendor.qti.bluetooth@1.0-patch_dl_manager: 	 Current ROM Build Version	: 0x0201
+08-10 17:23:07.316   837  5392 I vendor.qti.bluetooth@1.0-patch_dl_manager: 	 Current SOC Version		: 0x40020150
+08-10 17:23:07.316   837  5392 E vendor.qti.bluetooth@1.0-power_manager: 
+08-10 17:23:07.316   837  5392 E vendor.qti.bluetooth@1.0-power_manager: bt soc version  (1073873232)
+08-10 17:23:07.317   837  5392 E vendor.qti.bluetooth@1.0-patch_dl_manager: PatchVerReq: rsp[CMD_RSP_OFFSET] = 0 ,  rsp[RSP_TYPE_OFFSET] = 2
+08-10 17:23:07.317   837  5392 D vendor.qti.bluetooth@1.0-patch_dl_manager: ReadHciEvent: Expected CC
+08-10 17:23:07.317   837  5392 I vendor.qti.bluetooth@1.0-patch_dl_manager: SocInit: Chipset Version (0x40020150000a0201)
+08-10 17:23:07.317   837  5392 D vendor.qti.bluetooth@1.0-patch_dl_manager: FormRegularPaths: Checking and Setting proper Rampatch and NVM path
+08-10 17:23:07.317   837  5392 D vendor.qti.bluetooth@1.0-patch_dl_manager: FormRegularPaths: Done checking and setting proper Rampatch and NVM path
+08-10 17:23:07.317   837  5392 I vendor.qti.bluetooth@1.0-uart_transport: ## userial_vendor_ioctl: UART Flow Off 
+08-10 17:23:07.338   837  5392 I vendor.qti.bluetooth@1.0-uart_transport: ## userial_vendor_set_baud: 17
+08-10 17:23:07.344   837  5392 I vendor.qti.bluetooth@1.0-uart_transport: SetBaudRate: in BOTHER
+08-10 17:23:07.344   837  5392 I vendor.qti.bluetooth@1.0-uart_transport: GetBaudRate: Current Baudrate = 3200000 bps
+08-10 17:23:07.344   837  5392 I vendor.qti.bluetooth@1.0-uart_transport: ## userial_vendor_ioctl: UART Flow On 
+08-10 17:23:07.345   837  5392 D vendor.qti.bluetooth@1.0-patch_dl_manager: ReadHciEvent: Expected CC
+08-10 17:23:07.345   837  5392 I vendor.qti.bluetooth@1.0-patch_dl_manager: SocInit: Baud rate changed successfully 
+08-10 17:23:07.345   837  5392 E vendor.qti.bluetooth@1.0-patch_dl_manager: /bt_firmware/image/apbtfw11.tlv File Open Fail No such file or directory (2)
+08-10 17:23:07.345   837  5392 I vendor.qti.bluetooth@1.0-patch_dl_manager: File open /vendor/bt_firmware/image/apbtfw11.tlv succeeded
+08-10 17:23:07.348   837  5392 I vendor.qti.bluetooth@1.0-patch_dl_manager: ====================================================
+08-10 17:23:07.348   837  5392 I vendor.qti.bluetooth@1.0-patch_dl_manager: TLV Type			 : 0x1
+08-10 17:23:07.348   837  5392 I vendor.qti.bluetooth@1.0-patch_dl_manager: Length			 : 229792 bytes
+08-10 17:23:07.348   837  5392 I vendor.qti.bluetooth@1.0-patch_dl_manager: Total Length			 : 229536 bytes
+08-10 17:23:07.348   837  5392 I vendor.qti.bluetooth@1.0-patch_dl_manager: Patch Data Length			 : 229512 bytes
+08-10 17:23:07.348   837  5392 I vendor.qti.bluetooth@1.0-patch_dl_manager: Signing Format Version	 : 0x1
+08-10 17:23:07.348   837  5392 I vendor.qti.bluetooth@1.0-patch_dl_manager: Signature Algorithm		 : 0x2
+08-10 17:23:07.348   837  5392 I vendor.qti.bluetooth@1.0-patch_dl_manager: Event Handling			 : 0x3
+08-10 17:23:07.348   837  5392 I vendor.qti.bluetooth@1.0-patch_dl_manager: Reserved			 : 0x0
+08-10 17:23:07.348   837  5392 I vendor.qti.bluetooth@1.0-patch_dl_manager: Product ID			 : 0x000a
+08-10 17:23:07.348   837  5392 I vendor.qti.bluetooth@1.0-patch_dl_manager: Rom Build Version		 : 0x0201
+08-10 17:23:07.348   837  5392 I vendor.qti.bluetooth@1.0-patch_dl_manager: Patch Version		 : 0x0002
+08-10 17:23:07.348   837  5392 I vendor.qti.bluetooth@1.0-patch_dl_manager: Reserved			 : 0x8000
+08-10 17:23:07.349   837  5392 I vendor.qti.bluetooth@1.0-patch_dl_manager: Patch Entry Address		 : 0x209e4
+08-10 17:23:07.349   837  5392 I vendor.qti.bluetooth@1.0-patch_dl_manager: ====================================================
+08-10 17:23:07.349   837  5392 I vendor.qti.bluetooth@1.0-patch_dl_manager: TlvDnldReq: TLV size: 229796, Total Seg num: 945, remain size: 161
+08-10 17:23:07.349   837  5392 I vendor.qti.bluetooth@1.0-patch_dl_manager: Event handling type: SKIP_EVT_VSE_CC
+08-10 17:23:07.551  1913  1913 I NavigationBarController: register productivity change listener failure , try again!
+08-10 17:23:07.552  1913  1913 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 17:23:08.053  1913  1913 I NavigationBarController: register productivity change listener failure , try again!
+08-10 17:23:08.054  1913  1913 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 17:23:08.216   837  5392 D vendor.qti.bluetooth@1.0-patch_dl_manager: TlvDnldReq: Updating seg len to 161 as last segment
+08-10 17:23:08.443   837  5392 D vendor.qti.bluetooth@1.0-patch_dl_manager: FrameHciCmdPkt: Sending EDL_GET_BOARD_ID
+08-10 17:23:08.443   837  5392 D vendor.qti.bluetooth@1.0-patch_dl_manager: HCI-CMD -1:	0x1 	0x0 	0xfc 	0x1 	0x23
+08-10 17:23:08.443   837  5392 I vendor.qti.bluetooth@1.0-patch_dl_manager: GetBoardIdReq: Sending EDL_GET_BOARD_ID
+08-10 17:23:08.444   837  5392 I vendor.qti.bluetooth@1.0-patch_dl_manager: HandleEdlCmdResEvt: Board Id 0 0!!
+08-10 17:23:08.444   837  5392 D vendor.qti.bluetooth@1.0-patch_dl_manager: ReadHciEvent: Expected CC
+08-10 17:23:08.444   837  5392 E vendor.qti.bluetooth@1.0-patch_dl_manager: /bt_firmware/image/apnv11.b00 File Open Fail No such file or directory (2)
+08-10 17:23:08.444   837  5392 E vendor.qti.bluetooth@1.0-patch_dl_manager: /vendor/bt_firmware/image/apnv11.b00 File Opening from alternate path: Fail No such file or directory (2)
+08-10 17:23:08.444   837  5392 I vendor.qti.bluetooth@1.0-patch_dl_manager: DownloadTlvFile: /bt_firmware/image/apnv11.b00: file doesn't exist, falling back to default file
+08-10 17:23:08.444   837  5392 E vendor.qti.bluetooth@1.0-patch_dl_manager: /bt_firmware/image/apnv11.bin File Open Fail No such file or directory (2)
+08-10 17:23:08.444   837  5392 I vendor.qti.bluetooth@1.0-patch_dl_manager: File open /vendor/bt_firmware/image/apnv11.bin succeeded
+08-10 17:23:08.444   837  5392 I vendor.qti.bluetooth@1.0-patch_dl_manager: ====================================================
+08-10 17:23:08.444   837  5392 I vendor.qti.bluetooth@1.0-patch_dl_manager: TLV Type			 : 0x4
+08-10 17:23:08.444   837  5392 I vendor.qti.bluetooth@1.0-patch_dl_manager: Length			 : 4871 bytes
+08-10 17:23:08.444   837  5392 I vendor.qti.bluetooth@1.0-patch_dl_manager: ====================================================
+08-10 17:23:08.444   837  5392 I vendor.qti.bluetooth@1.0-patch_dl_manager: ====================================================
+08-10 17:23:08.444   837  5392 I vendor.qti.bluetooth@1.0-patch_dl_manager: TLV Type			 : 0x2
+08-10 17:23:08.444   837  5392 I vendor.qti.bluetooth@1.0-patch_dl_manager: Length			 : 3555 bytes
+08-10 17:23:08.444   837  5392 I vendor.qti.bluetooth@1.0-patch_dl_manager: ====================================================
+08-10 17:23:08.444   837  5392 I vendor.qti.bluetooth@1.0-patch_dl_manager: BD Address: BB:00:00:00:00:1A
+08-10 17:23:08.444   837  5392 D vendor.qti.bluetooth@1.0-ibs_handler: IsEnabled: SIBS enabled: true
+08-10 17:23:08.448   837  5392 I chatty  : uid=1002 bluetooth@1.0-s identical 43 lines
+08-10 17:23:08.448   837  5392 D vendor.qti.bluetooth@1.0-ibs_handler: IsEnabled: SIBS enabled: true
+08-10 17:23:08.448   837  5392 I vendor.qti.bluetooth@1.0-patch_dl_manager: ====================================================
+08-10 17:23:08.449   837  5392 I vendor.qti.bluetooth@1.0-patch_dl_manager: TLV Type			 : 0x3
+08-10 17:23:08.449   837  5392 I vendor.qti.bluetooth@1.0-patch_dl_manager: Length			 : 1308 bytes
+08-10 17:23:08.449   837  5392 I vendor.qti.bluetooth@1.0-patch_dl_manager: ====================================================
+08-10 17:23:08.450   837  5392 I vendor.qti.bluetooth@1.0-patch_dl_manager: ====================================================
+08-10 17:23:08.450   837  5392 I vendor.qti.bluetooth@1.0-patch_dl_manager: TlvDnldReq: TLV size: 4875, Total Seg num: 20, remain size: 15
+08-10 17:23:08.452   837  5392 D vendor.qti.bluetooth@1.0-patch_dl_manager: ReadHciEvent: Expected CC
+08-10 17:23:08.453  1425  1465 W WindowManager: Unable to start animation, surface is null or no children.
+08-10 17:23:08.453  1425  1465 V WindowManager: Policy visibility false: Window{197fbfd u0 Toast}
+08-10 17:23:08.500   837  5392 I chatty  : uid=1002 bluetooth@1.0-s identical 18 lines
+08-10 17:23:08.502   837  5392 D vendor.qti.bluetooth@1.0-patch_dl_manager: ReadHciEvent: Expected CC
+08-10 17:23:08.502   837  5392 D vendor.qti.bluetooth@1.0-patch_dl_manager: TlvDnldReq: Updating seg len to 15 as last segment
+08-10 17:23:08.504   837  5392 D vendor.qti.bluetooth@1.0-patch_dl_manager: ReadHciEvent: Expected CC
+08-10 17:23:08.504   837  5392 I vendor.qti.bluetooth@1.0-patch_dl_manager: SocInit: Download TLV file successfully 
+08-10 17:23:08.505   837  5392 I vendor.qti.bluetooth@1.0-patch_dl_manager: HandleEdlCmdResEvt: BT SoC FW SU Build info: BTFM.CHE.2.1.5-00278-QCACHROMZ-1, 32
+08-10 17:23:08.505   837  5392 D vendor.qti.bluetooth@1.0-patch_dl_manager: ReadHciEvent: Expected CC
+08-10 17:23:08.505   837  5392 D vendor.qti.bluetooth@1.0-patch_dl_manager: GetAddOnFeatureList: Sending HCI_VS_GET_ADDON_FEATURES_SUPPORT
+08-10 17:23:08.505   837  5392 D vendor.qti.bluetooth@1.0-patch_dl_manager: HCI-CMD: 	0x1 	0x1d 	0xfc 	0x0
+08-10 17:23:08.506   837  5392 D vendor.qti.bluetooth@1.0-patch_dl_manager: ReadHciEvent: Expected CC
+08-10 17:23:08.506   837  5392 I vendor.qti.bluetooth@1.0-patch_dl_manager: GetAddOnFeatureList: param_len 13, cmd_status = 0
+08-10 17:23:08.506   837  5392 I vendor.qti.bluetooth@1.0-patch_dl_manager: GetAddOnFeatureList: feat_mask_len 5 product_id = 10, rsp_version = 1
+08-10 17:23:08.506   837  5392 I vendor.qti.bluetooth@1.0-patch_dl_manager: EnableEnhControllerLog: disabled(0)
+08-10 17:23:08.507   837  5392 D vendor.qti.bluetooth@1.0-patch_dl_manager: ReadHciEvent: Expected CC
+08-10 17:23:08.507   837  5392 I vendor.qti.bluetooth@1.0-patch_dl_manager: HciReset: HCI RESET 
+08-10 17:23:08.555  1913  1913 I NavigationBarController: register productivity change listener failure , try again!
+08-10 17:23:08.556  1913  1913 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 17:23:08.624   837  5392 D vendor.qti.bluetooth@1.0-patch_dl_manager: ReadCmdCmplEvent: Cmd Cmpl received for opcode c03
+08-10 17:23:08.625   837  5392 D vendor.qti.bluetooth@1.0-uart_controller: add on features read true
+08-10 17:23:08.631   837   837 W bluetooth@1.0-s: type=1400 audit(0.0:900): avc: denied { read write } for name="diag" dev="tmpfs" ino=1144 scontext=u:r:hal_bluetooth_default:s0 tcontext=u:object_r:vendor_diag_device:s0 tclass=chr_file permissive=0
+08-10 17:23:08.637   837  5392 E Diag_Lib:  Diag_LSM_Init: Failed to open handle to diag driver, error = 13
+08-10 17:23:08.637   837  5392 E vendor.qti.bluetooth@1.0-diag_interface: Init:Failed to Init diag
+08-10 17:23:08.637   837  5392 D vendor.qti.bluetooth@1.0-uart_controller: Init succeded
+08-10 17:23:08.637   837  5392 I vendor.qti.bluetooth@1.0-data_handler: SetHostAddOnFeatures: chip_ver: (0x40020150000a0201), chip_ver_str: APACHE_VER_1_2_1
+08-10 17:23:08.637   837  5392 D vendor.qti.bluetooth@1.0-data_handler: StopInitTimer: InitTimer Stopped
+08-10 17:23:08.637   837  5392 D vendor.qti.bluetooth@1.0-data_handler: Firmware download succeded.
+08-10 17:23:08.638   837  5392 I vendor.qti.bluetooth@1.0-bluetooth_hci: operator(): Set callbacks received from BT client inorder to provide status and data through them
+08-10 17:23:08.639  5351  5390 I bt_hci  : event_finish_startup
+08-10 17:23:08.639   837  5392 D vendor.qti.bluetooth@1.0-data_handler: operator(): init thread exited now
+08-10 17:23:08.639  5351  5373 I bt_core_module: module_start_up Started module "hci_module"
+08-10 17:23:08.640  5351  5396 I bt_osi_thread: run_thread: thread id 5396, thread name bt_workqueue started
+08-10 17:23:08.640  5351  5396 I droid.bluetoot: [0810/172308.640637:INFO:btu_task.cc(107)] Bluetooth chip preload is complete
+08-10 17:23:08.641  5351  5396 W bt_l2cap: L2CAP - L2CA_Register() called for PSM: 0x0001
+08-10 17:23:08.642  5351  5396 W bt_l2cap: L2CAP - L2CA_Register() called for PSM: 0x001f
+08-10 17:23:08.642  5351  5396 I droid.bluetoot: [0810/172308.642299:INFO:gatt_api.cc(950)] GATT_Register 81818181-8181-8181-8181-818181818181
+08-10 17:23:08.642  5351  5396 I droid.bluetoot: [0810/172308.642554:INFO:gatt_api.cc(970)] allocated gatt_if=1
+08-10 17:23:08.642  5351  5396 I droid.bluetoot: [0810/172308.642674:INFO:gatt_api.cc(163)] GATTS_AddService
+08-10 17:23:08.642  5351  5396 I droid.bluetoot: [0810/172308.642794:INFO:gatt_api.cc(266)] GATTS_AddService: service parsed correctly, now starting
+08-10 17:23:08.643  5351  5396 W bt_l2cap: L2CAP - L2CA_Register() called for PSM: 0x0003
+08-10 17:23:08.643  5351  5396 I droid.bluetoot: [0810/172308.643226:INFO:gatt_api.cc(950)] GATT_Register 82828282-8282-8282-8282-828282828282
+08-10 17:23:08.643  5351  5396 I droid.bluetoot: [0810/172308.643351:INFO:gatt_api.cc(970)] allocated gatt_if=2
+08-10 17:23:08.643  5351  5396 I droid.bluetoot: [0810/172308.643452:INFO:gatt_api.cc(163)] GATTS_AddService
+08-10 17:23:08.643  5351  5396 I droid.bluetoot: [0810/172308.643553:INFO:gatt_api.cc(266)] GATTS_AddService: service parsed correctly, now starting
+08-10 17:23:08.645  5351  5397 I bt_osi_thread: run_thread: thread id 5397, thread name btu message loop started
+08-10 17:23:08.647  5351  5398 I bt_osi_thread: run_thread: thread id 5398, thread name module_wrapper started
+08-10 17:23:08.648  5351  5398 I bt_core_module: module_start_up Starting module "controller_module"
+08-10 17:23:08.649  5351  5398 I bt_stack: [INFO:controller.cc(1035)] load_bt_configstore_lib loaded HAL: bt_configstore_interface_t=0x71315d3968, bt_configstore_lib_handle=0xf42a25f69fdbd8ab
+08-10 17:23:08.650  5351  5398 I bt_config_store: getVendorProperties 
+08-10 17:23:08.653   837   837 I vendor.qti.hardware.btconfigstore@2.0-BTConfigStore: getVendorProperties:: Bluetooth soc type set to: cherokee, ret: 8
+08-10 17:23:08.653   837   837 I vendor.qti.hardware.btconfigstore@2.0-BTConfigStore: getVendorProperties:: persist.vendor.qcom.bluetooth.enable.splita2dp: true, ret: 4
+08-10 17:23:08.653   837   837 I vendor.qti.hardware.btconfigstore@2.0-BTConfigStore: getVendorProperties:: persist.vendor.qcom.bluetooth.a2dp_offload_cap: sbc-aptx-aptxtws-aptxhd-aac-ldac, ret: 32
+08-10 17:23:08.653   837   837 I vendor.qti.hardware.btconfigstore@2.0-BTConfigStore: getVendorProperties:: ro.vendor.bluetooth.wipower: false, ret: 5
+08-10 17:23:08.653   837   837 I vendor.qti.hardware.btconfigstore@2.0-BTConfigStore: getVendorProperties:: persist.vendor.qcom.bluetooth.aac_frm_ctl.enabled: false, ret: 5
+08-10 17:23:08.654   837   837 I vendor.qti.hardware.btconfigstore@2.0-BTConfigStore: getVendorProperties:: persist.vendor.qcom.bluetooth.enable.swb: true, ret: 4
+08-10 17:23:08.654   837   837 I vendor.qti.hardware.btconfigstore@2.0-BTConfigStore: getVendorProperties:: persist.vendor.qcom.bluetooth.enable.swbpm: true, ret: 4
+08-10 17:23:08.654   837   837 I vendor.qti.hardware.btconfigstore@2.0-BTConfigStore: getVendorProperties:: persist.vendor.qcom.bluetooth.a2dp_mcast_test.enabled: false, ret: 5
+08-10 17:23:08.654   837   837 I vendor.qti.hardware.btconfigstore@2.0-BTConfigStore: getVendorProperties:: persist.vendor.qcom.bluetooth.twsp_state.enabled: false, ret: 5
+08-10 17:23:08.654   837   837 I vendor.qti.hardware.btconfigstore@2.0-BTConfigStore: getVendorProperties:: persist.vendor.qcom.bluetooth.max_power_support: false, ret: 5
+08-10 17:23:08.654  5351  5398 I bt_config_store: prop type: BT_PROP_SOC_TYPE, prop_value: cherokee
+08-10 17:23:08.654  5351  5398 I bt_config_store: prop type: BT_PROP_SPILT_A2DP, prop_value: true
+08-10 17:23:08.654  5351  5398 I bt_config_store: prop type: BT_PROP_A2DP_OFFLOAD_CAP, prop_value: sbc-aptx-aptxtws-aptxhd-aac-ldac
+08-10 17:23:08.654  5351  5398 I bt_config_store: prop type: BT_PROP_WIPOWER, prop_value: false
+08-10 17:23:08.654  5351  5398 I bt_config_store: prop type: BT_PROP_AAC_FRAME_CTL, prop_value: false
+08-10 17:23:08.654  5351  5398 I bt_config_store:  not handled propType = 6
+08-10 17:23:08.654  5351  5398 I bt_config_store: prop type: not handled, prop_value: true
+08-10 17:23:08.654  5351  5398 I bt_config_store:  not handled propType = 7
+08-10 17:23:08.654  5351  5398 I bt_config_store: prop type: not handled, prop_value: true
+08-10 17:23:08.654  5351  5398 I bt_config_store:  not handled propType = 8
+08-10 17:23:08.654  5351  5398 I bt_config_store: prop type: not handled, prop_value: false
+08-10 17:23:08.654  5351  5398 I bt_config_store:  not handled propType = 9
+08-10 17:23:08.654  5351  5398 I bt_config_store: prop type: not handled, prop_value: false
+08-10 17:23:08.654  5351  5398 I bt_config_store:  not handled propType = 11
+08-10 17:23:08.654  5351  5398 I bt_config_store: prop type: not handled, prop_value: false
+08-10 17:23:08.655  5351  5398 I bt_config_store: soc_name: cherokee, soc_type = 0003
+08-10 17:23:08.655  5351  5398 I bt_controller: start_up:: soc_name:cherokee, soc_type = 3
+08-10 17:23:08.655  5351  5398 I bt_controller: start_up:: spilt_a2dp_supported = 1
+08-10 17:23:08.655  5351  5398 I bt_controller: start_up:: a2dp_offload_Cap = sbc-aptx-aptxtws-aptxhd-aac-ldac
+08-10 17:23:08.655  5351  5398 I bt_controller: start_up:: wipower_supported = 0
+08-10 17:23:08.655  5351  5398 I bt_controller: start_up:: aac_frame_ctl_enabled = 0
+08-10 17:23:08.655  5351  5398 I bt_controller: start_up:: a2dp_multicast_supported = 0
+08-10 17:23:08.655  5351  5398 I bt_controller: start_up:: twsp_state_supported = 0
+08-10 17:23:08.655  5351  5398 I bt_controller: decode_max_power_values: MAX POW property is not set
+08-10 17:23:08.655  5351  5398 I bt_controller: start_up:: max_power_prop_enabled = 0
+08-10 17:23:08.656   837   837 I vendor.qti.bluetooth@1.0-ibs_handler: DeviceWakeUp: Writing IBS_WAKE_IND
+08-10 17:23:08.658   837  5395 I vendor.qti.bluetooth@1.0-ibs_handler: ProcessIbsCmd: Received IBS_WAKE_ACK: 0xFC
+08-10 17:23:08.671  5351  5398 W bt_btm  : btm_enable_soc_iot_info_report, enable=1
+08-10 17:23:08.720  1913  1913 D ProductivityModeListenerConverter: registerProductivityChangeListener in
+08-10 17:23:08.721  1913  1913 D ProductivityModeListenerConverter: registerProductivityChangeListener delay 3000.
+08-10 17:23:08.734  5351  5398 D bt_controller: start_up read local simple pairing options
+08-10 17:23:08.737  5351  5398 D bt_controller: start_up simple pairing options is 0x1
+08-10 17:23:08.737  5351  5398 I bt_config_store: getHostAddOnFeatures 
+08-10 17:23:08.740   837   837 D vendor.qti.bluetooth@1.0-data_handler: isProtocolInitialized:
+08-10 17:23:08.741   837   837 I vendor.qti.bluetooth@1.0-data_handler: isProtocolInitialized: status:1
+08-10 17:23:08.741   837   837 I vendor.qti.hardware.btconfigstore@2.0-BTConfigStore: getHostAddOnFeatures: 0x0
+08-10 17:23:08.741  5351  5398 I bt_config_store: getHostAddOnFeatures:: halResult = 1
+08-10 17:23:08.741  5351  5398 I bt_config_store: getControllerAddOnFeatures 
+08-10 17:23:08.745   837   837 D vendor.qti.bluetooth@1.0-data_handler: isProtocolInitialized:
+08-10 17:23:08.745   837   837 I vendor.qti.bluetooth@1.0-data_handler: isProtocolInitialized: status:1
+08-10 17:23:08.745   837   837 I vendor.qti.hardware.btconfigstore@2.0-BTConfigStore: getControllerAddOnFeatures: 0x788563e848
+08-10 17:23:08.745  5351  5398 I bt_config_store: getControllerAddOnFeatures:: halResult = 0
+08-10 17:23:08.746  5351  5398 I bt_config_store: getControllerAddOnFeatures:: product_id = 10, version = 1, feat_mask_len = 5 features data: 0x1e 0xfd 0 0x2 0 
+08-10 17:23:08.746  5351  5398 I bt_core_module: module_start_up Started module "controller_module"
+08-10 17:23:08.747  5351  5398 W bt_osi_thread: run_thread: thread id 5398, thread name module_wrapper exited
+08-10 17:23:08.747  5351  5396 V bt_stack: [VERBOSE1:connection_manager.cc(195)] reset : after_reset1
+08-10 17:23:08.748  5351  5396 W bt_btm  : btm_decode_ext_features_page: feature page 1 ignored
+08-10 17:23:08.748  5351  5396 W bt_btm  : btm_decode_ext_features_page: feature page 2 ignored
+08-10 17:23:08.748  5351  5397 I bt_btm_sec: BTM_SecRegister p_cb_info->p_le_callback == 0x0x713145ba44
+08-10 17:23:08.749  5351  5397 I bt_btm_sec: BTM_SecRegister btm_cb.api.p_le_callback = 0x0x713145ba44 
+08-10 17:23:08.749  5351  5397 V bt_stack: [VERBOSE1:bta_gattc_act.cc(201)] bta_gattc_register: state:0
+08-10 17:23:08.749  5351  5397 V bt_stack: [VERBOSE1:bta_gattc_act.cc(123)] bta_gattc_enable
+08-10 17:23:08.749  5351  5397 I bt_stack: [INFO:gatt_api.cc(950)] GATT_Register 2efb768f-723d-d064-7c65-fff5225bf579
+08-10 17:23:08.750  5351  5397 I bt_stack: [INFO:gatt_api.cc(970)] allocated gatt_if=3
+08-10 17:23:08.750  5351  5397 V bt_stack: [VERBOSE1:gatt_api.cc(1080)] GATT_StartIf gatt_if=3
+08-10 17:23:08.750  5351  5397 V bt_stack: [VERBOSE1:gatt_utils.cc(254)] gatt_find_the_connected_bda start_idx=0
+08-10 17:23:08.750  5351  5397 V bt_stack: [VERBOSE1:gatt_utils.cc(266)]  found=0 found_idx=10
+08-10 17:23:08.769  5351  5397 V bt_stack: [VERBOSE1:ble_advertiser_hci_interface.cc(770)] Initialize
+08-10 17:23:08.769  5351  5397 I bt_stack: [INFO:ble_advertiser_hci_interface.cc(774)] Extended advertising will be in use
+08-10 17:23:08.772  5351  5378 E bt_btif_storage: btif_storage_get_adapter_property: Controller ready!
+08-10 17:23:08.772  5351  5378 I bt_btif_storage: btif_storage_get_adapter_property service_mask:0x20000000
+08-10 17:23:08.774  5351  5378 D AdapterProperties: Address is:AA:00:00:00:00:03
+08-10 17:23:08.778  1425  1425 D BluetoothManagerService: Bluetooth Adapter address changed to AA:00:00:00:00:03
+08-10 17:23:08.779  1425  1425 D BluetoothManagerService: Stored Bluetoothaddress: AA:00:00:00:00:03
+08-10 17:23:08.782  5351  5378 D AdapterProperties: Name is: Lenovo Tab P11
+08-10 17:23:08.782  1425  1425 D BluetoothManagerService: Bluetooth Adapter name changed to Lenovo Tab P11
+08-10 17:23:08.783  1425  1425 D BluetoothManagerService: Stored Bluetooth name: Lenovo Tab P11
+08-10 17:23:08.783  5351  5397 I bt_stack: [INFO:btm_ble_bgconn.cc(420)] Already connection initiated (or) No Pending connections(or) Resources of lcb are exhausted
+08-10 17:23:08.789  5351  5378 D AdapterProperties: Scan Mode:20
+08-10 17:23:08.790  5351  5378 D AdapterProperties: Discoverable Timeout:120
+08-10 17:23:08.790  5351  5378 E BluetoothVendorJni: adapter_vendor_properties_callback: Status is: 0, Properties: 1
+08-10 17:23:08.790  5351  5378 D BluetoothVendorService: Property type: 5
+08-10 17:23:08.792  5351  5378 D AdapterProperties: BT_PROPERTY_ADD_ON_FEATURES: update from BT controller
+08-10 17:23:08.792  5351  5378 D AdapterProperties:  mWiPowerFastbootEnabled = false
+08-10 17:23:08.792  5351  5378 D AdapterProperties:  SplitA2DPScrambleDataRequired = true
+08-10 17:23:08.792  5351  5378 D AdapterProperties:  mSplitA2DP44p1KhzSampleFreq = true
+08-10 17:23:08.792  5351  5378 D AdapterProperties:  mSplitA2DP48KhzSampleFreq = true
+08-10 17:23:08.792  5351  5378 D AdapterProperties:  mSplitA2DPSingleVSCommandSupport = true
+08-10 17:23:08.792  5351  5378 D AdapterProperties:  mSplitA2DPSourceSBCEncoding = false
+08-10 17:23:08.792  5351  5378 D AdapterProperties:  mSplitA2DPSourceSBC = true
+08-10 17:23:08.792  5351  5378 D AdapterProperties:  mSplitA2DPSourceMP3 = false
+08-10 17:23:08.792  5351  5378 D AdapterProperties:  mSplitA2DPSourceAAC = true
+08-10 17:23:08.792  5351  5378 D AdapterProperties:  mSplitA2DPSourceLDAC = true
+08-10 17:23:08.792  5351  5378 D AdapterProperties:  mSplitA2DPSourceAPTX = true
+08-10 17:23:08.792  5351  5378 D AdapterProperties:  mSplitA2DPSourceAPTXHD = true
+08-10 17:23:08.792  5351  5378 D AdapterProperties:  mSplitA2DPSourceAPTXADAPTIVE = true
+08-10 17:23:08.792  5351  5378 D AdapterProperties:  mSplitA2DPSourceAPTXTWSPLUS = true
+08-10 17:23:08.792  5351  5378 D AdapterProperties:  mSplitA2DPSinkSBC = false
+08-10 17:23:08.792  5351  5378 D AdapterProperties:  mSplitA2DPSinkMP3 = false
+08-10 17:23:08.792  5351  5378 D AdapterProperties:  mSplitA2DPSinkAAC = false
+08-10 17:23:08.792  5351  5378 D AdapterProperties:  mSplitA2DPSinkLDAC = false
+08-10 17:23:08.792  5351  5378 D AdapterProperties:  mSplitA2DPSinkAPTX = false
+08-10 17:23:08.792  5351  5378 D AdapterProperties:  mSplitA2DPSinkAPTXHD = false
+08-10 17:23:08.792  5351  5378 D AdapterProperties:  mSplitA2DPSinkAPTXADAPTIVE = false
+08-10 17:23:08.792  5351  5378 D AdapterProperties:  mSplitA2DPSinkAPTXTWSPLUS = false
+08-10 17:23:08.792  5351  5378 D AdapterProperties:  mVoiceDualSCO = false
+08-10 17:23:08.792  5351  5378 D AdapterProperties:  mVoiceTWSPLUSeSCOAG = true
+08-10 17:23:08.792  5351  5378 D AdapterProperties:  mSWBVoicewithAptxAdaptiveAG = false
+08-10 17:23:08.792  5351  5378 D AdapterProperties:  BroadcastAudioTxwithEC_2_5 = false
+08-10 17:23:08.792  5351  5378 D AdapterProperties:  mBroadcastAudioTxwithEC_3_9 = false
+08-10 17:23:08.792  5351  5378 D AdapterProperties:  mBroadcastAudioRxwithEC_2_5 = false
+08-10 17:23:08.792  5351  5378 D AdapterProperties:  mBroadcastAudioRxwithEC_3_9= false
+08-10 17:23:08.792  5351  5378 D bt_btif_vendor: btif_vendor_update_whitelisted_media_players
+08-10 17:23:08.792  5351  5378 D bt_device_interop: interop_get_whitelisted_media_players_list :
+08-10 17:23:08.792  5351  5378 D bt_device_interop: interop_database_get_whitelisted_media_players_list() 
+08-10 17:23:08.794  5351  5378 E bt_device_interop: interop_database_get_whitelisted_media_players_list(): found feature - INTEROP_BROWSE_PLAYER_WHITE_LIST
+08-10 17:23:08.794  5351  5378 W bt_btif : fetch_whitelisted_media_players: Found list of Whitelisted media players 
+08-10 17:23:08.794  5351  5378 D bt_btif_vendor: btif_vendor_update_whitelisted_media_players: 4 - WL media players found
+08-10 17:23:08.794  5351  5378 E BluetoothVendorJni: whitelisted_players_properties_callback: Status is: 0, Properties: 1
+08-10 17:23:08.794  5351  5378 D BluetoothVendorService: Property type: 6
+08-10 17:23:08.795  5351  5378 D BluetoothVendorService:  player_name :com.google.android.music
+08-10 17:23:08.795  5351  5378 D AdapterProperties: updateWhitelistedMediaPlayers 
+08-10 17:23:08.795  5351  5378 D AdapterProperties: Adding to Whitelisted Players list:com.google.android.music
+08-10 17:23:08.795  5351  5378 D BluetoothVendorService:  player_name :com.nhn.android.music
+08-10 17:23:08.795  5351  5378 D AdapterProperties: updateWhitelistedMediaPlayers 
+08-10 17:23:08.795  5351  5378 D AdapterProperties: Adding to Whitelisted Players list:com.nhn.android.music
+08-10 17:23:08.795  5351  5378 D BluetoothVendorService:  player_name :com.gaana
+08-10 17:23:08.795  5351  5378 D AdapterProperties: updateWhitelistedMediaPlayers 
+08-10 17:23:08.796  5351  5378 D AdapterProperties: Adding to Whitelisted Players list:com.gaana
+08-10 17:23:08.796  5351  5378 D BluetoothVendorService:  player_name :com.google.android.apps.youtube.music
+08-10 17:23:08.796  5351  5378 D AdapterProperties: updateWhitelistedMediaPlayers 
+08-10 17:23:08.796  5351  5378 D AdapterProperties: Adding to Whitelisted Players list:com.google.android.apps.youtube.music
+08-10 17:23:08.796  5351  5378 I bt_stack: [INFO:btif_bqr.cc(282)] EnableBtQualityReport: is_enable: 1
+08-10 17:23:08.796  5351  5378 W bt_stack: [WARNING:btif_bqr.cc(290)] EnableBtQualityReport: Bluetooth Quality Report is disabled. bqr_prop_evtmask: , bqr_prop_interval_ms: 
+08-10 17:23:08.796  5351  5378 I bt_btif_core: btif_enable_bluetooth_evt entered: status 0
+08-10 17:23:08.796  5351  5378 W bt_btif : btif_enable_bluetooth_evt: Saving the Adapter Address
+08-10 17:23:08.797  5351  5378 D AdapterProperties: Address is:AA:00:00:00:00:03
+08-10 17:23:08.802  1425  1425 D BluetoothManagerService: Bluetooth Adapter address changed to AA:00:00:00:00:03
+08-10 17:23:08.803  1425  1425 D BluetoothManagerService: Stored Bluetoothaddress: AA:00:00:00:00:03
+08-10 17:23:08.805  5351  5403 I bt_osi_thread: run_thread: thread id 5403, thread name btif_sock started
+08-10 17:23:08.806  5351  5378 D bt_bte_conf: Device ID record 1 : primary
+08-10 17:23:08.806  5351  5378 D bt_bte_conf:   vendorId            = 001d
+08-10 17:23:08.806  5351  5378 D bt_bte_conf:   vendorIdSource      = 0001
+08-10 17:23:08.806  5351  5378 D bt_bte_conf:   product             = 1200
+08-10 17:23:08.806  5351  5378 D bt_bte_conf:   version             = 1436
+08-10 17:23:08.806  5351  5378 D bt_bte_conf:   clientExecutableURL = 
+08-10 17:23:08.806  5351  5378 D bt_bte_conf:   serviceDescription  = 
+08-10 17:23:08.806  5351  5378 D bt_bte_conf:   documentationURL    = 
+08-10 17:23:08.806  5351  5378 D bt_bte_conf: bte_load_did_conf no section named DID2.
+08-10 17:23:08.807  5351  5378 I bt_btif_core: btif_enable_bluetooth_evt finished
+08-10 17:23:08.807  5351  5373 I bt_stack_manager: event_start_up_stack finished
+08-10 17:23:08.807  5351  5378 I bt_btif_queue: btif_disconnect_queue_disconnect_next
+08-10 17:23:08.809  5351  5372 I AdapterState: BLE_ON : entered 
+08-10 17:23:08.809  5351  5372 D AdapterProperties: Setting state to BLE_ON
+08-10 17:23:08.810  5351  5372 D BluetoothAdapterService: updateAdapterState() - Broadcasting state BLE_ON to 1 receivers.
+08-10 17:23:08.810  1425  1464 D BluetoothManagerService: MESSAGE_BLUETOOTH_STATE_CHANGE: BLE_TURNING_ON > BLE_ON
+08-10 17:23:08.810  1425  1464 D BluetoothManagerService: Bluetooth is in LE only mode
+08-10 17:23:08.811  1425  1464 D ApplicationPackageManager: hasSystemFeatrue android.hardware.bluetooth_le android.uid.system:1000
+08-10 17:23:08.811  1425  1464 D BluetoothManagerService: Binding Bluetooth GATT service
+08-10 17:23:08.813  1425  1464 D BluetoothManagerService: Sending BLE State Change: BLE_TURNING_ON > BLE_ON
+08-10 17:23:08.815  1425  1425 D BluetoothManagerService: BluetoothServiceConnection: com.android.bluetooth.gatt.GattService
+08-10 17:23:08.816  1425  1464 D BluetoothManagerService: MESSAGE_BLUETOOTH_SERVICE_CONNECTED: 2
+08-10 17:23:08.816  1425  1464 D BluetoothManagerService: continueFromBleOnState()
+08-10 17:23:08.819  5351  5368 D BluetoothAdapterService: updateQuietModeStatus()-updateQuietModeStatus called with quiet mode status:false
+08-10 17:23:08.820  1425  1464 D BluetoothManagerService: Persisting Bluetooth Setting: 1
+08-10 17:23:08.820  5351  5372 I BluetoothVendorJni: bredrstartupNative
+08-10 17:23:08.820  5351  5372 I bt_btif_vendor: bredrstartup
+08-10 17:23:08.821  5351  5372 I AdapterState: TURNING_ON : entered 
+08-10 17:23:08.821  5351  5372 D AdapterProperties: Setting state to TURNING_ON
+08-10 17:23:08.821  5351  5372 D BluetoothAdapterService: updateAdapterState() - Broadcasting state TURNING_ON to 1 receivers.
+08-10 17:23:08.825  1425  1464 D BluetoothManagerService: MESSAGE_BLUETOOTH_STATE_CHANGE: BLE_ON > TURNING_ON
+08-10 17:23:08.825  1425  1464 D BluetoothManagerService: Sending BLE State Change: BLE_ON > TURNING_ON
+08-10 17:23:08.825  5351  5372 D BluetoothAdapterService: startCoreServices()
+08-10 17:23:08.832  2880  2880 I GsaVoiceInteractionSrv: O received Intent { act=android.bluetooth.adapter.action.STATE_CHANGED flg=0x5000010 (has extras) }
+08-10 17:23:08.834  5351  5381 D BluetoothActiveDeviceManager: handleMessage(MESSAGE_ADAPTER_ACTION_STATE_CHANGED): newState=11
+08-10 17:23:08.839  1425  1473 D CompatibilityInfo: mCompatibilityFlags - 4
+08-10 17:23:08.840  1425  1473 D CompatibilityInfo: applicationDensity - 240
+08-10 17:23:08.840  1425  1473 D CompatibilityInfo: applicationScale - 1.0
+08-10 17:23:08.845  1425  3352 D CompatibilityInfo: mCompatibilityFlags - 4
+08-10 17:23:08.845  1913  2017 D Tile.BluetoothTile.pm: setListening ingore lifecycle for pm
+08-10 17:23:08.845  1425  3352 D CompatibilityInfo: applicationDensity - 240
+08-10 17:23:08.845  1425  3352 D CompatibilityInfo: applicationScale - 1.0
+08-10 17:23:08.848   837  5395 I vendor.qti.bluetooth@1.0-ibs_handler: ProcessIbsCmd: Received IBS_SLEEP_IND: 0xFE
+08-10 17:23:08.850  5351  5351 I HeadsetService: create()
+08-10 17:23:08.850  5351  5351 I BluetoothVendorHfJni: classInitNative: succeeds
+08-10 17:23:08.851  5351  5351 D BluetoothAdapterService: getAdapterService() - returning com.android.bluetooth.btservice.AdapterService@f926425
+08-10 17:23:08.851  5351  5351 D HeadsetService: Received start request. Starting profile...
+08-10 17:23:08.851  5351  5351 D BluetoothAdapterService: getAdapterService() - returning com.android.bluetooth.btservice.AdapterService@f926425
+08-10 17:23:08.854  2557  3463 I NearbySharing: Bluetooth is disabled [CONTEXT service_id=194 ]
+08-10 17:23:08.856  2557  3463 I NearbySharing: Failed to stop scanning because weren't scanning. [CONTEXT service_id=194 ]
+08-10 17:23:08.856  2557  3463 I NearbySharing: Stopping discovery because Bluetooth is disabled. [CONTEXT service_id=194 ]
+08-10 17:23:08.856  2557  3463 I NearbySharing: Can't stop advertising FastInitiation. Not advertising. [CONTEXT service_id=194 ]
+08-10 17:23:08.856  2557  3463 I NearbySharing: Stopping Fast Init advertisement because Bluetooth is off. [CONTEXT service_id=194 ]
+08-10 17:23:08.857  2557  3463 I NearbySharing: Failed to stop advertising because we weren't advertising. [CONTEXT service_id=194 ]
+08-10 17:23:08.857  2557  3463 I NearbySharing: Stopping advertising because Bluetooth is disabled. [CONTEXT service_id=194 ]
+08-10 17:23:08.858  2557  3463 I NearbySharing: Can't stop scanning for FastInitiation. Not scanning. [CONTEXT service_id=194 ]
+08-10 17:23:08.858  2557  3463 I NearbySharing: Cancelling in use notification [CONTEXT service_id=194 ]
+08-10 17:23:08.859  5351  5351 I HeadsetService: start()
+08-10 17:23:08.859  5351  5351 D BluetoothAdapterService: getAdapterService() - returning com.android.bluetooth.btservice.AdapterService@f926425
+08-10 17:23:08.859  2557  3463 I NearbySharing: Fast Initiation Scanning has stopped [CONTEXT service_id=194 ]
+08-10 17:23:08.859  2557  3463 I NearbySharing: Stopping FastInitiation scanning because Bluetooth is disabled. [CONTEXT service_id=194 ]
+08-10 17:23:08.866  1425  5081 D CompatibilityInfo: mCompatibilityFlags - 4
+08-10 17:23:08.866  1425  5081 D CompatibilityInfo: applicationDensity - 240
+08-10 17:23:08.866  1425  5081 D CompatibilityInfo: applicationScale - 1.0
+08-10 17:23:08.867  1913  1913 I QSTileHost: QSTileHost QSSTATUS =0--VEGASTATUS = 0
+08-10 17:23:08.869  1425  3352 D CompatibilityInfo: mCompatibilityFlags - 4
+08-10 17:23:08.869  1425  3352 D CompatibilityInfo: applicationDensity - 240
+08-10 17:23:08.869  1425  3352 D CompatibilityInfo: applicationScale - 1.0
+08-10 17:23:08.872  1425  2928 D CompatibilityInfo: mCompatibilityFlags - 4
+08-10 17:23:08.872  1425  2928 D CompatibilityInfo: applicationDensity - 240
+08-10 17:23:08.873  1425  2928 D CompatibilityInfo: applicationScale - 1.0
+08-10 17:23:08.873  5351  5369 D TelephonyRegistryManager: onSubscriptionsChangedListener callback received.
+08-10 17:23:08.875  5351  5351 D HeadsetPhoneState: The sim in i: 0 is absent
+08-10 17:23:08.876  1425  1842 D CompatibilityInfo: mCompatibilityFlags - 4
+08-10 17:23:08.876  1425  1842 D CompatibilityInfo: applicationDensity - 240
+08-10 17:23:08.877  1425  1842 D CompatibilityInfo: applicationScale - 1.0
+08-10 17:23:08.877  5351  5405 I HeadsetPhoneState: stopListenForPhoneState(), no listener indicates nothing is listening
+08-10 17:23:08.878  5351  5405 W HeadsetPhoneState: startListenForPhoneState, no event to listen
+08-10 17:23:08.880  1425  3587 D CompatibilityInfo: mCompatibilityFlags - 4
+08-10 17:23:08.880  1425  3587 D CompatibilityInfo: applicationDensity - 240
+08-10 17:23:08.880  1425  3587 D CompatibilityInfo: applicationScale - 1.0
+08-10 17:23:08.886  5351  5351 W HeadsetSystemInterface: getComponent return = ComponentInfo{com.android.server.telecom/com.android.server.telecom.components.BluetoothPhoneService}
+08-10 17:23:08.887  1425  2937 D CompatibilityInfo: mCompatibilityFlags - 4
+08-10 17:23:08.887  1425  2937 D CompatibilityInfo: applicationDensity - 240
+08-10 17:23:08.887  1425  2937 D CompatibilityInfo: applicationScale - 1.0
+08-10 17:23:08.891  5351  5351 W HeadsetSystemInterface: Finished bindService with result = true
+08-10 17:23:08.891  5351  5351 I HeadsetService: mIsTwsPlusEnabled: false
+08-10 17:23:08.891  5351  5351 I HeadsetService: mIsTwsPlusShoEnabled: false
+08-10 17:23:08.891  5351  5351 D HeadsetService: Max_HFP_Connections  5
+08-10 17:23:08.891  5351  5351 D HeadsetService: mSetMaxConfig  5
+08-10 17:23:08.891  5351  5351 I BluetoothHeadsetServiceJni: classInitNative: succeeds
+08-10 17:23:08.892  5351  5351 D HeadsetService: isInbandRingingEnabled returning: false
+08-10 17:23:08.892  5351  5351 I bt_btif : get_profile_interface: id = handsfree
+08-10 17:23:08.892  5351  5351 I bt_stack: [INFO:btif_hf.cc(2314)] GetInterface
+08-10 17:23:08.893  5351  5378 I bt_btif_storage: btif_storage_get_adapter_property service_mask:0x20000040
+08-10 17:23:08.894   837  5395 I vendor.qti.bluetooth@1.0-ibs_handler: ProcessIbsCmd: Received IBS_WAKE_IND: 0xFD
+08-10 17:23:08.894   837  5395 I vendor.qti.bluetooth@1.0-ibs_handler: ProcessIbsCmd: Writing IBS_WAKE_ACK
+08-10 17:23:08.894  5351  5397 I bt_stack: [INFO:port_api.cc(123)] RFCOMM_CreateConnection BDA: ff:ff:ff:ff:ff:ff
+08-10 17:23:08.894  5351  5378 D bt_btif : btif_hf_upstreams_evt: event=BTA_AG_ENABLE_EVT
+08-10 17:23:08.895  5351  5397 I bt_stack: [INFO:port_api.cc(123)] RFCOMM_CreateConnection BDA: ff:ff:ff:ff:ff:ff
+08-10 17:23:08.895  5351  5397 I bt_stack: [INFO:port_api.cc(123)] RFCOMM_CreateConnection BDA: ff:ff:ff:ff:ff:ff
+08-10 17:23:08.895  5351  5378 D bt_btif : btif_hf_upstreams_evt: event=BTA_AG_REGISTER_EVT
+08-10 17:23:08.895  5351  5397 I bt_stack: [INFO:port_api.cc(123)] RFCOMM_CreateConnection BDA: ff:ff:ff:ff:ff:ff
+08-10 17:23:08.896  5351  5378 D bt_btif : btif_hf_upstreams_evt: event=BTA_AG_REGISTER_EVT
+08-10 17:23:08.896  5351  5397 I bt_stack: [INFO:port_api.cc(123)] RFCOMM_CreateConnection BDA: ff:ff:ff:ff:ff:ff
+08-10 17:23:08.896  5351  5397 I bt_stack: [INFO:port_api.cc(123)] RFCOMM_CreateConnection BDA: ff:ff:ff:ff:ff:ff
+08-10 17:23:08.896  1425  2937 D CompatibilityInfo: mCompatibilityFlags - 4
+08-10 17:23:08.896  1425  2937 D CompatibilityInfo: applicationDensity - 240
+08-10 17:23:08.896  1425  2937 D CompatibilityInfo: applicationScale - 1.0
+08-10 17:23:08.896  5351  5378 D bt_btif : btif_hf_upstreams_evt: event=BTA_AG_REGISTER_EVT
+08-10 17:23:08.896  5351  5397 I bt_stack: [INFO:port_api.cc(123)] RFCOMM_CreateConnection BDA: ff:ff:ff:ff:ff:ff
+08-10 17:23:08.897  5351  5397 I chatty  : uid=1002(bluetooth) btu message loo identical 4 lines
+08-10 17:23:08.897  5351  5397 I bt_stack: [INFO:port_api.cc(123)] RFCOMM_CreateConnection BDA: ff:ff:ff:ff:ff:ff
+08-10 17:23:08.897  5351  5378 D bt_btif : btif_hf_upstreams_evt: event=BTA_AG_REGISTER_EVT
+08-10 17:23:08.897  5351  5378 D bt_btif : btif_hf_upstreams_evt: event=BTA_AG_REGISTER_EVT
+08-10 17:23:08.897  1425  1842 D CompatibilityInfo: mCompatibilityFlags - 4
+08-10 17:23:08.897  1425  1842 D CompatibilityInfo: applicationDensity - 240
+08-10 17:23:08.897  1425  1842 D CompatibilityInfo: applicationScale - 1.0
+08-10 17:23:08.899  5351  5378 D bt_btif : btif_hf_upstreams_evt: event=BTA_AG_REGISTER_EVT
+08-10 17:23:08.902  1425  2928 D CompatibilityInfo: mCompatibilityFlags - 4
+08-10 17:23:08.902  1425  2928 D CompatibilityInfo: applicationDensity - 240
+08-10 17:23:08.903  1425  2928 D CompatibilityInfo: applicationScale - 1.0
+08-10 17:23:08.905  5351  5351 D HeadsetService: setHeadsetService(): set to: com.android.bluetooth.hfp.HeadsetService@12b0d75
+08-10 17:23:08.907  5351  5351 I bt_btif : get_profile_interface: id = vendorhfservice
+08-10 17:23:08.907  5351  5351 I bt_btif_vendor_hf: init done
+08-10 17:23:08.907  5351  5351 I bt_btif_vendor_hf: enable_swb: 0
+08-10 17:23:08.907  5351  5351 D HeadsetService: registering audio server state callback
+08-10 17:23:08.912  5351  5351 I HeadsetService:  HeadsetService Started 
+08-10 17:23:08.912  5351  5351 D HeadsetService:  profile started successfully
+08-10 17:23:08.913  1425  3587 D CompatibilityInfo: mCompatibilityFlags - 4
+08-10 17:23:08.913  1425  3587 D CompatibilityInfo: applicationDensity - 240
+08-10 17:23:08.913  1425  3587 D CompatibilityInfo: applicationScale - 1.0
+08-10 17:23:08.914  5351  5351 I BluetoothHidHostServiceJni: classInitNative: succeeds
+08-10 17:23:08.917  5351  5351 D BluetoothAdapterService: getAdapterService() - returning com.android.bluetooth.btservice.AdapterService@f926425
+08-10 17:23:08.917  5351  5351 D HidHostService: Received start request. Starting profile...
+08-10 17:23:08.917  5351  5351 D BluetoothAdapterService: getAdapterService() - returning com.android.bluetooth.btservice.AdapterService@f926425
+08-10 17:23:08.920  2557  2557 I NearbyDiscovery: DiscoveryService created [CONTEXT service_id=49 ]
+08-10 17:23:08.921  1425  5075 D CompatibilityInfo: mCompatibilityFlags - 4
+08-10 17:23:08.921  1425  5075 D CompatibilityInfo: applicationDensity - 240
+08-10 17:23:08.921  1425  5075 D CompatibilityInfo: applicationScale - 1.0
+08-10 17:23:08.923  2557  3463 I NearbyMediums: BluetoothAdapter's name was not set by Nearby Connections, ignoring call to restore device name [CONTEXT service_id=54 ]
+08-10 17:23:08.924  5351  5351 D BluetoothAdapterService: getAdapterService() - returning com.android.bluetooth.btservice.AdapterService@f926425
+08-10 17:23:08.924  5351  5351 I bt_btif : get_profile_interface: id = hidhost
+08-10 17:23:08.924  5351  5351 D BluetoothHidHostService: setHidHostService(): set to: com.android.bluetooth.hid.HidHostService@a1a9544
+08-10 17:23:08.924  5351  5378 I bt_bta_hh: BTA_HhEnable sec_mask:0x36 p_cback:0x713145c154
+08-10 17:23:08.924  5351  5378 I bt_btif_storage: btif_storage_get_adapter_property service_mask:0x20100040
+08-10 17:23:08.924  5351  5397 W bt_l2cap: L2CAP - L2CA_Register() called for PSM: 0x0011
+08-10 17:23:08.924  5351  5397 W bt_l2cap: L2CAP - L2CA_Register() called for PSM: 0x0013
+08-10 17:23:08.924  5351  5351 D HidHostService:  profile started successfully
+08-10 17:23:08.924  5351  5397 V bt_stack: [VERBOSE1:bta_gattc_act.cc(201)] bta_gattc_register: state:2
+08-10 17:23:08.925  5351  5397 I bt_stack: [INFO:gatt_api.cc(950)] GATT_Register f96c8857-f814-3d4c-dc7d-b02fce6ece25
+08-10 17:23:08.925  5351  5397 I bt_stack: [INFO:gatt_api.cc(970)] allocated gatt_if=4
+08-10 17:23:08.925  5351  5397 V bt_stack: [VERBOSE1:gatt_api.cc(1080)] GATT_StartIf gatt_if=4
+08-10 17:23:08.925  5351  5397 V bt_stack: [VERBOSE1:gatt_utils.cc(254)] gatt_find_the_connected_bda start_idx=0
+08-10 17:23:08.925  5351  5397 V bt_stack: [VERBOSE1:gatt_utils.cc(266)]  found=0 found_idx=10
+08-10 17:23:08.925  5351  5351 I BluetoothPanServiceJni: classInitNative(L111): succeeds
+08-10 17:23:08.927  5351  5351 D BluetoothAdapterService: getAdapterService() - returning com.android.bluetooth.btservice.AdapterService@f926425
+08-10 17:23:08.927  5351  5351 D PanService: Received start request. Starting profile...
+08-10 17:23:08.927  5351  5351 D BluetoothAdapterService: getAdapterService() - returning com.android.bluetooth.btservice.AdapterService@f926425
+08-10 17:23:08.929  5351  5351 D BluetoothAdapterService: getAdapterService() - returning com.android.bluetooth.btservice.AdapterService@f926425
+08-10 17:23:08.929  5351  5351 D BluetoothPanServiceJni: initializeNative(L116): pan
+08-10 17:23:08.929  5351  5351 I bt_btif : get_profile_interface: id = pan
+08-10 17:23:08.930  5351  5351 D PanService:  profile started successfully
+08-10 17:23:08.930  5351  5397 W bt_l2cap: L2CAP - L2CA_Register() called for PSM: 0x000f
+08-10 17:23:08.931  5351  5378 D BluetoothPanServiceJni: control_state_callback(L63): state:0, local_role:3, ifname:bt-pan
+08-10 17:23:08.932  5351  5351 D BluetoothAdapterService: getAdapterService() - returning com.android.bluetooth.btservice.AdapterService@f926425
+08-10 17:23:08.932  5351  5351 D BluetoothMapService: Received start request. Starting profile...
+08-10 17:23:08.932  5351  5351 D BluetoothAdapterService: getAdapterService() - returning com.android.bluetooth.btservice.AdapterService@f926425
+08-10 17:23:08.935  2557  3463 I NearbyMediums: BluetoothAdapter's name was not set by Nearby Connections, ignoring call to restore device name [CONTEXT service_id=54 ]
+08-10 17:23:08.935  2557  2557 I NearbyDiscovery: FastPair: onAdapterStateChange: state=11 [CONTEXT service_id=49 ]
+08-10 17:23:08.935  5351  5351 D BluetoothMapService: start()
+08-10 17:23:08.935  5351  5351 D BluetoothAdapterService: getAdapterService() - returning com.android.bluetooth.btservice.AdapterService@f926425
+08-10 17:23:08.936  2557  2557 I NearbyDiscovery: FastPair: onAdapterStateChange: state=11 [CONTEXT service_id=49 ]
+08-10 17:23:08.937  2557  3561 D ApplicationPackageManager: hasSystemFeatrue org.chromium.arc com.google.uid.shared:10148
+08-10 17:23:08.939  5351  5351 D BluetoothMapFixes: mSessionStatusHandler CREATE_MAS_INSTANCES 
+08-10 17:23:08.939  5351  5351 D BluetoothMapService: mSmsCapable :false
+08-10 17:23:08.939  5351  5351 D BluetoothMapService: setBluetoothMapService(): set to: com.android.bluetooth.map.BluetoothMapService@2ab594f
+08-10 17:23:08.939  5351  5351 D BluetoothMapService:  profile started successfully
+08-10 17:23:08.939  5351  5411 V BluetoothMapService: Handler(): got msg=5
+08-10 17:23:08.939  5351  5411 D BluetoothMapService: CREATE_MAS_INSTANCES 
+08-10 17:23:08.940  5351  5411 D BluetoothAdapterService: getAdapterService() - returning com.android.bluetooth.btservice.AdapterService@f926425
+08-10 17:23:08.940  5351  5411 D BluetoothVendorService: getProfileInfo profile_id: 3
+08-10 17:23:08.940  5351  5411 I BluetoothVendorJni: getProfileInfoNative
+08-10 17:23:08.940  5351  5411 I bt_btif_vendor: get_profile_info :3
+08-10 17:23:08.940  5351  5411 W bt_device_profile: profile_feature_fetch:profile 3
+08-10 17:23:08.940  5351  5411 W bt_device_profile: profile_feature_fetch:MAP_EMAIL_SUPPORT found 1
+08-10 17:23:08.940  5351  5411 D BluetoothMapAppObserver: isEmailSupported: true
+08-10 17:23:08.940  5351  5351 I BluetoothAvrcpControllerJni: classInitNative: succeeds
+08-10 17:23:08.940  5351  5411 D BluetoothMapAccountEmailLoader: mEmailContext Assigned 
+08-10 17:23:08.940  5351  5411 D BluetoothMapAccountEmailLoader: Groups SIZE: 0
+08-10 17:23:08.941  5351  5351 D BluetoothAdapterService: getAdapterService() - returning com.android.bluetooth.btservice.AdapterService@f926425
+08-10 17:23:08.941  5351  5351 D AvrcpControllerService: Received start request. Starting profile...
+08-10 17:23:08.941  5351  5351 D BluetoothAdapterService: getAdapterService() - returning com.android.bluetooth.btservice.AdapterService@f926425
+08-10 17:23:08.942  5351  5411 D BluetoothMapAccountEmailLoader: isEmailAppStarted: false
+08-10 17:23:08.942  5351  5351 I bt_btif : get_profile_interface: id = avrcp_ctrl
+08-10 17:23:08.942  5351  5351 I bt_btif : get_profile_interface: id = vendor_avrcp_ctrl
+08-10 17:23:08.942  5351  5351 D bt_btif : btif_rc_vendor_ctrl_get_interface
+08-10 17:23:08.943  2557  5409 I NearbyDiscovery: FastPair: HeadsetPieceImage, grant permission files:0 [CONTEXT service_id=49 ]
+08-10 17:23:08.943  2557  5409 I NearbyDiscovery: FastPairEventStream: Initialize event stream [CONTEXT service_id=49 ]
+08-10 17:23:08.947  1425  3352 W ActivityManager: Unable to start service Intent { cmp=com.android.bluetooth/.avrcpcontroller.BluetoothMediaBrowserService } U=0: not found
+08-10 17:23:08.947  5351  5351 D AvrcpControllerService:  profile started successfully
+08-10 17:23:08.948  5351  5351 W HeadsetSystemInterface: Proxy object connected
+08-10 17:23:08.949  5351  5351 V SapService: SapBinder()
+08-10 17:23:08.949  5351  5351 D BluetoothAdapterService: getAdapterService() - returning com.android.bluetooth.btservice.AdapterService@f926425
+08-10 17:23:08.949  5351  5351 D SapService: Received start request. Starting profile...
+08-10 17:23:08.949  5351  5351 D BluetoothAdapterService: getAdapterService() - returning com.android.bluetooth.btservice.AdapterService@f926425
+08-10 17:23:08.950  5351  5351 V SapService: start()
+08-10 17:23:08.951  5351  5351 D SapService: setSapService(): set to: com.android.bluetooth.sap.SapService@306d361
+08-10 17:23:08.951  5351  5351 D SapService:  profile started successfully
+08-10 17:23:08.952  5351  5351 V BtOppService: onCreate
+08-10 17:23:08.957  5351  5351 D BluetoothAdapterService: getAdapterService() - returning com.android.bluetooth.btservice.AdapterService@f926425
+08-10 17:23:08.957  5351  5351 D BluetoothOppService: Received start request. Starting profile...
+08-10 17:23:08.957  5351  5351 D BluetoothAdapterService: getAdapterService() - returning com.android.bluetooth.btservice.AdapterService@f926425
+08-10 17:23:08.961  5351  5411 D BluetoothMapAccountEmailLoader:  Email app is not installed
+08-10 17:23:08.961  5351  5411 W BluetoothMapAccountEmailLoader: mEmailContext Cannot Access DefaultEmail
+08-10 17:23:08.963  5351  5411 D BluetoothMapAppObserver: createReceiver()
+08-10 17:23:08.966  1425  3352 W NotificationService: Toast already killed. pkg=com.topjohnwu.magisk token=android.os.BinderProxy@4ebd2b3
+08-10 17:23:08.968  5351  5351 V BtOppService: start()
+08-10 17:23:08.968  5351  5351 D BtOppService: setBluetoothOppService(): set to: com.android.bluetooth.opp.BluetoothOppService@2332347
+08-10 17:23:08.968  5351  5351 D BluetoothOppService:  profile started successfully
+08-10 17:23:08.968  5351  5411 D BluetoothMapAppObserver: initObservers()
+08-10 17:23:08.968  5351  5411 D BluetoothMapAppObserver: getEnabledAccountItems()
+08-10 17:23:08.968  5351  5411 V BluetoothMapService: Handler(): got msg=1
+08-10 17:23:08.968  5351  5351 D HeadsetPhoneState: sendDeviceStateChanged. mService=0 mIsSimStateLoaded=false mSignal=0 mRoam=0 mBatteryCharge=4
+08-10 17:23:08.970  5351  5351 D BluetoothAdapterService: getAdapterService() - returning com.android.bluetooth.btservice.AdapterService@f926425
+08-10 17:23:08.970  5351  5351 D BluetoothPbapService: Received start request. Starting profile...
+08-10 17:23:08.970  5351  5351 D BluetoothAdapterService: getAdapterService() - returning com.android.bluetooth.btservice.AdapterService@f926425
+08-10 17:23:08.971  5351  5351 I BluetoothPbapService: setCurrentUser(0)
+08-10 17:23:08.972  5351  5351 I BluetoothPbapService: setUserUnlocked(0)
+08-10 17:23:08.972  5351  5351 I BluetoothPbapService: setUserUnlocked(0)
+08-10 17:23:08.972  5351  5351 D BluetoothAdapterService: getAdapterService() - returning com.android.bluetooth.btservice.AdapterService@f926425
+08-10 17:23:08.978  5351  5351 D BluetoothPbapService: setBluetoothPbapService(): set to: com.android.bluetooth.pbap.BluetoothPbapService@e815c6a
+08-10 17:23:08.978  5351  5351 D BluetoothPbapService:  profile started successfully
+08-10 17:23:08.980  5351  5351 I BtOppService:  handleMessage :300
+08-10 17:23:08.985  5351  5351 W BluetoothAdapterService: onProfileServiceStateChange() - All profile services started..
+08-10 17:23:08.985  5351  5351 D AdapterProperties: onBluetoothReady, state=TURNING_ON, ScanMode=20
+08-10 17:23:08.985  5351  5351 D BluetoothAdapterService: updateUuids() - Updating UUIDs for bonded devices
+08-10 17:23:08.985  5351  5414 W BluetoothAdapter: getBluetoothService() called with no BluetoothManagerCallback
+08-10 17:23:08.986  5351  5351 I BluetoothAdapterService: initProfileServices: Initializing all bluetooth profile services
+08-10 17:23:08.986  5351  5351 W A2dpService: getA2dpService(): service is null
+08-10 17:23:08.986  5351  5351 I BluetoothA2dpSinkServiceJni: classInitNative: succeeds
+08-10 17:23:08.986  5351  5351 D HeadsetService: getHeadsetService(): returning com.android.bluetooth.hfp.HeadsetService@12b0d75
+08-10 17:23:08.987  5351  5351 W HeadsetClientService: getHeadsetClientService(): service is null
+08-10 17:23:08.987  2309  2523 E PhoneInterfaceManager: [PhoneIntfMgr] getIccId: No UICC
+08-10 17:23:08.987  5351  5351 W MapClientService: getMapClientService(): service is null
+08-10 17:23:08.987  5351  5351 D HidDeviceService: getHidDeviceService(): service is NULL
+08-10 17:23:08.987  5351  5351 W PbapClientService: getPbapClientService(): service is null
+08-10 17:23:08.987  5351  5351 W HearingAidService: getHearingAidService(): service is NULL
+08-10 17:23:08.988  5351  5372 I AdapterState: ON : entered 
+08-10 17:23:08.988  5351  5372 D AdapterProperties: Setting state to ON
+08-10 17:23:08.988  5351  5372 D BluetoothAdapterService: updateAdapterState() - Broadcasting state ON to 1 receivers.
+08-10 17:23:08.988  5351  5397 I bt_stack: [INFO:port_api.cc(123)] RFCOMM_CreateConnection BDA: ff:ff:ff:ff:ff:ff
+08-10 17:23:08.988  5351  5414 D BluetoothSdpJni: sdpCreateSapsRecordNative
+08-10 17:23:08.989  5351  5414 D BluetoothSdpJni: SDP Create record success - handle: 0
+08-10 17:23:08.989  5351  5378 D AdapterProperties: Scan Mode:21
+08-10 17:23:08.989  5351  5378 D AdapterProperties: Discoverable Timeout:120
+08-10 17:23:08.990  5351  5378 D AdapterProperties: mLocalIOCapability set to 1
+08-10 17:23:08.990  5351  5378 D AdapterProperties: mLocalIOCapabilityBLE set to 4
+08-10 17:23:08.990  1425  1464 D BluetoothManagerService: MESSAGE_BLUETOOTH_STATE_CHANGE: TURNING_ON > ON
+08-10 17:23:08.990  1425  1464 D BluetoothManagerService: Broadcasting onBluetoothStateChange(true) to 15 receivers.
+08-10 17:23:08.990  1425  1464 D BluetoothA2dp: Binding service...
+08-10 17:23:08.992  5351  5413 D ObexServerSockets: create(rfcomm = 19, l2capPsm = 4133)
+08-10 17:23:08.992  1425  1464 D BluetoothHeadset: onBluetoothStateChange: up=true
+08-10 17:23:08.993  1425  1464 D BluetoothHeadset: Binding service...
+08-10 17:23:08.993  1913  1933 D BluetoothPan: Binding service...
+08-10 17:23:08.993  1425  1464 D BluetoothManagerService: Creating new ProfileServiceConnections object for profile: 1
+08-10 17:23:08.996  1425  1464 D BluetoothA2dp: Binding service...
+08-10 17:23:08.996  5351  5413 W BluetoothAdapter: getBluetoothService() called with no BluetoothManagerCallback
+08-10 17:23:08.999  1425  1464 D BluetoothHeadset: onBluetoothStateChange: up=true
+08-10 17:23:08.999  1425  1464 D BluetoothHeadset: Binding service...
+08-10 17:23:09.000  1425  1464 W BluetoothManagerService: psc is not null in bindBluetoothProfileService
+08-10 17:23:09.000  5351  5397 I bt_stack: [INFO:port_api.cc(123)] RFCOMM_CreateConnection BDA: ff:ff:ff:ff:ff:ff
+08-10 17:23:09.001  1425  1464 D BluetoothHeadset: onBluetoothStateChange: up=true
+08-10 17:23:09.001  3196  3231 D BluetoothA2dp: Binding service...
+08-10 17:23:09.001  1913  1933 D BluetoothHeadset: onBluetoothStateChange: up=true
+08-10 17:23:09.001  1425  1464 D BluetoothHeadset: Binding service...
+08-10 17:23:09.001  1913  1933 D BluetoothHeadset: Binding service...
+08-10 17:23:09.001  2309  2523 D BluetoothHeadset: onBluetoothStateChange: up=true
+08-10 17:23:09.001  2309  2523 D BluetoothHeadset: Binding service...
+08-10 17:23:09.001  1425  1464 W BluetoothManagerService: psc is not null in bindBluetoothProfileService
+08-10 17:23:09.001  1425  1464 D BluetoothA2dp: Binding service...
+08-10 17:23:09.002  1913  2517 D BluetoothHidHost: Binding service...
+08-10 17:23:09.002  1425  3352 W BluetoothManagerService: psc is not null in bindBluetoothProfileService
+08-10 17:23:09.002  1425  3587 W BluetoothManagerService: psc is not null in bindBluetoothProfileService
+08-10 17:23:09.006  1425  1464 D BluetoothManagerService: Sending BLE State Change: TURNING_ON > ON
+08-10 17:23:09.006  1913  1933 D BluetoothMap: Binding service...
+08-10 17:23:09.006  1913  5061 D BluetoothSap: Binding service...
+08-10 17:23:09.006  1913  2149 D BluetoothA2dp: Binding service...
+08-10 17:23:09.008  5351  5351 D BluetoothAdapterService: Soft AP is on band: 1
+08-10 17:23:09.009  5351  5351 D BluetoothVendorService: getPowerBackoff 
+08-10 17:23:09.009  5351  5351 D BluetoothVendorService: setPowerBackoff to: true
+08-10 17:23:09.009  5351  5351 I BluetoothVendorJni: setPowerBackoffNative
+08-10 17:23:09.009  5351  5351 I bt_btif_vendor: setPowerBackOffState :1 
+08-10 17:23:09.009  5351  5397 W bt_btm  : btm_cb.is_power_backoff = 1 
+08-10 17:23:09.009  5351  5397 W bt_device_profile: max_radiated_power_fetch:profile 4
+08-10 17:23:09.009  5351  5397 I chatty  : uid=1002(bluetooth) btu message loo identical 1 line
+08-10 17:23:09.009  5351  5397 W bt_device_profile: max_radiated_power_fetch:profile 4
+08-10 17:23:09.010  5351  5413 W BluetoothAdapter: getBluetoothService() called with no BluetoothManagerCallback
+08-10 17:23:09.011  5351  5397 W bt_l2cap: L2CAP - L2CA_Register() called for PSM: 0x1025
+08-10 17:23:09.011  5351  5413 D ObexServerSockets: Succeed to create listening sockets 
+08-10 17:23:09.011  5351  5413 D ObexServerSockets0: startAccept()
+08-10 17:23:09.013  5351  5413 D BluetoothAdapterService: getAdapterService() - returning com.android.bluetooth.btservice.AdapterService@f926425
+08-10 17:23:09.013  5351  5413 D BluetoothVendorService: getProfileInfo profile_id: 2
+08-10 17:23:09.013  5351  5413 I BluetoothVendorJni: getProfileInfoNative
+08-10 17:23:09.013  5351  5413 I bt_btif_vendor: get_profile_info :2
+08-10 17:23:09.013  5351  5413 W bt_device_profile: profile_feature_fetch:profile 2
+08-10 17:23:09.013  5351  5413 W bt_device_profile: profile_feature_fetch:PBAP_0102_SUPPORT found 1
+08-10 17:23:09.013  5351  5413 D BluetoothVendorService: getProfileInfo profile_id: 2
+08-10 17:23:09.013  5351  5413 I BluetoothVendorJni: getProfileInfoNative
+08-10 17:23:09.013  5351  5413 I bt_btif_vendor: get_profile_info :2
+08-10 17:23:09.013  5351  5413 W bt_device_profile: profile_feature_fetch:profile 2
+08-10 17:23:09.013  5351  5413 W bt_device_profile: profile_feature_fetch:USE_SIM_SUPPORT found 1
+08-10 17:23:09.013  5351  5413 D BluetoothPbapFixes: isSupportedPbap12: true
+08-10 17:23:09.013  5351  5413 D BluetoothPbapFixes: isSimSupported: true
+08-10 17:23:09.013  5351  5413 D BluetoothPbapFixes: creating PBAP 1.1 record with sim support
+08-10 17:23:09.013  5351  5413 D BluetoothSdpJni: sdpCreatePbapPseRecordNative
+08-10 17:23:09.013  5351  5420 D ObexServerSockets0: Accepting socket connection...
+08-10 17:23:09.013  5351  5413 D BluetoothSdpJni: SDP Create record success - handle: 1
+08-10 17:23:09.013  5351  5413 D BluetoothPbapService: created Sdp record, mSdpHandle=1
+08-10 17:23:09.014  5351  5419 D ObexServerSockets0: Accepting socket connection...
+08-10 17:23:09.016  1425  1425 W Telecom : BluetoothPhoneService: Calling get Profile proxy
+08-10 17:23:09.017  1425  1425 D BluetoothHeadset: Binding service...
+08-10 17:23:09.018  1425  1425 W BluetoothManagerService: psc is not null in bindBluetoothProfileService
+08-10 17:23:09.018  1425  1425 W Telecom : BluetoothPhoneService: Done Calling get Profile proxy
+08-10 17:23:09.018  3023  3312 V UserExperience: c.d() [SV] OSEvent: A805
+08-10 17:23:09.018  1425  1425 I Telecom : BluetoothPhoneService: queryPhoneState: BPSI.qPS@ABw
+08-10 17:23:09.019  2880  2880 I GsaVoiceInteractionSrv: O received Intent { act=android.bluetooth.adapter.action.STATE_CHANGED flg=0x5000010 (has extras) }
+08-10 17:23:09.022  1425  1473 D CompatibilityInfo: mCompatibilityFlags - 4
+08-10 17:23:09.022  1425  1473 D CompatibilityInfo: applicationDensity - 240
+08-10 17:23:09.022  1425  1473 D CompatibilityInfo: applicationScale - 1.0
+08-10 17:23:09.024  1913  1913 D BluetoothPan: Proxy object connected
+08-10 17:23:09.028  1425  2928 D CompatibilityInfo: mCompatibilityFlags - 4
+08-10 17:23:09.028  1425  2928 D CompatibilityInfo: applicationDensity - 240
+08-10 17:23:09.028  1425  2928 D CompatibilityInfo: applicationScale - 1.0
+08-10 17:23:09.029  2557  3463 I NearbySharing: Bluetooth is enabled [CONTEXT service_id=194 ]
+08-10 17:23:09.031  1425  3352 W ActivityManager: Receiver with filter android.content.IntentFilter@2b0171 already registered for pid 1913, callerPackage is com.android.systemui
+08-10 17:23:09.032  1425  5081 D CompatibilityInfo: mCompatibilityFlags - 4
+08-10 17:23:09.032  1425  5081 D CompatibilityInfo: applicationDensity - 240
+08-10 17:23:09.032  1425  5081 D CompatibilityInfo: applicationScale - 1.0
+08-10 17:23:09.035  1913  1913 D BluetoothHidHost: Proxy object connected
+08-10 17:23:09.037  5351  5367 D BluetoothHidHostService: getDevicesMatchingConnectionStates()
+08-10 17:23:09.038  5351  5351 D BtOppService: action : android.bluetooth.adapter.action.STATE_CHANGED
+08-10 17:23:09.038  5351  5381 D BluetoothActiveDeviceManager: handleMessage(MESSAGE_ADAPTER_ACTION_STATE_CHANGED): newState=12
+08-10 17:23:09.039  2557  3463 I NearbySharing: Failed to stop scanning because weren't scanning. [CONTEXT service_id=194 ]
+08-10 17:23:09.039  2557  3463 I NearbySharing: Stopping discovery because Nearby Sharing is disabled. [CONTEXT service_id=194 ]
+08-10 17:23:09.040  1425  3352 D CompatibilityInfo: mCompatibilityFlags - 4
+08-10 17:23:09.040  1425  3352 D CompatibilityInfo: applicationDensity - 240
+08-10 17:23:09.040  2557  3463 I NearbySharing: Can't stop advertising FastInitiation. Not advertising. [CONTEXT service_id=194 ]
+08-10 17:23:09.040  1425  3352 D CompatibilityInfo: applicationScale - 1.0
+08-10 17:23:09.041  2557  3463 I NearbySharing: Stopping Fast Init advertisement because we're not scanning. [CONTEXT service_id=194 ]
+08-10 17:23:09.041  2557  3463 I NearbySharing: Failed to stop advertising because we weren't advertising. [CONTEXT service_id=194 ]
+08-10 17:23:09.042  5351  5351 I BluetoothPhonePolicy: delay auto connect by 500 ms
+08-10 17:23:09.042  5351  5351 D BluetoothAdapterService: isQuetModeEnabled() - Enabled = false
+08-10 17:23:09.042  5351  5351 I BtOppService:  handleMessage :1
+08-10 17:23:09.042  2557  3463 I NearbySharing: Stopping advertising because Nearby Sharing is disabled. [CONTEXT service_id=194 ]
+08-10 17:23:09.042  5351  5351 D BtOppService: start Socket Listeners
+08-10 17:23:09.042  5351  5351 D BtOppService: stopListeners: mServerSocket is null
+08-10 17:23:09.042  5351  5351 D ObexServerSockets: create(rfcomm = 12, l2capPsm = 4131)
+08-10 17:23:09.043  1913  1913 D BluetoothMap: Proxy object connected
+08-10 17:23:09.043  1913  1913 D BluetoothMap: getConnectedDevices()
+08-10 17:23:09.043  5351  5351 W BluetoothAdapter: getBluetoothService() called with no BluetoothManagerCallback
+08-10 17:23:09.044  2557  3463 D ApplicationPackageManager: hasSystemFeatrue android.hardware.bluetooth com.google.uid.shared:10148
+08-10 17:23:09.044  5351  5351 D BluetoothAdapter: listenUsingInsecureL2capOn: port=4131
+08-10 17:23:09.044  2557  3463 D ApplicationPackageManager: hasSystemFeatrue android.hardware.bluetooth_le com.google.uid.shared:10148
+08-10 17:23:09.045  5351  5397 I bt_stack: [INFO:port_api.cc(123)] RFCOMM_CreateConnection BDA: ff:ff:ff:ff:ff:ff
+08-10 17:23:09.046  5351  5351 W BluetoothAdapter: getBluetoothService() called with no BluetoothManagerCallback
+08-10 17:23:09.047  2557  3463 D BluetoothAdapter: isLeEnabled(): ON
+08-10 17:23:09.048  5351  5397 W bt_l2cap: L2CAP - L2CA_Register() called for PSM: 0x1023
+08-10 17:23:09.049  1913  1913 D BluetoothSap: Proxy object connected
+08-10 17:23:09.049  5351  5351 D ObexServerSockets: Succeed to create listening sockets 
+08-10 17:23:09.049  1913  1913 D BluetoothSap: getConnectedDevices()
+08-10 17:23:09.049  5351  5351 D ObexServerSockets1: startAccept()
+08-10 17:23:09.049  5351  5367 V SapService: getConnectedDevices()
+08-10 17:23:09.050  5351  5367 D BtGatt.GattService: registerScanner() - UUID=cec8f4bd-96fb-4437-9a8f-e6550f5df2f6
+08-10 17:23:09.052  5351  5351 D BluetoothSdpJni: sdpCreateOppOpsRecordNative
+08-10 17:23:09.052  5351  5351 D BluetoothSdpJni: SDP Create record success - handle: 2
+08-10 17:23:09.052  5351  5397 W bt_device_profile: profile_feature_fetch:profile 5
+08-10 17:23:09.052  5351  5397 W bt_device_profile: profile_feature_fetch:opp_0100_support found 0
+08-10 17:23:09.052  5351  5351 D BtOppService: mOppSdpHandle :2
+08-10 17:23:09.053  5351  5397 V bt_stack: [VERBOSE1:bta_gattc_act.cc(201)] bta_gattc_register: state:2
+08-10 17:23:09.053  5351  5397 I bt_stack: [INFO:gatt_api.cc(950)] GATT_Register e8178c19-4a8a-6fa4-081c-a7bb9d5bdf74
+08-10 17:23:09.053  5351  5397 I bt_stack: [INFO:gatt_api.cc(970)] allocated gatt_if=5
+08-10 17:23:09.053  5351  5397 V bt_stack: [VERBOSE1:gatt_api.cc(1080)] GATT_StartIf gatt_if=5
+08-10 17:23:09.053  5351  5397 V bt_stack: [VERBOSE1:gatt_utils.cc(254)] gatt_find_the_connected_bda start_idx=0
+08-10 17:23:09.053  5351  5397 V bt_stack: [VERBOSE1:gatt_utils.cc(266)]  found=0 found_idx=10
+08-10 17:23:09.053  5351  5378 D BtGatt.GattService: onScannerRegistered() - UUID=cec8f4bd-96fb-4437-9a8f-e6550f5df2f6, scannerId=5, status=0
+08-10 17:23:09.054  2557  4655 D BluetoothLeScanner: onScannerRegistered() - status=0 scannerId=5 mScannerId=0
+08-10 17:23:09.054  1913  2017 D Tile.BluetoothTile.pm: setListening ingore lifecycle for pm
+08-10 17:23:09.055  1913  2017 D Tile.BluetoothTile.pm: setListening ingore lifecycle for pm
+08-10 17:23:09.055  5351  5424 D ObexServerSockets1: Accepting socket connection...
+08-10 17:23:09.055  1913  2017 D Tile.BluetoothTile.pm: setListening ingore lifecycle for pm
+08-10 17:23:09.056  5351  5425 D ObexServerSockets1: Accepting socket connection...
+08-10 17:23:09.060  2557  2557 I NearbyDiscovery: FastPair: onAdapterStateChange: state=12 [CONTEXT service_id=49 ]
+08-10 17:23:09.060  2557  4706 I NearbyMediums: BluetoothAdapter's name was not set by Nearby Connections, ignoring call to restore device name [CONTEXT service_id=54 ]
+08-10 17:23:09.065  1913  1913 I NavigationBarController: register productivity change listener failure , try again!
+08-10 17:23:09.065  1913  1913 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 17:23:09.066  1425  3587 D CompatibilityInfo: mCompatibilityFlags - 4
+08-10 17:23:09.066  1425  3587 D CompatibilityInfo: applicationDensity - 240
+08-10 17:23:09.066  1425  3587 D CompatibilityInfo: applicationScale - 1.0
+08-10 17:23:09.072  2557  2557 D ApplicationPackageManager: hasSystemFeatrue android.hardware.bluetooth_le com.google.uid.shared:10148
+08-10 17:23:09.074  2557  4706 I NearbyMediums: BluetoothAdapter's name was not set by Nearby Connections, ignoring call to restore device name [CONTEXT service_id=54 ]
+08-10 17:23:09.075  5351  5422 W UnsafeUtil: platform method missing - proto runtime falling back to safer methods: java.lang.NoSuchMethodException: sun.misc.Unsafe.copyMemory [class java.lang.Object, long, class java.lang.Object, long, long]
+08-10 17:23:09.077  5351  5388 I BtGatt.ScanManager: msg.what = 0
+08-10 17:23:09.077  5351  5388 D BtGatt.ScanManager: handling starting scan
+08-10 17:23:09.077  5351  5388 D BtGatt.ScanManager: isAptXLowLatencyModeEnabled: false
+08-10 17:23:09.078  2557  3463 I NearbySharing: Started scanning for FastInitiation with mode: SCAN_MODE_OPPORTUNISTIC [CONTEXT service_id=194 ]
+08-10 17:23:09.078  5351  5388 D BluetoothAdapterService: getAdapterService() - returning com.android.bluetooth.btservice.AdapterService@f926425
+08-10 17:23:09.080  2557  3463 I NearbySharing: Fast Initiation Scanning has started [CONTEXT service_id=194 ]
+08-10 17:23:09.080  2557  2557 I NearbyDiscovery: FastPair: onAdapterStateChange: state=12 [CONTEXT service_id=49 ]
+08-10 17:23:09.082  2557  2557 D ApplicationPackageManager: hasSystemFeatrue android.hardware.bluetooth_le com.google.uid.shared:10148
+08-10 17:23:09.094   837  5395 I vendor.qti.bluetooth@1.0-ibs_handler: ProcessIbsCmd: Received IBS_SLEEP_IND: 0xFE
+08-10 17:23:09.094  2557  5409 D ApplicationPackageManager: hasSystemFeatrue android.hardware.bluetooth_le com.google.uid.shared:10148
+08-10 17:23:09.095  2557  5409 I NearbyDiscovery: Show notifications: 0 total, no changes since last shown, no-op. [CONTEXT service_id=49 ]
+08-10 17:23:09.097  1425  1464 D BluetoothHeadset: Proxy object connected
+08-10 17:23:09.097  1425  1425 W Telecom : BluetoothPhoneService: onServiceConnected: setting mBluetoothHeadset
+08-10 17:23:09.097  1425  1425 I Telecom : BluetoothPhoneService: updateHeadsetWithCallState numActive 0, numHeld 0, callState 6, ringing number ***, ringing type 128, ringing name null
+08-10 17:23:09.099  2557  3561 I NearbyShared: FastPairSlice: enableBindServiceForDiscoveryItem called, isBind = false
+08-10 17:23:09.101  1425  1464 D BluetoothHeadset: Proxy object connected
+08-10 17:23:09.101  1425  1464 D BluetoothHeadset: Proxy object connected
+08-10 17:23:09.101  1425  1425 I AS.BtHelper: In onServiceConnected(), profile: 1, proxy: android.bluetooth.BluetoothHeadset@b96f9cc
+08-10 17:23:09.101  1425  1425 I Telecom : BluetoothDeviceManager: Got BluetoothHeadset: com.android.server.telecom.BluetoothHeadsetProxy@cee28e1: BMSL.oSC@AB0
+08-10 17:23:09.102  2557  5409 D ApplicationPackageManager: hasSystemFeatrue org.chromium.arc com.google.uid.shared:10148
+08-10 17:23:09.103  1425  1855 I AS.BtHelper: setBtScoActiveDevice: null -> null
+08-10 17:23:09.103  1425  1855 I AS.BtHelper: In checkScoAudioState(), mScoAudioState: 0
+08-10 17:23:09.103  1913  5061 D BluetoothHeadset: Proxy object connected
+08-10 17:23:09.104  2309  2523 D BluetoothHeadset: Proxy object connected
+08-10 17:23:09.104  5351  5405 I HeadsetService: No device is connected and no call, set A2DPsuspended to false
+08-10 17:23:09.104  5351  5405 D HeadsetA2dpSync:  releaseA2DP mA2dpSuspendTriggered 0 by device null
+08-10 17:23:09.108  1913  2017 D Tile.BluetoothTile.pm: setListening ingore lifecycle for pm
+08-10 17:23:09.118  1425  1464 D BluetoothHeadset: Proxy object connected
+08-10 17:23:09.119  1425  1425 W Telecom : BluetoothPhoneService: onServiceConnected: setting mBluetoothHeadset
+08-10 17:23:09.119  1425  1425 I Telecom : BluetoothPhoneService: updateHeadsetWithCallState numActive 0, numHeld 0, callState 6, ringing number ***, ringing type 128, ringing name null
+08-10 17:23:09.125   837  5391 D vendor.qti.bluetooth@1.0-wake_lock: Release wakelock is released 
+08-10 17:23:09.137  5351  5405 I HeadsetService: No device is connected and no call, set A2DPsuspended to false
+08-10 17:23:09.137  5351  5405 D HeadsetA2dpSync:  releaseA2DP mA2dpSuspendTriggered 0 by device null
+08-10 17:23:09.167  2557  3916 D ApplicationPackageManager: hasSystemFeatrue android.hardware.bluetooth_le com.google.uid.shared:10148
+08-10 17:23:09.168  2557  3916 D ApplicationPackageManager: hasSystemFeatrue android.hardware.bluetooth_le com.google.uid.shared:10148
+08-10 17:23:09.174  2557  3916 D ApplicationPackageManager: hasSystemFeatrue org.chromium.arc com.google.uid.shared:10148
+08-10 17:23:09.175  2557  5409 D ApplicationPackageManager: hasSystemFeatrue org.chromium.arc com.google.uid.shared:10148
+08-10 17:23:09.176  2557  3916 D ApplicationPackageManager: hasSystemFeatrue android.hardware.bluetooth_le com.google.uid.shared:10148
+08-10 17:23:09.188  2557  3944 D ApplicationPackageManager: hasSystemFeatrue android.hardware.bluetooth_le com.google.uid.shared:10148
+08-10 17:23:09.191  2557  3423 I BeaconBle: Client requested scan, settings=BleSettings [scanMode=LOW_LATENCY, callbackType=ALL_MATCHES, reportDelayMillis=0, 5 filters, 1 clients, callingClientName=Nearby] [CONTEXT service_id=111 ]
+08-10 17:23:09.212  2557  3423 I BeaconBle: Starting scan on OS scanner. BT state: 12 [CONTEXT service_id=111 ]
+08-10 17:23:09.213  2557  3423 D BluetoothAdapter: isLeEnabled(): ON
+08-10 17:23:09.217  5351  5422 D BtGatt.GattService: registerScanner() - UUID=a3653876-f630-4e0a-8b73-ad5e476fa33b
+08-10 17:23:09.232  5351  5397 V bt_stack: [VERBOSE1:bta_gattc_act.cc(201)] bta_gattc_register: state:2
+08-10 17:23:09.232  5351  5397 I bt_stack: [INFO:gatt_api.cc(950)] GATT_Register e527532d-c832-1d51-ce38-b89911a2c9de
+08-10 17:23:09.232  5351  5397 I bt_stack: [INFO:gatt_api.cc(970)] allocated gatt_if=6
+08-10 17:23:09.232  5351  5397 V bt_stack: [VERBOSE1:gatt_api.cc(1080)] GATT_StartIf gatt_if=6
+08-10 17:23:09.232  5351  5397 V bt_stack: [VERBOSE1:gatt_utils.cc(254)] gatt_find_the_connected_bda start_idx=0
+08-10 17:23:09.232  5351  5397 V bt_stack: [VERBOSE1:gatt_utils.cc(266)]  found=0 found_idx=10
+08-10 17:23:09.233  5351  5378 D BtGatt.GattService: onScannerRegistered() - UUID=a3653876-f630-4e0a-8b73-ad5e476fa33b, scannerId=6, status=0
+08-10 17:23:09.233  2557  4655 D BluetoothLeScanner: onScannerRegistered() - status=0 scannerId=6 mScannerId=0
+08-10 17:23:09.238  1425  1466 I WindowManager: Window WindowStateAnimator{2b5402d Toast} destroying surface Surface(name=Toast)/@0x24493b0, session Session{2dd4d9 1913:u0a10080}
+08-10 17:23:09.242  5351  5388 I BtGatt.ScanManager: msg.what = 0
+08-10 17:23:09.242  5351  5388 D BtGatt.ScanManager: handling starting scan
+08-10 17:23:09.244  5351  5388 D BtGatt.ScanManager: isAptXLowLatencyModeEnabled: false
+08-10 17:23:09.246   837  5395 I vendor.qti.bluetooth@1.0-ibs_handler: ProcessIbsCmd: Received IBS_WAKE_IND: 0xFD
+08-10 17:23:09.246   837  5395 I vendor.qti.bluetooth@1.0-ibs_handler: ProcessIbsCmd: Writing IBS_WAKE_ACK
+08-10 17:23:09.250  5351  5378 D BtGatt.GattService: onScanFilterEnableDisabled() - clientIf=6, status=0, action=1
+08-10 17:23:09.250  5351  5378 D BtGatt.ScanManager: callback done for scannerId - 6 status - 0
+08-10 17:23:09.251  5351  5388 D BtGatt.ScanManager: Available Filter size: 13
+08-10 17:23:09.253  5351  5397 I bt_stack: [INFO:btm_ble_adv_filter.cc(693)] BTM_LE_PF_set UUID MASK is empty 
+08-10 17:23:09.253  5351  5378 D BtGatt.GattService: onScanFilterConfig() - clientIf=6, action = 0 status = 0, filterType=0, availableSpace=0
+08-10 17:23:09.253  5351  5378 D BtGatt.ScanManager: callback done for scannerId - 6 status - 0
+08-10 17:23:09.254  5351  5388 D BtGatt.ScanManager: configureFilterParamter 500 10000 1 0, deliveryMode=0
+08-10 17:23:09.254  2557  3916 D ApplicationPackageManager: hasSystemFeatrue android.hardware.bluetooth_le com.google.uid.shared:10148
+08-10 17:23:09.255  2557  3916 D ApplicationPackageManager: hasSystemFeatrue android.hardware.bluetooth_le com.google.uid.shared:10148
+08-10 17:23:09.257  5351  5378 D BtGatt.GattService: onScanFilterParamsConfigured() - clientIf=6, status=0, action=0, availableSpace=15
+08-10 17:23:09.257  5351  5378 D BtGatt.ScanManager: callback done for scannerId - 6 status - 0
+08-10 17:23:09.257  2557  3916 D ApplicationPackageManager: hasSystemFeatrue org.chromium.arc com.google.uid.shared:10148
+08-10 17:23:09.258  5351  5397 I bt_stack: [INFO:btm_ble_adv_filter.cc(693)] BTM_LE_PF_set UUID MASK is empty 
+08-10 17:23:09.258  2557  3916 D ApplicationPackageManager: hasSystemFeatrue android.hardware.bluetooth_le com.google.uid.shared:10148
+08-10 17:23:09.258  5351  5378 D BtGatt.GattService: onScanFilterConfig() - clientIf=6, action = 0 status = 0, filterType=0, availableSpace=0
+08-10 17:23:09.258  5351  5378 D BtGatt.ScanManager: callback done for scannerId - 6 status - 0
+08-10 17:23:09.261  5351  5388 D BtGatt.ScanManager: configureFilterParamter 500 10000 1 0, deliveryMode=0
+08-10 17:23:09.262  5351  5378 D BtGatt.GattService: onScanFilterParamsConfigured() - clientIf=6, status=0, action=0, availableSpace=14
+08-10 17:23:09.263  5351  5378 D BtGatt.ScanManager: callback done for scannerId - 6 status - 0
+08-10 17:23:09.264  5351  5378 D BtGatt.GattService: onScanFilterConfig() - clientIf=6, action = 0 status = 0, filterType=0, availableSpace=0
+08-10 17:23:09.264  5351  5378 D BtGatt.ScanManager: callback done for scannerId - 6 status - 0
+08-10 17:23:09.265  5351  5388 D BtGatt.ScanManager: configureFilterParamter 500 10000 1 0, deliveryMode=0
+08-10 17:23:09.268  5351  5378 D BtGatt.GattService: onScanFilterParamsConfigured() - clientIf=6, status=0, action=0, availableSpace=13
+08-10 17:23:09.269  5351  5378 D BtGatt.ScanManager: callback done for scannerId - 6 status - 0
+08-10 17:23:09.271  5351  5378 D BtGatt.GattService: onScanFilterConfig() - clientIf=6, action = 0 status = 0, filterType=0, availableSpace=0
+08-10 17:23:09.272  5351  5378 D BtGatt.ScanManager: callback done for scannerId - 6 status - 0
+08-10 17:23:09.272  5351  5388 D BtGatt.ScanManager: configureFilterParamter 500 10000 1 0, deliveryMode=0
+08-10 17:23:09.275  5351  5378 D BtGatt.GattService: onScanFilterParamsConfigured() - clientIf=6, status=0, action=0, availableSpace=12
+08-10 17:23:09.275  5351  5378 D BtGatt.ScanManager: callback done for scannerId - 6 status - 0
+08-10 17:23:09.276  5351  5397 I bt_stack: [INFO:btm_ble_adv_filter.cc(693)] BTM_LE_PF_set UUID MASK is empty 
+08-10 17:23:09.276  5351  5378 D BtGatt.GattService: onScanFilterConfig() - clientIf=6, action = 0 status = 0, filterType=0, availableSpace=0
+08-10 17:23:09.276  5351  5378 D BtGatt.ScanManager: callback done for scannerId - 6 status - 0
+08-10 17:23:09.279  5351  5388 D BtGatt.ScanManager: configureFilterParamter 500 10000 1 0, deliveryMode=0
+08-10 17:23:09.282  5351  5378 D BtGatt.GattService: onScanFilterParamsConfigured() - clientIf=6, status=0, action=0, availableSpace=11
+08-10 17:23:09.282  5351  5378 D BtGatt.ScanManager: callback done for scannerId - 6 status - 0
+08-10 17:23:09.282  5351  5388 D BtGatt.ScanManager: configureRegularScanParams() - queue=2
+08-10 17:23:09.283  5351  5388 D BtGatt.ScanManager: configureRegularScanParams() - ScanSetting LE 1M Scan mode=2ScanSetting LE Coded Scan mode=2 mLastConfiguredScanSettingLE1M=-2147483648 mLastConfiguredScanSettingLECoded=-2147483648scanPhy=255
+08-10 17:23:09.285  5351  5388 D BtGatt.ScanManager: configureRegularScanParams - scanInterval LE 1M = 4096configureRegularScanParams - scanWindow LE 1M= 4096configureRegularScanParams - scanInterval LE Coded= 4096configureRegularScanParams - scanWindow LE Coded= 4096
+08-10 17:23:09.286  5351  5378 D BtGatt.GattService: onScanParamSetupCompleted : 0
+08-10 17:23:09.341   837  5395 I vendor.qti.bluetooth@1.0-ibs_handler: ProcessIbsCmd: Received IBS_SLEEP_IND: 0xFE
+08-10 17:23:09.544  5351  5351 I BluetoothPhonePolicy: MESSAGE_AUTO_CONNECT_PROFILES
+08-10 17:23:09.545  5351  5351 D BluetoothAdapterService: isQuetModeEnabled() - Enabled = false
+08-10 17:23:09.545  5351  5351 I BluetoothPhonePolicy: autoConnect: Initiate auto connection on BT on...
+08-10 17:23:09.546  5351  5351 D BluetoothDatabase: getMostRecentlyConnectedA2dpDevice: Invalid address for device LocalStorage
+08-10 17:23:09.547  5351  5351 D BluetoothDatabase: getMostRecentlyConnectedHfpDevice: Invalid address for device LocalStorage
+08-10 17:23:09.548  5351  5351 D BluetoothDatabase: getMostRecentlyConnectedA2dpSrcDevice: Invalid address for device LocalStorage
+08-10 17:23:09.548  5351  5351 I BluetoothPhonePolicy: autoConnect: mostRecentlyActiveA2dpDevice: null
+08-10 17:23:09.548  5351  5351 I BluetoothPhonePolicy: autoConnect: mostRecentlyActiveHfpDevice: null
+08-10 17:23:09.548  5351  5351 I BluetoothPhonePolicy: autoConnect: mostRecentlyConnectedA2dpSrcDevice: null
+08-10 17:23:09.549  5351  5351 E BluetoothPhonePolicy: autoConnect: most recently active a2dp and hfp devices are null
+08-10 17:23:09.568  1913  1913 I NavigationBarController: register productivity change listener failure , try again!
+08-10 17:23:09.569  1913  1913 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 17:23:10.070  1913  1913 I NavigationBarController: register productivity change listener failure , try again!
+08-10 17:23:10.071  1913  1913 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 17:23:10.300   837  5400 I vendor.qti.bluetooth@1.0-ibs_handler: DeviceSleep: TX Awake, Sending SLEEP_IND
+08-10 17:23:10.300   837  5400 D vendor.qti.bluetooth@1.0-ibs_handler: SerialClockVote: vote for UART CLK OFF
+08-10 17:23:10.463   837  5391 E vendor.qti.bluetooth@1.0-wake_lock: Release wake lock not initialized/acquired
+08-10 17:23:10.480  1425  1465 W WindowManager: Unable to start animation, surface is null or no children.
+08-10 17:23:10.480  1425  1465 V WindowManager: Policy visibility false: Window{52b3057 u0 Toast}
+08-10 17:23:10.573  1913  1913 I NavigationBarController: register productivity change listener failure , try again!
+08-10 17:23:10.574  1913  1913 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 17:23:10.583  2557  5409 D ApplicationPackageManager: hasSystemFeatrue android.hardware.bluetooth_le com.google.uid.shared:10148
+08-10 17:23:10.588  2557  5409 I NearbyDiscovery: Show notifications: 0 total, no changes since last shown, no-op. [CONTEXT service_id=49 ]
+08-10 17:23:10.590  2557  3888 I NearbyShared: FastPairSlice: enableBindServiceForDiscoveryItem called, isBind = false
+08-10 17:23:10.744  5240  5278 W ProtoDataStoreFlagStore: Unable to retrieve flag snapshot for com.google.android.libraries.performance.primes#com.google.android.googlequicksearchbox, using defaults.
+08-10 17:23:11.076  1913  1913 I NavigationBarController: register productivity change listener failure , try again!
+08-10 17:23:11.077  1913  1913 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 17:23:11.360  3324  3347 W opjohnwu.magis: Reducing the number of considered missed Gc histogram windows from 222 to 100
+08-10 17:23:11.579  1913  1913 I NavigationBarController: register productivity change listener failure , try again!
+08-10 17:23:11.580  1913  1913 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 17:23:11.723  1913  1913 D ProductivityModeListenerConverter: registerProductivityChangeListener in
+08-10 17:23:11.725  1913  1913 D ProductivityModeListenerConverter: registerProductivityChangeListener delay 3000.
+08-10 17:23:12.081  1913  1913 I NavigationBarController: register productivity change listener failure , try again!
+08-10 17:23:12.082  1913  1913 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 17:23:12.584  1913  1913 I NavigationBarController: register productivity change listener failure , try again!
+08-10 17:23:12.585  1913  1913 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 17:23:13.088  1913  1913 I NavigationBarController: register productivity change listener failure , try again!
+08-10 17:23:13.089  1913  1913 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 17:23:13.571   837  5395 I vendor.qti.bluetooth@1.0-ibs_handler: ProcessIbsCmd: Received IBS_WAKE_IND: 0xFD
+08-10 17:23:13.571   837  5395 D vendor.qti.bluetooth@1.0-ibs_handler: SerialClockVote: vote for UART CLK ON
+08-10 17:23:13.578   837  5395 D vendor.qti.bluetooth@1.0-wake_lock: Acquire wakelock is acquired 
+08-10 17:23:13.578   837  5395 I vendor.qti.bluetooth@1.0-ibs_handler: ProcessIbsCmd: Writing IBS_WAKE_ACK
+08-10 17:23:13.580  5351  5397 V bt_stack: [VERBOSE1:btm_ble_gap.cc(1925)] btm_ble_process_ext_adv_pkt: bda=BB:00:00:00:00:19
+08-10 17:23:13.581  5351  5397 V bt_stack: [VERBOSE1:btm_ble_gap.cc(1849)] btm_ble_process_adv_addr: bda=BB:00:00:00:00:19
+08-10 17:23:13.581  5351  5397 V bt_stack: [VERBOSE1:btm_ble_gap.cc(2054)]  Waiting for scan response BB:00:00:00:00:19
+08-10 17:23:13.581  5351  5397 V bt_stack: [VERBOSE1:btm_ble_gap.cc(1925)] btm_ble_process_ext_adv_pkt: bda=BB:00:00:00:00:19
+08-10 17:23:13.581  5351  5397 V bt_stack: [VERBOSE1:btm_ble_gap.cc(1849)] btm_ble_process_adv_addr: bda=BB:00:00:00:00:19
+08-10 17:23:13.581  5351  5397 V bt_stack: [VERBOSE1:btm_inq.cc(1019)] BTM_InqDbRead: bd addr BB:00:00:00:00:19
+08-10 17:23:13.590  1913  1913 I NavigationBarController: register productivity change listener failure , try again!
+08-10 17:23:13.591  1913  1913 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 17:23:13.597  2557  3916 D ApplicationPackageManager: hasSystemFeatrue org.chromium.arc com.google.uid.shared:10148
+08-10 17:23:13.619   837  5395 I vendor.qti.bluetooth@1.0-ibs_handler: ProcessIbsCmd: Received IBS_SLEEP_IND: 0xFE
+08-10 17:23:13.619   837  5395 D vendor.qti.bluetooth@1.0-ibs_handler: SerialClockVote: vote for UART CLK OFF
+08-10 17:23:13.628  2557  3916 D ApplicationPackageManager: hasSystemFeatrue org.chromium.arc com.google.uid.shared:10148
+08-10 17:23:13.770   837  5391 D vendor.qti.bluetooth@1.0-wake_lock: Release wakelock is released 
+08-10 17:23:13.955   837  5395 I vendor.qti.bluetooth@1.0-ibs_handler: ProcessIbsCmd: Received IBS_WAKE_IND: 0xFD
+08-10 17:23:13.955   837  5395 D vendor.qti.bluetooth@1.0-ibs_handler: SerialClockVote: vote for UART CLK ON
+08-10 17:23:13.958   837  5395 D vendor.qti.bluetooth@1.0-wake_lock: Acquire wakelock is acquired 
+08-10 17:23:13.958   837  5395 I vendor.qti.bluetooth@1.0-ibs_handler: ProcessIbsCmd: Writing IBS_WAKE_ACK
+08-10 17:23:13.960  5351  5397 V bt_stack: [VERBOSE1:btm_ble_gap.cc(1925)] btm_ble_process_ext_adv_pkt: bda=BB:00:00:00:00:19
+08-10 17:23:13.960  5351  5397 V bt_stack: [VERBOSE1:btm_ble_gap.cc(1849)] btm_ble_process_adv_addr: bda=BB:00:00:00:00:19
+08-10 17:23:13.961  5351  5397 V bt_stack: [VERBOSE1:btm_ble_gap.cc(2054)]  Waiting for scan response BB:00:00:00:00:19
+08-10 17:23:13.961  5351  5397 V bt_stack: [VERBOSE1:btm_ble_gap.cc(1925)] btm_ble_process_ext_adv_pkt: bda=BB:00:00:00:00:19
+08-10 17:23:13.961  5351  5397 V bt_stack: [VERBOSE1:btm_ble_gap.cc(1849)] btm_ble_process_adv_addr: bda=BB:00:00:00:00:19
+08-10 17:23:13.961  5351  5397 V bt_stack: [VERBOSE1:btm_inq.cc(1019)] BTM_InqDbRead: bd addr BB:00:00:00:00:19
+08-10 17:23:13.974  2557  3916 D ApplicationPackageManager: hasSystemFeatrue org.chromium.arc com.google.uid.shared:10148
+08-10 17:23:13.977  2557  3916 D ApplicationPackageManager: hasSystemFeatrue org.chromium.arc com.google.uid.shared:10148
+08-10 17:23:14.001   837  5395 I vendor.qti.bluetooth@1.0-ibs_handler: ProcessIbsCmd: Received IBS_SLEEP_IND: 0xFE
+08-10 17:23:14.001   837  5395 D vendor.qti.bluetooth@1.0-ibs_handler: SerialClockVote: vote for UART CLK OFF
+08-10 17:23:14.056   837  5395 I vendor.qti.bluetooth@1.0-ibs_handler: ProcessIbsCmd: Received IBS_WAKE_IND: 0xFD
+08-10 17:23:14.056   837  5395 D vendor.qti.bluetooth@1.0-ibs_handler: SerialClockVote: vote for UART CLK ON
+08-10 17:23:14.056   837  5395 I vendor.qti.bluetooth@1.0-ibs_handler: ProcessIbsCmd: Writing IBS_WAKE_ACK
+08-10 17:23:14.059  5351  5397 V bt_stack: [VERBOSE1:btm_ble_gap.cc(1925)] btm_ble_process_ext_adv_pkt: bda=BB:00:00:00:00:19
+08-10 17:23:14.059  5351  5397 V bt_stack: [VERBOSE1:btm_ble_gap.cc(1849)] btm_ble_process_adv_addr: bda=BB:00:00:00:00:19
+08-10 17:23:14.059  5351  5397 V bt_stack: [VERBOSE1:btm_ble_gap.cc(2054)]  Waiting for scan response BB:00:00:00:00:19
+08-10 17:23:14.092  1913  1913 I NavigationBarController: register productivity change listener failure , try again!
+08-10 17:23:14.093  1913  1913 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 17:23:14.098   837  5395 I vendor.qti.bluetooth@1.0-ibs_handler: ProcessIbsCmd: Received IBS_SLEEP_IND: 0xFE
+08-10 17:23:14.098   837  5395 D vendor.qti.bluetooth@1.0-ibs_handler: SerialClockVote: vote for UART CLK OFF
+08-10 17:23:14.181   837  5395 I vendor.qti.bluetooth@1.0-ibs_handler: ProcessIbsCmd: Received IBS_WAKE_IND: 0xFD
+08-10 17:23:14.181   837  5395 D vendor.qti.bluetooth@1.0-ibs_handler: SerialClockVote: vote for UART CLK ON
+08-10 17:23:14.181   837  5395 I vendor.qti.bluetooth@1.0-ibs_handler: ProcessIbsCmd: Writing IBS_WAKE_ACK
+08-10 17:23:14.183  5351  5397 V bt_stack: [VERBOSE1:btm_ble_gap.cc(1925)] btm_ble_process_ext_adv_pkt: bda=BB:00:00:00:00:19
+08-10 17:23:14.183  5351  5397 V bt_stack: [VERBOSE1:btm_ble_gap.cc(1849)] btm_ble_process_adv_addr: bda=BB:00:00:00:00:19
+08-10 17:23:14.183  5351  5397 V bt_stack: [VERBOSE1:btm_ble_gap.cc(2054)]  Waiting for scan response BB:00:00:00:00:19
+08-10 17:23:14.183  5351  5397 V bt_stack: [VERBOSE1:btm_ble_gap.cc(1925)] btm_ble_process_ext_adv_pkt: bda=BB:00:00:00:00:19
+08-10 17:23:14.183  5351  5397 V bt_stack: [VERBOSE1:btm_ble_gap.cc(1849)] btm_ble_process_adv_addr: bda=BB:00:00:00:00:19
+08-10 17:23:14.183  5351  5397 V bt_stack: [VERBOSE1:btm_inq.cc(1019)] BTM_InqDbRead: bd addr BB:00:00:00:00:19
+08-10 17:23:14.194  2557  3916 D ApplicationPackageManager: hasSystemFeatrue org.chromium.arc com.google.uid.shared:10148
+08-10 17:23:14.196  2557  3916 D ApplicationPackageManager: hasSystemFeatrue org.chromium.arc com.google.uid.shared:10148
+08-10 17:23:14.225   837  5395 I vendor.qti.bluetooth@1.0-ibs_handler: ProcessIbsCmd: Received IBS_SLEEP_IND: 0xFE
+08-10 17:23:14.225   837  5395 D vendor.qti.bluetooth@1.0-ibs_handler: SerialClockVote: vote for UART CLK OFF
+08-10 17:23:14.375   837  5391 D vendor.qti.bluetooth@1.0-wake_lock: Release wakelock is released 
+08-10 17:23:14.482   837  5395 I vendor.qti.bluetooth@1.0-ibs_handler: ProcessIbsCmd: Received IBS_WAKE_IND: 0xFD
+08-10 17:23:14.482   837  5395 D vendor.qti.bluetooth@1.0-ibs_handler: SerialClockVote: vote for UART CLK ON
+08-10 17:23:14.485   837  5395 D vendor.qti.bluetooth@1.0-wake_lock: Acquire wakelock is acquired 
+08-10 17:23:14.485   837  5395 I vendor.qti.bluetooth@1.0-ibs_handler: ProcessIbsCmd: Writing IBS_WAKE_ACK
+08-10 17:23:14.486  5351  5397 V bt_stack: [VERBOSE1:btm_ble_gap.cc(1925)] btm_ble_process_ext_adv_pkt: bda=BB:00:00:00:00:19
+08-10 17:23:14.487  5351  5397 V bt_stack: [VERBOSE1:btm_ble_gap.cc(1849)] btm_ble_process_adv_addr: bda=BB:00:00:00:00:19
+08-10 17:23:14.487  5351  5397 V bt_stack: [VERBOSE1:btm_ble_gap.cc(2054)]  Waiting for scan response BB:00:00:00:00:19
+08-10 17:23:14.527   837  5395 I vendor.qti.bluetooth@1.0-ibs_handler: ProcessIbsCmd: Received IBS_SLEEP_IND: 0xFE
+08-10 17:23:14.527   837  5395 D vendor.qti.bluetooth@1.0-ibs_handler: SerialClockVote: vote for UART CLK OFF
+08-10 17:23:14.595  1913  1913 I NavigationBarController: register productivity change listener failure , try again!
+08-10 17:23:14.596  1913  1913 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 17:23:14.632   837  5395 I vendor.qti.bluetooth@1.0-ibs_handler: ProcessIbsCmd: Received IBS_WAKE_IND: 0xFD
+08-10 17:23:14.632   837  5395 D vendor.qti.bluetooth@1.0-ibs_handler: SerialClockVote: vote for UART CLK ON
+08-10 17:23:14.632   837  5395 I vendor.qti.bluetooth@1.0-ibs_handler: ProcessIbsCmd: Writing IBS_WAKE_ACK
+08-10 17:23:14.635  5351  5397 V bt_stack: [VERBOSE1:btm_ble_gap.cc(1925)] btm_ble_process_ext_adv_pkt: bda=BB:00:00:00:00:19
+08-10 17:23:14.635  5351  5397 V bt_stack: [VERBOSE1:btm_ble_gap.cc(1849)] btm_ble_process_adv_addr: bda=BB:00:00:00:00:19
+08-10 17:23:14.635  5351  5397 V bt_stack: [VERBOSE1:btm_ble_gap.cc(2054)]  Waiting for scan response BB:00:00:00:00:19
+08-10 17:23:14.674   837  5395 I vendor.qti.bluetooth@1.0-ibs_handler: ProcessIbsCmd: Received IBS_SLEEP_IND: 0xFE
+08-10 17:23:14.675   837  5395 D vendor.qti.bluetooth@1.0-ibs_handler: SerialClockVote: vote for UART CLK OFF
+08-10 17:23:14.727  1913  1913 D ProductivityModeListenerConverter: registerProductivityChangeListener in
+08-10 17:23:14.728  1913  1913 D ProductivityModeListenerConverter: registerProductivityChangeListener delay 3000.
+08-10 17:23:14.825   837  5391 D vendor.qti.bluetooth@1.0-wake_lock: Release wakelock is released 
+08-10 17:23:15.082  2557  3463 D ApplicationPackageManager: hasSystemFeatrue android.hardware.bluetooth com.google.uid.shared:10148
+08-10 17:23:15.083  2557  3463 D ApplicationPackageManager: hasSystemFeatrue android.hardware.bluetooth_le com.google.uid.shared:10148
+08-10 17:23:15.086  2557  3463 I NearbySharing: Skip starting FastInitiation scanning, since already scan in current mode SCAN_MODE_OPPORTUNISTIC. [CONTEXT service_id=194 ]
+08-10 17:23:15.087  2557  3463 I NearbySharing: FastInitiation warming period has ended [CONTEXT service_id=194 ]
+08-10 17:23:15.094  3553  3571 W d.process.acor: Reducing the number of considered missed Gc histogram windows from 231 to 100
+08-10 17:23:15.096  1913  1913 I NavigationBarController: register productivity change listener failure , try again!
+08-10 17:23:15.097  1913  1913 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 17:23:15.190  2557  3944 D ApplicationPackageManager: hasSystemFeatrue android.hardware.bluetooth_le com.google.uid.shared:10148
+08-10 17:23:15.193  2557  3423 I BeaconBle: Client requested scan, settings=BleSettings [scanMode=ZERO_POWER, callbackType=ALL_MATCHES, reportDelayMillis=0, 5 filters, 1 clients, callingClientName=Nearby] [CONTEXT service_id=111 ]
+08-10 17:23:15.211  2557  3423 I BeaconBle: Stopping scan on delegate scanner. BT state: 12 [CONTEXT service_id=111 ]
+08-10 17:23:15.212  2557  3423 D BluetoothAdapter: isLeEnabled(): ON
+08-10 17:23:15.213  5351  5422 D BtGatt.GattService: stopScan() - queue size =2
+08-10 17:23:15.216  5351  5388 I BtGatt.ScanManager: msg.what = 1
+08-10 17:23:15.216  5351  5388 D BtGatt.ScanManager: stop scan
+08-10 17:23:15.217  5351  5426 D BtGatt.GattService: unregisterScanner() - scannerId=6
+08-10 17:23:15.217  5351  5397 V bt_stack: [VERBOSE1:gatt_api.cc(993)] GATT_Deregister gatt_if=6
+08-10 17:23:15.218  5351  5397 V bt_stack: [VERBOSE1:connection_manager.cc(161)] on_app_deregistered : app_id 0x06
+08-10 17:23:15.218   837   837 D vendor.qti.bluetooth@1.0-ibs_handler: SerialClockVote: vote for UART CLK ON
+08-10 17:23:15.220  2557  3423 I BeaconBle: Resetting - new scanner available: true [CONTEXT service_id=111 ]
+08-10 17:23:15.221   837   837 D vendor.qti.bluetooth@1.0-wake_lock: Acquire wakelock is acquired 
+08-10 17:23:15.221   837   837 I vendor.qti.bluetooth@1.0-ibs_handler: DeviceWakeUp: Writing IBS_WAKE_IND
+08-10 17:23:15.221  2557  3423 I BeaconBle: ZERO_POWER is disabled. [CONTEXT service_id=111 ]
+08-10 17:23:15.222   837  5395 I vendor.qti.bluetooth@1.0-ibs_handler: ProcessIbsCmd: Received IBS_WAKE_ACK: 0xFC
+08-10 17:23:15.223  2557  3423 I BeaconBle: 'L' hardware scan: scan stopped, no powered clients [CONTEXT service_id=111 ]
+08-10 17:23:15.223   837  5395 I vendor.qti.bluetooth@1.0-ibs_handler: ProcessIbsCmd: Received IBS_WAKE_IND: 0xFD
+08-10 17:23:15.223   837  5395 I vendor.qti.bluetooth@1.0-ibs_handler: ProcessIbsCmd: Writing IBS_WAKE_ACK
+08-10 17:23:15.224  5351  5378 D BtGatt.GattService: onScanFilterParamsConfigured() - clientIf=6, status=0, action=1, availableSpace=12
+08-10 17:23:15.224  5351  5378 D BtGatt.ScanManager: callback done for scannerId - 6 status - 0
+08-10 17:23:15.243  5351  5378 D BtGatt.GattService: onScanFilterParamsConfigured() - clientIf=6, status=0, action=1, availableSpace=13
+08-10 17:23:15.243  5351  5378 D BtGatt.ScanManager: callback done for scannerId - 6 status - 0
+08-10 17:23:15.247  5351  5378 D BtGatt.GattService: onScanFilterParamsConfigured() - clientIf=6, status=0, action=1, availableSpace=14
+08-10 17:23:15.247  5351  5378 D BtGatt.ScanManager: callback done for scannerId - 6 status - 0
+08-10 17:23:15.250  5351  5378 D BtGatt.GattService: onScanFilterParamsConfigured() - clientIf=6, status=0, action=1, availableSpace=15
+08-10 17:23:15.250  5351  5378 D BtGatt.ScanManager: callback done for scannerId - 6 status - 0
+08-10 17:23:15.254  5351  5378 D BtGatt.GattService: onScanFilterParamsConfigured() - clientIf=6, status=0, action=1, availableSpace=16
+08-10 17:23:15.254  5351  5378 D BtGatt.ScanManager: callback done for scannerId - 6 status - 0
+08-10 17:23:15.255  5351  5388 D BtGatt.ScanManager: configureRegularScanParams() - queue=1
+08-10 17:23:15.255  5351  5388 D BtGatt.ScanManager: configureRegularScanParams() - ScanSetting LE 1M Scan mode=-1ScanSetting LE Coded Scan mode=-1 mLastConfiguredScanSettingLE1M=2 mLastConfiguredScanSettingLECoded=2scanPhy=255
+08-10 17:23:15.255  5351  5388 D BtGatt.ScanManager: configureRegularScanParams() - queue emtpy, scan stopped
+08-10 17:23:15.255  5351  5388 D BtGatt.ScanManager: configureRegularScanParams() - queue emtpy, scan stopped
+08-10 17:23:15.295   837  5395 I vendor.qti.bluetooth@1.0-ibs_handler: ProcessIbsCmd: Received IBS_SLEEP_IND: 0xFE
+08-10 17:23:15.599  1913  1913 I NavigationBarController: register productivity change listener failure , try again!
+08-10 17:23:15.602  1913  1913 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 17:23:15.928  1425  1425 W WindowManager: removeWindowToken: Attempted to remove non-existing token: android.os.Binder@bdcbcf3
+08-10 17:23:16.103  1913  1913 I NavigationBarController: register productivity change listener failure , try again!
+08-10 17:23:16.104  1913  1913 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 17:23:16.253   837  5400 I vendor.qti.bluetooth@1.0-ibs_handler: DeviceSleep: TX Awake, Sending SLEEP_IND
+08-10 17:23:16.254   837  5400 D vendor.qti.bluetooth@1.0-ibs_handler: SerialClockVote: vote for UART CLK OFF
+08-10 17:23:16.405   837  5391 D vendor.qti.bluetooth@1.0-wake_lock: Release wakelock is released 
+08-10 17:23:16.606  1913  1913 I NavigationBarController: register productivity change listener failure , try again!
+08-10 17:23:16.607  1913  1913 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 17:23:17.109  1913  1913 I NavigationBarController: register productivity change listener failure , try again!
+08-10 17:23:17.110  1913  1913 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 17:23:17.613  1913  1913 I NavigationBarController: register productivity change listener failure , try again!
+08-10 17:23:17.614  1913  1913 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 17:23:17.730  1913  1913 D ProductivityModeListenerConverter: registerProductivityChangeListener in
+08-10 17:23:17.731  1913  1913 D ProductivityModeListenerConverter: registerProductivityChangeListener delay 3000.
+08-10 17:23:17.947  1425  1425 W WindowManager: removeWindowToken: Attempted to remove non-existing token: android.os.Binder@1ef0374
+08-10 17:23:18.115  1913  1913 I NavigationBarController: register productivity change listener failure , try again!
+08-10 17:23:18.116  1913  1913 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 17:23:18.619  1913  1913 I NavigationBarController: register productivity change listener failure , try again!
+08-10 17:23:18.620  1913  1913 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 17:23:19.121  1913  1913 I NavigationBarController: register productivity change listener failure , try again!
+08-10 17:23:19.122  1913  1913 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 17:23:19.624  1913  1913 I NavigationBarController: register productivity change listener failure , try again!
+08-10 17:23:19.625  1913  1913 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 17:23:19.961  1425  1425 W WindowManager: removeWindowToken: Attempted to remove non-existing token: android.os.Binder@c66e316
+08-10 17:23:20.127  1913  1913 I NavigationBarController: register productivity change listener failure , try again!
+08-10 17:23:20.128  1913  1913 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 17:23:20.631  1913  1913 I NavigationBarController: register productivity change listener failure , try again!
+08-10 17:23:20.632  1913  1913 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 17:23:20.733  1913  1913 D ProductivityModeListenerConverter: registerProductivityChangeListener in
+08-10 17:23:20.734  1913  1913 D ProductivityModeListenerConverter: registerProductivityChangeListener delay 3000.
+08-10 17:23:21.135  1913  1913 I NavigationBarController: register productivity change listener failure , try again!
+08-10 17:23:21.136  1913  1913 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 17:23:21.638  1913  1913 I NavigationBarController: register productivity change listener failure , try again!
+08-10 17:23:21.640  1913  1913 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 17:23:22.141  1913  1913 I NavigationBarController: register productivity change listener failure , try again!
+08-10 17:23:22.142  1913  1913 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 17:23:22.644  1913  1913 I NavigationBarController: register productivity change listener failure , try again!
+08-10 17:23:22.645  1913  1913 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 17:23:23.148  1913  1913 I NavigationBarController: register productivity change listener failure , try again!
+08-10 17:23:23.149  1913  1913 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 17:23:23.651  1913  1913 I NavigationBarController: register productivity change listener failure , try again!
+08-10 17:23:23.653  1913  1913 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 17:23:23.735  1913  1913 D ProductivityModeListenerConverter: registerProductivityChangeListener in
+08-10 17:23:23.736  1913  1913 D ProductivityModeListenerConverter: registerProductivityChangeListener delay 3000.
+08-10 17:23:24.155  1913  1913 I NavigationBarController: register productivity change listener failure , try again!
+08-10 17:23:24.156  1913  1913 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 17:23:24.388  5240  5286 I WorkerManager: dispose()
+08-10 17:23:24.573  1913  1913 D LenovoBatteryWarningReceiver: action = android.intent.action.BATTERY_CHANGED
+08-10 17:23:24.574  1913  1913 D LenovoBatteryWarningReceiver: mTemp  247
+08-10 17:23:24.574  1913  1913 D LenovoBatteryWarningReceiver: mHealth  2
+08-10 17:23:24.574  1913  1913 D LenovoBatteryWarningReceiver: mShutdownBatteryTemperature  590
+08-10 17:23:24.574  2228  2228 D QtiCarrierConfigHelper: WARNING, no carrier configs on phone Id: 0
+08-10 17:23:24.574  1913  1913 D KeyguardUpdateMonitor: received broadcast android.intent.action.BATTERY_CHANGED
+08-10 17:23:24.577  1913  1913 D StatusBar: ACTION_BATTERY_CHANGED, updateChargingViewValue
+08-10 17:23:24.577  1913  2017 D Tile.BatterySaverTile.pm: setListening ingore lifecycle for pm
+08-10 17:23:24.577  1913  1913 I StatusBar: chargePlug=2, maxChargingMicroAmp=0,isPlugin=false,mErrorShowDialog=false
+08-10 17:23:24.577  1913  1913 D ChargeProtectionService: BroadcastReceiver.onReceive:android.intent.action.BATTERY_CHANGED mEnabled=true
+08-10 17:23:24.579  1913  1913 D ChargeProtectionService: mEnabled enter:true  ，mPluggedIn ：true  ,mBatteryStatus : 3
+08-10 17:23:24.580  1913  1913 D ChargeProtectionService: stopCharging:
+08-10 17:23:24.583  1913  1913 D ChargeProtectionService: updateCharging > STOP_CHARGING_LEVEL:60
+08-10 17:23:24.583  1913  1913 D KeyguardUpdateMonitor: handleBatteryUpdate
+08-10 17:23:24.657  1913  1913 I NavigationBarController: register productivity change listener failure , try again!
+08-10 17:23:24.658  1913  1913 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 17:23:25.161  1913  1913 I NavigationBarController: register productivity change listener failure , try again!
+08-10 17:23:25.163  1913  1913 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 17:23:25.665  1913  1913 I NavigationBarController: register productivity change listener failure , try again!
+08-10 17:23:25.667  1913  1913 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 17:23:26.170  1913  1913 I NavigationBarController: register productivity change listener failure , try again!
+08-10 17:23:26.171  1913  1913 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 17:23:26.674  1913  1913 I NavigationBarController: register productivity change listener failure , try again!
+08-10 17:23:26.675  1913  1913 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 17:23:26.738  1913  1913 D ProductivityModeListenerConverter: registerProductivityChangeListener in
+08-10 17:23:26.739  1913  1913 D ProductivityModeListenerConverter: registerProductivityChangeListener delay 3000.
+08-10 17:23:27.178  1913  1913 I NavigationBarController: register productivity change listener failure , try again!
+08-10 17:23:27.179  1913  1913 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 17:23:27.680  1913  1913 I NavigationBarController: register productivity change listener failure , try again!
+08-10 17:23:27.681  1913  1913 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 17:23:28.184  1913  1913 I NavigationBarController: register productivity change listener failure , try again!
+08-10 17:23:28.185  1913  1913 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 17:23:28.688  1913  1913 I NavigationBarController: register productivity change listener failure , try again!
+08-10 17:23:28.689  1913  1913 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 17:23:29.191  1913  1913 I NavigationBarController: register productivity change listener failure , try again!
+08-10 17:23:29.192  1913  1913 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 17:23:29.695  1913  1913 I NavigationBarController: register productivity change listener failure , try again!
+08-10 17:23:29.696  1913  1913 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 17:23:29.741  1913  1913 D ProductivityModeListenerConverter: registerProductivityChangeListener in
+08-10 17:23:29.743  1913  1913 D ProductivityModeListenerConverter: registerProductivityChangeListener delay 3000.
+08-10 17:23:30.198  1913  1913 I NavigationBarController: register productivity change listener failure , try again!
+08-10 17:23:30.199  1913  1913 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 17:23:30.702  1913  1913 I NavigationBarController: register productivity change listener failure , try again!
+08-10 17:23:30.703  1913  1913 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 17:23:31.206  1913  1913 I NavigationBarController: register productivity change listener failure , try again!
+08-10 17:23:31.207  1913  1913 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 17:23:31.710  1913  1913 I NavigationBarController: register productivity change listener failure , try again!
+08-10 17:23:31.711  1913  1913 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 17:23:32.213  1913  1913 I NavigationBarController: register productivity change listener failure , try again!
+08-10 17:23:32.215  1913  1913 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 17:23:32.716  1913  1913 I NavigationBarController: register productivity change listener failure , try again!
+08-10 17:23:32.717  1913  1913 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 17:23:32.745  1913  1913 D ProductivityModeListenerConverter: registerProductivityChangeListener in
+08-10 17:23:32.746  1913  1913 D ProductivityModeListenerConverter: registerProductivityChangeListener delay 3000.
+08-10 17:23:33.220  1913  1913 I NavigationBarController: register productivity change listener failure , try again!
+08-10 17:23:33.221  1913  1913 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 17:23:33.723  1913  1913 I NavigationBarController: register productivity change listener failure , try again!
+08-10 17:23:33.724  1913  1913 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 17:23:34.226  1913  1913 I NavigationBarController: register productivity change listener failure , try again!
+08-10 17:23:34.227  1913  1913 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 17:23:34.728  1913  1913 I NavigationBarController: register productivity change listener failure , try again!
+08-10 17:23:34.730  1913  1913 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 17:23:35.232  1913  1913 I NavigationBarController: register productivity change listener failure , try again!
+08-10 17:23:35.234  1913  1913 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 17:23:35.736  1913  1913 I NavigationBarController: register productivity change listener failure , try again!
+08-10 17:23:35.737  1913  1913 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 17:23:35.748  1913  1913 D ProductivityModeListenerConverter: registerProductivityChangeListener in
+08-10 17:23:35.749  1913  1913 D ProductivityModeListenerConverter: registerProductivityChangeListener delay 3000.
+08-10 17:23:36.239  1913  1913 I NavigationBarController: register productivity change listener failure , try again!
+08-10 17:23:36.241  1913  1913 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 17:23:36.743  1913  1913 I NavigationBarController: register productivity change listener failure , try again!
+08-10 17:23:36.744  1913  1913 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 17:23:37.247  1913  1913 I NavigationBarController: register productivity change listener failure , try again!
+08-10 17:23:37.248  1913  1913 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 17:23:37.751  1913  1913 I NavigationBarController: register productivity change listener failure , try again!
+08-10 17:23:37.752  1913  1913 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 17:23:38.253  1913  1913 I NavigationBarController: register productivity change listener failure , try again!
+08-10 17:23:38.254  1913  1913 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 17:23:38.751  1913  1913 D ProductivityModeListenerConverter: registerProductivityChangeListener in
+08-10 17:23:38.752  1913  1913 D ProductivityModeListenerConverter: registerProductivityChangeListener delay 3000.
+08-10 17:23:38.756  1913  1913 I NavigationBarController: register productivity change listener failure , try again!
+08-10 17:23:38.757  1913  1913 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 17:23:39.260  1913  1913 I NavigationBarController: register productivity change listener failure , try again!
+08-10 17:23:39.261  1913  1913 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 17:23:39.763  1913  1913 I NavigationBarController: register productivity change listener failure , try again!
+08-10 17:23:39.765  1913  1913 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 17:23:40.267  1913  1913 I NavigationBarController: register productivity change listener failure , try again!
+08-10 17:23:40.268  1913  1913 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 17:23:40.769  1913  1913 I NavigationBarController: register productivity change listener failure , try again!
+08-10 17:23:40.771  1913  1913 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 17:23:41.273  1913  1913 I NavigationBarController: register productivity change listener failure , try again!
+08-10 17:23:41.275  1913  1913 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 17:23:41.754  1913  1913 D ProductivityModeListenerConverter: registerProductivityChangeListener in
+08-10 17:23:41.756  1913  1913 D ProductivityModeListenerConverter: registerProductivityChangeListener delay 3000.
+08-10 17:23:41.777  1913  1913 I NavigationBarController: register productivity change listener failure , try again!
+08-10 17:23:41.778  1913  1913 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 17:23:42.281  1913  1913 I NavigationBarController: register productivity change listener failure , try again!
+08-10 17:23:42.282  1913  1913 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 17:23:42.783  1913  1913 I NavigationBarController: register productivity change listener failure , try again!
+08-10 17:23:42.785  1913  1913 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 17:23:43.286  1913  1913 I NavigationBarController: register productivity change listener failure , try again!
+08-10 17:23:43.287  1913  1913 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 17:23:43.789  1913  1913 I NavigationBarController: register productivity change listener failure , try again!
+08-10 17:23:43.790  1913  1913 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 17:23:44.291  1913  1913 I NavigationBarController: register productivity change listener failure , try again!
+08-10 17:23:44.292  1913  1913 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 17:23:44.759  1913  1913 D ProductivityModeListenerConverter: registerProductivityChangeListener in
+08-10 17:23:44.760  1913  1913 D ProductivityModeListenerConverter: registerProductivityChangeListener delay 3000.
+08-10 17:23:44.792  1913  1913 I NavigationBarController: register productivity change listener failure , try again!
+08-10 17:23:44.794  1913  1913 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 17:23:45.295  1913  1913 I NavigationBarController: register productivity change listener failure , try again!
+08-10 17:23:45.296  1913  1913 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 17:23:45.797  1913  1913 I NavigationBarController: register productivity change listener failure , try again!
+08-10 17:23:45.799  1913  1913 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 17:23:46.301  1913  1913 I NavigationBarController: register productivity change listener failure , try again!
+08-10 17:23:46.302  1913  1913 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 17:23:46.803  1913  1913 I NavigationBarController: register productivity change listener failure , try again!
+08-10 17:23:46.804  1913  1913 I NavigationBarController: registerProductivityChangeListener >> mListenerId = 
+08-10 17:23:46.924  5351  5422 D HeadsetService: isInbandRingingEnabled returning: false
+08-10 17:23:46.926  5351  5422 I AudioManager: In isBluetoothScoOn(), calling application: com.android.bluetooth
+08-10 17:23:46.927  1425  1773 I AS.AudioDeviceBroker: In isBluetoothScoOnForApp(), mForcedUseForCommExt: 0
+08-10 17:23:46.930  5351  5422 E bt_btif : bta_av_co_get_active_peer: peer index out of bounds: 5

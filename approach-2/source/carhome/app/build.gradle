@@ -1,0 +1,43 @@
+plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+}
+
+android {
+    namespace 'com.local.carhome'
+    compileSdk 34
+    defaultConfig {
+        applicationId 'com.local.carhome'
+        minSdk 30
+        targetSdk 30
+        versionCode 10
+        versionName '1.7'
+    }
+    buildTypes {
+        debug { }
+        // The build that goes on the tablet: R8-optimised Compose runs far smoother than a debug build.
+        release {
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.debug   // personal sideload build, debug key is fine
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    kotlinOptions { jvmTarget = '17' }
+    buildFeatures { compose true }
+    composeOptions { kotlinCompilerExtensionVersion '1.5.14' }
+    lint { abortOnError false; checkReleaseBuilds false }
+}
+
+dependencies {
+    implementation platform('androidx.compose:compose-bom:2024.06.00')
+    implementation 'androidx.compose.ui:ui'
+    implementation 'androidx.compose.foundation:foundation'
+    implementation 'androidx.compose.animation:animation'
+    implementation 'androidx.activity:activity-compose:1.9.0'
+    implementation 'androidx.core:core-ktx:1.13.1'
+}

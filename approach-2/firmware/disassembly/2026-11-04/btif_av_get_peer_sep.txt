@@ -1,0 +1,5 @@
+
+==== _Z20btif_av_get_peer_sepv @ 0x1c1cc8 size=0xc
+0x001c1cc8: adrp	x8, #0x3f6000
+0x001c1ccc: ldrb	w0, [x8, #0xde1]  ; [0x3f6de1]
+0x001c1cd0: ret	

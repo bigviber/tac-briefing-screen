@@ -1,0 +1,97 @@
+== Thu Aug 10 16:47:12 KST 2023 serial=TABLET_SERIAL
+-- modules
+/data/adb/modules/btdual_patch version=v5
+/data/adb/modules/btsink_overlay_prop version=v2
+/data/adb/modules/carhome_priv version=v1.6.2
+/data/adb/modules/carrelay_ivi version=v1.0.0
+/data/adb/modules/hfp_audio version=v1
+-- props
+[persist.bluetooth.a2dp_offload.cap]: [sbc-aac]
+[persist.bluetooth.a2dp_offload.disabled]: [false]
+[persist.bluetooth.maxconnectedaudiodevices]: [2]
+[persist.vendor.bt.aac_frm_ctl.enabled]: [true]
+[persist.vendor.btstack.aac_frm_ctl.enabled]: [true]
+[persist.vendor.qcom.bluetooth.a2dp_offload_cap]: [sbc-aac]
+[persist.vendor.qcom.bluetooth.aac_vbr_ctl.enabled]: [true]
+[persist.vendor.qcom.bluetooth.enable.splita2dp]: [true]
+[persist.vendor.qcom.bluetooth.scram.enabled]: [false]
+[persist.vendor.qcom.bluetooth.twsp_state.enabled]: [false]
+[persist.vendor.service.bt.a2dp.sink]: [true]
+[ro.bluetooth.a2dp_offload.supported]: [true]
+[vendor.audio.feature.a2dp_offload.enable]: [true]
+-- settings
+hidden_api_policy=1
+exemptions=Landroid/app/ActivityOptions;->setLaunchWindowingMode,Landroid/bluetooth/
+-- overlays
+com.android.bluetooth
+[x] com.local.btsink.overlay
+[x] com.carivi.bt.overlay
+-- bt component states
+      enabledComponents:
+        com.android.bluetooth.avrcpcontroller.BluetoothMediaBrowserService
+        com.android.bluetooth.pbapclient.PbapClientService
+        com.android.bluetooth.pbapclient.AuthenticationService
+        com.android.bluetooth.a2dpsink.A2dpSinkService
+        com.android.bluetooth.avrcpcontroller.AvrcpControllerService
+        com.android.bluetooth.hfpclient.HeadsetClientService
+
+Queries:
+  system apps queryable: false
+  forceQueryable:
+    com.android.bluetooth
+  queries via package name:
+  queries via intent:
+  queryable via interaction:
+    User 0:
+        com.android.bluetooth
+      com.android.bluetooth:
+        [com.android.systemui,com.tblenovo.wallpaper]
+        com.local.carhome
+        com.carivi.relay
+        com.android.bluetooth
+
+Shared users:
+  SharedUser [android.uid.bluetooth] (4a824b):
+    userId=1002
+      disabledComponents:
+        com.android.bluetooth.avrcp.AvrcpTargetService
+      enabledComponents:
+        com.android.bluetooth.avrcpcontroller.BluetoothMediaBrowserService
+        com.android.bluetooth.pbapclient.PbapClientService
+        com.android.bluetooth.pbapclient.AuthenticationService
+        com.android.bluetooth.a2dpsink.A2dpSinkService
+-- carrelay
+package:/system/priv-app/CarRelay/CarRelay.apk
+total 18
+drwxrwxrwx 2 root root 3488 2023-08-10 16:44 .
+drwx------ 7 root root 3488 1970-01-02 18:18 ..
+-rw-rw-rw- 1 root root 1030 2023-08-10 16:44 boot_snapshot.txt
+-rw-rw-rw- 1 root root  333 1970-01-02 18:21 post-fs-data.log
+-rw-rw-rw- 1 root root 1026 2023-08-10 16:44 service.log
+-- policy mount
+(stock policy)
+-- bt
+  ConnectionState: STATE_CONNECTED
+  MaxConnectedAudioDevices: 2
+  A2dpOffloadEnabled: true
+    AA:00:00:00:00:01 [ DUAL ] USER_IPHONE
+  mActiveDevice: null
+  mActiveDevice: null
+  Devices Tracked = 1
+  Devices Tracked = 1
+-- audio outputs
+   Devices: speaker
+   Devices: speaker
+   Devices: speaker
+   Devices: speaker
+   Devices: speaker
+   Devices: speaker
+   Devices: speaker
+   Devices: speaker
+   Devices: speaker
+   Devices: speaker
+   Devices: speaker
+   Devices: speaker
+   Devices: speaker
+   Devices: speaker
+   Devices: speaker

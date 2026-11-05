@@ -1,0 +1,231 @@
+0x001bd684: ff4302d1   sub     sp, sp, #0x90
+0x001bd688: 5e8600f8   str     x30, [x18], #8
+0x001bd68c: fd7b03a9   stp     x29, x30, [sp, #0x30]
+0x001bd690: fb2300f9   str     x27, [sp, #0x40]
+0x001bd694: fa6705a9   stp     x26, x25, [sp, #0x50]
+0x001bd698: f85f06a9   stp     x24, x23, [sp, #0x60]
+0x001bd69c: f65707a9   stp     x22, x21, [sp, #0x70]
+0x001bd6a0: f44f08a9   stp     x20, x19, [sp, #0x80]
+0x001bd6a4: fdc30091   add     x29, sp, #0x30
+0x001bd6a8: 56d03bd5   mrs     x22, tpidr_el0
+0x001bd6ac: c81640f9   ldr     x8, [x22, #0x28]
+0x001bd6b0: f71000d0   adrp    x23, #0x3db000
+0x001bd6b4: f403012a   mov     w20, w1
+0x001bd6b8: c2f5ffb0   adrp    x2, #0x76000
+0x001bd6bc: a8831ff8   stur    x8, [x29, #-8]
+0x001bd6c0: e8066c39   ldrb    w8, [x23, #0xb01]
+0x001bd6c4: e07f00a9   stp     x0, xzr, [sp]
+0x001bd6c8: e1130079   strh    w1, [sp, #8]
+0x001bd6cc: 61f3ffd0   adrp    x1, #0x2b000
+0x001bd6d0: f30300aa   mov     x19, x0
+0x001bd6d4: 1f110071   cmp     w8, #4
+0x001bd6d8: 217c0791   add     x1, x1, #0x1df  ; "%s"
+0x001bd6dc: 428c3891   add     x2, x2, #0xe23  ; "connect_int"
+0x001bd6e0: 60a08052   mov     w0, #0x503
+0x001bd6e4: 63000054   b.lo    #0x1bd6f0
+0x001bd6e8: 1411fd97   bl      #0x101b38  -> LogMsg
+0x001bd6ec: 02000014   b       #0x1bd6f4
+0x001bd6f0: 8b11fd97   bl      #0x101d1c  -> vnd_LogMsg
+0x001bd6f4: e00313aa   mov     x0, x19
+0x001bd6f8: 0e920194   bl      #0x221f30  -> _Z29btif_storage_is_device_bondedP10RawAddress
+0x001bd6fc: 20020034   cbz     w0, #0x1bd740
+0x001bd700: e8066c39   ldrb    w8, [x23, #0xb01]
+0x001bd704: 1f090071   cmp     w8, #2
+0x001bd708: c3060054   b.lo    #0x1bd7e0
+0x001bd70c: e8430091   add     x8, sp, #0x10
+0x001bd710: e00313aa   mov     x0, x19
+0x001bd714: 4f390894   bl      #0x3cbc50  -> sub_3cbc50
+0x001bd718: e0430091   add     x0, sp, #0x10
+0x001bd71c: e810fd97   bl      #0x101abc  -> _ZNKSt3__117__compressed_pairINS_12basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEE5__repES5_E5firstEv
+0x001bd720: 15004039   ldrb    w21, [x0]
+0x001bd724: e0430091   add     x0, sp, #0x10
+0x001bd728: e510fd97   bl      #0x101abc  -> _ZNKSt3__117__compressed_pairINS_12basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEE5__repES5_E5firstEv
+0x001bd72c: 55070037   tbnz    w21, #0, #0x1bd814
+0x001bd730: 15040091   add     x21, x0, #1
+0x001bd734: e00315aa   mov     x0, x21
+0x001bd738: c512fd97   bl      #0x10224c  -> _ZNSt3__19addressofIKcEEPT_RS2_
+0x001bd73c: 37000014   b       #0x1bd818
+0x001bd740: f91000d0   adrp    x25, #0x3db000
+0x001bd744: 28334fb9   ldr     w8, [x25, #0xf30]
+0x001bd748: d81100b0   adrp    x24, #0x3f6000
+0x001bd74c: 18031891   add     x24, x24, #0x600
+0x001bd750: 1f050071   cmp     w8, #1
+0x001bd754: ab0e0054   b.lt    #0x1bd928
+0x001bd758: f5031faa   mov     x21, xzr
+0x001bd75c: fa031faa   mov     x26, xzr
+0x001bd760: 06000014   b       #0x1bd778
+0x001bd764: 28338fb9   ldrsw   x8, [x25, #0xf30]
+0x001bd768: 5a070091   add     x26, x26, #1
+0x001bd76c: b5020391   add     x21, x21, #0xc0
+0x001bd770: 5f0308eb   cmp     x26, x8
+0x001bd774: 4a0b0054   b.ge    #0x1bd8dc
+0x001bd778: 5f1700f1   cmp     x26, #5
+0x001bd77c: 80140054   b.eq    #0x1bda0c
+0x001bd780: a8220091   add     x8, x21, #8
+0x001bd784: 1f010ff1   cmp     x8, #0x3c0
+0x001bd788: 48140054   b.hi    #0x1bda10
+0x001bd78c: 1b03158b   add     x27, x24, x21
+0x001bd790: 600740f9   ldr     x0, [x27, #8]
+0x001bd794: 93660194   bl      #0x2171e0  -> _Z17btif_sm_get_statePv
+0x001bd798: 08040051   sub     w8, w0, #1
+0x001bd79c: 1f110071   cmp     w8, #4
+0x001bd7a0: 22feff54   b.hs    #0x1bd764
+0x001bd7a4: 680240b9   ldr     w8, [x19]
+0x001bd7a8: 691340b8   ldur    w9, [x27, #1]
+0x001bd7ac: 6a0a4079   ldrh    w10, [x19, #4]
+0x001bd7b0: 6b534078   ldurh   w11, [x27, #5]
+0x001bd7b4: 0801094a   eor     w8, w8, w9
+0x001bd7b8: 49010b4a   eor     w9, w10, w11
+0x001bd7bc: 0801092a   orr     w8, w8, w9
+0x001bd7c0: 28fdff35   cbnz    w8, #0x1bd764
+0x001bd7c4: e8066c39   ldrb    w8, [x23, #0xb01]
+0x001bd7c8: 88060034   cbz     w8, #0x1bd898
+0x001bd7cc: 41f3ffb0   adrp    x1, #0x26000
+0x001bd7d0: 21240491   add     x1, x1, #0x109  ; "Attempting connection for non idle device.. back off "
+0x001bd7d4: 00a08052   mov     w0, #0x500
+0x001bd7d8: d810fd97   bl      #0x101b38  -> LogMsg
+0x001bd7dc: 2f000014   b       #0x1bd898
+0x001bd7e0: e8430091   add     x8, sp, #0x10
+0x001bd7e4: e00313aa   mov     x0, x19
+0x001bd7e8: 1a390894   bl      #0x3cbc50  -> sub_3cbc50
+0x001bd7ec: e0430091   add     x0, sp, #0x10
+0x001bd7f0: b310fd97   bl      #0x101abc  -> _ZNKSt3__117__compressed_pairINS_12basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEE5__repES5_E5firstEv
+0x001bd7f4: 15004039   ldrb    w21, [x0]
+0x001bd7f8: e0430091   add     x0, sp, #0x10
+0x001bd7fc: b010fd97   bl      #0x101abc  -> _ZNKSt3__117__compressed_pairINS_12basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEE5__repES5_E5firstEv
+0x001bd800: d5010037   tbnz    w21, #0, #0x1bd838
+0x001bd804: 15040091   add     x21, x0, #1
+0x001bd808: e00315aa   mov     x0, x21
+0x001bd80c: 9012fd97   bl      #0x10224c  -> _ZNSt3__19addressofIKcEEPT_RS2_
+0x001bd810: 0b000014   b       #0x1bd83c
+0x001bd814: 150840f9   ldr     x21, [x0, #0x10]
+0x001bd818: c1f3ffd0   adrp    x1, #0x37000
+0x001bd81c: c2f5ffb0   adrp    x2, #0x76000
+0x001bd820: 21bc3991   add     x1, x1, #0xe6f  ; "%s()## connect_int ## Device Not Bonded %s ."
+0x001bd824: 428c3891   add     x2, x2, #0xe23  ; "connect_int"
+0x001bd828: 20a08052   mov     w0, #0x501
+0x001bd82c: e30315aa   mov     x3, x21
+0x001bd830: c210fd97   bl      #0x101b38  -> LogMsg
+0x001bd834: 09000014   b       #0x1bd858
+0x001bd838: 150840f9   ldr     x21, [x0, #0x10]
+0x001bd83c: c1f3ffd0   adrp    x1, #0x37000
+0x001bd840: c2f5ffb0   adrp    x2, #0x76000
+0x001bd844: 21bc3991   add     x1, x1, #0xe6f  ; "%s()## connect_int ## Device Not Bonded %s ."
+0x001bd848: 428c3891   add     x2, x2, #0xe23  ; "connect_int"
+0x001bd84c: 20a08052   mov     w0, #0x501
+0x001bd850: e30315aa   mov     x3, x21
+0x001bd854: 3211fd97   bl      #0x101d1c  -> vnd_LogMsg
+0x001bd858: e0430091   add     x0, sp, #0x10
+0x001bd85c: 9810fd97   bl      #0x101abc  -> _ZNKSt3__117__compressed_pairINS_12basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEE5__repES5_E5firstEv
+0x001bd860: 08004039   ldrb    w8, [x0]
+0x001bd864: 48010036   tbz     w8, #0, #0x1bd88c
+0x001bd868: e0430091   add     x0, sp, #0x10
+0x001bd86c: 9710fd97   bl      #0x101ac8  -> _ZNSt3__117__compressed_pairINS_12basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEE5__repES5_E6secondEv
+0x001bd870: e0430091   add     x0, sp, #0x10
+0x001bd874: 9310fd97   bl      #0x101ac0  -> _ZNSt3__117__compressed_pairINS_12basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEE5__repES5_E5firstEv
+0x001bd878: 150840f9   ldr     x21, [x0, #0x10]
+0x001bd87c: e0430091   add     x0, sp, #0x10
+0x001bd880: 8f10fd97   bl      #0x101abc  -> _ZNKSt3__117__compressed_pairINS_12basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEE5__repES5_E5firstEv
+0x001bd884: e00315aa   mov     x0, x21
+0x001bd888: 72470894   bl      #0x3cf650
+0x001bd88c: e0031f2a   mov     w0, wzr
+0x001bd890: e10313aa   mov     x1, x19
+0x001bd894: b7f2ff97   bl      #0x1ba370  -> _ZL28btif_report_connection_state23btav_connection_state_tP10RawAddress
+0x001bd898: e003142a   mov     w0, w20
+0x001bd89c: e10313aa   mov     x1, x19
+0x001bd8a0: 1e120194   bl      #0x202118  -> _Z26btif_queue_advance_by_uuidtPK10RawAddress
+0x001bd8a4: e0031f2a   mov     w0, wzr
+0x001bd8a8: c81640f9   ldr     x8, [x22, #0x28]
+0x001bd8ac: a9835ff8   ldur    x9, [x29, #-8]
+0x001bd8b0: 1f0109eb   cmp     x8, x9
+0x001bd8b4: 010b0054   b.ne    #0x1bda14
+0x001bd8b8: fd7b43a9   ldp     x29, x30, [sp, #0x30]
+0x001bd8bc: f44f48a9   ldp     x20, x19, [sp, #0x80]
+0x001bd8c0: f65747a9   ldp     x22, x21, [sp, #0x70]
+0x001bd8c4: f85f46a9   ldp     x24, x23, [sp, #0x60]
+0x001bd8c8: fa6745a9   ldp     x26, x25, [sp, #0x50]
+0x001bd8cc: fb2340f9   ldr     x27, [sp, #0x40]
+0x001bd8d0: 5e8e5ff8   ldr     x30, [x18, #-8]!
+0x001bd8d4: ff430291   add     sp, sp, #0x90
+0x001bd8d8: c0035fd6   ret     
+0x001bd8dc: 1f050071   cmp     w8, #1
+0x001bd8e0: 4b020054   b.lt    #0x1bd928
+0x001bd8e4: f5031faa   mov     x21, xzr
+0x001bd8e8: 1a018052   mov     w26, #8
+0x001bd8ec: bf1600f1   cmp     x21, #5
+0x001bd8f0: e0080054   b.eq    #0x1bda0c
+0x001bd8f4: 5f030ff1   cmp     x26, #0x3c0
+0x001bd8f8: c8080054   b.hi    #0x1bda10
+0x001bd8fc: 006b7af8   ldr     x0, [x24, x26]
+0x001bd900: 38660194   bl      #0x2171e0  -> _Z17btif_sm_get_statePv
+0x001bd904: 08040051   sub     w8, w0, #1
+0x001bd908: 1f110071   cmp     w8, #4
+0x001bd90c: 62060054   b.hs    #0x1bd9d8
+0x001bd910: 28338fb9   ldrsw   x8, [x25, #0xf30]
+0x001bd914: b5060091   add     x21, x21, #1
+0x001bd918: 5a030391   add     x26, x26, #0xc0
+0x001bd91c: bf0208eb   cmp     x21, x8
+0x001bd920: 6bfeff54   b.lt    #0x1bd8ec
+0x001bd924: 02000014   b       #0x1bd92c
+0x001bd928: f5031f2a   mov     w21, wzr
+0x001bd92c: 28334fb9   ldr     w8, [x25, #0xf30]
+0x001bd930: bf02086b   cmp     w21, w8
+0x001bd934: 41030054   b.ne    #0x1bd99c
+0x001bd938: e8066c39   ldrb    w8, [x23, #0xb01]
+0x001bd93c: e8000034   cbz     w8, #0x1bd958
+0x001bd940: 81f5fff0   adrp    x1, #0x70000
+0x001bd944: c2f5ffb0   adrp    x2, #0x76000
+0x001bd948: 21643b91   add     x1, x1, #0xed9  ; "%s: All indexes are full"
+0x001bd94c: 428c3891   add     x2, x2, #0xe23  ; "connect_int"
+0x001bd950: 00a08052   mov     w0, #0x500
+0x001bd954: 7910fd97   bl      #0x101b38  -> LogMsg
+0x001bd958: e0031f2a   mov     w0, wzr
+0x001bd95c: e10313aa   mov     x1, x19
+0x001bd960: 84f2ff97   bl      #0x1ba370  -> _ZL28btif_report_connection_state23btav_connection_state_tP10RawAddress
+0x001bd964: e0430091   add     x0, sp, #0x10
+0x001bd968: e10313aa   mov     x1, x19
+0x001bd96c: b4380894   bl      #0x3cbc3c  -> sub_3cbc3c
+0x001bd970: e0430091   add     x0, sp, #0x10
+0x001bd974: 04480194   bl      #0x20f984  -> _Z33btif_rc_get_connected_peer_handleRK10RawAddress
+0x001bd978: e803202a   mvn     w8, w0
+0x001bd97c: 1f1d0072   tst     w8, #0xff
+0x001bd980: 40000054   b.eq    #0x1bd988
+0x001bd984: 9fa5fd97   bl      #0x127000  -> _Z13BTA_AvCloseRch
+0x001bd988: e003142a   mov     w0, w20
+0x001bd98c: e10313aa   mov     x1, x19
+0x001bd990: e2110194   bl      #0x202118  -> _Z26btif_queue_advance_by_uuidtPK10RawAddress
+0x001bd994: 20008052   mov     w0, #1
+0x001bd998: c4ffff17   b       #0x1bd8a8
+0x001bd99c: bf120071   cmp     w21, #4
+0x001bd9a0: 68030054   b.hi    #0x1bda0c
+0x001bd9a4: e803152a   mov     w8, w21
+0x001bd9a8: 0945358b   add     x9, x8, w21, uxtw #1
+0x001bd9ac: 0a018052   mov     w10, #8
+0x001bd9b0: 2a857ab3   bfi     x10, x9, #6, #0x22
+0x001bd9b4: 5f010ff1   cmp     x10, #0x3c0
+0x001bd9b8: c8020054   b.hi    #0x1bda10
+0x001bd9bc: 09188052   mov     w9, #0xc0
+0x001bd9c0: 0861099b   madd    x8, x8, x9, x24
+0x001bd9c4: 000540f9   ldr     x0, [x8, #8]
+0x001bd9c8: e2030091   mov     x2, sp
+0x001bd9cc: c1038052   mov     w1, #0x1e
+0x001bd9d0: 17660194   bl      #0x21722c  -> _Z16btif_sm_dispatchPvjS_
+0x001bd9d4: b4ffff17   b       #0x1bd8a4
+0x001bd9d8: e8066c39   ldrb    w8, [x23, #0xb01]
+0x001bd9dc: e1f5ff90   adrp    x1, #0x79000
+0x001bd9e0: c2f5ffb0   adrp    x2, #0x76000
+0x001bd9e4: 21a03991   add     x1, x1, #0xe68  ; "%s: index %d is idle"
+0x001bd9e8: 428c3891   add     x2, x2, #0xe23  ; "connect_int"
+0x001bd9ec: 80a08052   mov     w0, #0x504
+0x001bd9f0: e303152a   mov     w3, w21
+0x001bd9f4: 1f150071   cmp     w8, #5
+0x001bd9f8: 63000054   b.lo    #0x1bda04
+0x001bd9fc: 4f10fd97   bl      #0x101b38  -> LogMsg
+0x001bda00: cbffff17   b       #0x1bd92c
+0x001bda04: c610fd97   bl      #0x101d1c  -> vnd_LogMsg
+0x001bda08: c9ffff17   b       #0x1bd92c
+0x001bda0c: b9460894   bl      #0x3cf4f0
+0x001bda10: 200020d4   brk     #1
+0x001bda14: cf460894   bl      #0x3cf550
+
+==== connect_int @ 0x1bd684 size=0x394 ====

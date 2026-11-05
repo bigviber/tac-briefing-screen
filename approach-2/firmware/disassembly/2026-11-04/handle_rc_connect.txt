@@ -1,0 +1,415 @@
+
+==== _Z17handle_rc_connectP15tBTA_AV_RC_OPEN @ 0x2081c0 size=0x674
+0x002081c0: sub	sp, sp, #0xa0
+0x002081c4: str	x30, [x18], #8
+0x002081c8: stp	x29, x30, [sp, #0x40]
+0x002081cc: stp	x28, x27, [sp, #0x50]
+0x002081d0: stp	x26, x25, [sp, #0x60]
+0x002081d4: stp	x24, x23, [sp, #0x70]
+0x002081d8: stp	x22, x21, [sp, #0x80]
+0x002081dc: stp	x20, x19, [sp, #0x90]
+0x002081e0: add	x29, sp, #0x40
+0x002081e4: mrs	x24, tpidr_el0
+0x002081e8: ldr	x8, [x24, #0x28]
+0x002081ec: adrp	x25, #0x3db000
+0x002081f0: adrp	x1, #0x23000
+0x002081f4: adrp	x2, #0x2c000
+0x002081f8: stur	x8, [x29, #-8]
+0x002081fc: ldrb	w8, [x25, #0xb01]  ; [0x3dbb01]
+0x00208200: ldrb	w3, [x0]
+0x00208204: mov	x20, x0
+0x00208208: add	x1, x1, #0x915  ; "%s: rc_handle: %d"
+0x0020820c: add	x2, x2, #0x783  ; "handle_rc_connect"
+0x00208210: mov	w0, #0x504
+0x00208214: cmp	w8, #5
+0x00208218: b.lo	#0x208224
+0x0020821c: bl	#0x101b38  -> LogMsg
+0x00208220: b	#0x208228
+0x00208224: bl	#0x101d1c  -> vnd_LogMsg
+0x00208228: adrp	x21, #0x3d9000
+0x0020822c: ldr	x21, [x21, #0x5e8]  ; [0x3d95e8]
+0x00208230: adrp	x8, #0x400000
+0x00208234: ldr	x22, [x8, #0x3a0]  ; [0x4003a0]
+0x00208238: ldr	w9, [x21]  ; [0x3d9000]
+0x0020823c: ldrh	w10, [x21, #4]
+0x00208240: stur	w9, [x29, #-0x18]
+0x00208244: sturh	w10, [x29, #-0x14]
+0x00208248: cbz	x22, #0x20828c
+0x0020824c: adrp	x8, #0x3dc000
+0x00208250: ldr	w9, [x8, #0x98]  ; [0x3dc098]
+0x00208254: cmp	w9, #1
+0x00208258: b.lt	#0x208280
+0x0020825c: mov	w8, #0x1640
+0x00208260: mov	x23, xzr
+0x00208264: mul	x9, x9, x8
+0x00208268: add	x19, x22, x23
+0x0020826c: ldr	w10, [x19, #8]
+0x00208270: cbz	w10, #0x2082d0
+0x00208274: add	x23, x23, x8
+0x00208278: cmp	x9, x23
+0x0020827c: b.ne	#0x208268
+0x00208280: ldrb	w8, [x25, #0xb01]  ; [0x3dbb01]
+0x00208284: cbnz	w8, #0x2082b4
+0x00208288: b	#0x2087fc
+0x0020828c: ldrb	w8, [x25, #0xb01]  ; [0x3dbb01]
+0x00208290: cbz	w8, #0x2087fc
+0x00208294: adrp	x1, #0x2c000
+0x00208298: adrp	x2, #0x53000
+0x0020829c: add	x1, x1, #0x6c6  ; "%s: RC multicb is NULL"
+0x002082a0: add	x2, x2, #0x477  ; "alloc_device"
+0x002082a4: mov	w0, #0x500
+0x002082a8: bl	#0x101b38  -> LogMsg
+0x002082ac: ldrb	w8, [x25, #0xb01]  ; [0x3dbb01]
+0x002082b0: cbz	w8, #0x2087fc
+0x002082b4: adrp	x1, #0x4d000
+0x002082b8: adrp	x2, #0x2c000
+0x002082bc: add	x1, x1, #0x533  ; "%s: p_dev is NULL"
+0x002082c0: add	x2, x2, #0x783  ; "handle_rc_connect"
+0x002082c4: mov	w0, #0x500
+0x002082c8: bl	#0x101b38  -> LogMsg
+0x002082cc: b	#0x2087fc
+0x002082d0: ldrb	w3, [x20, #0xa]
+0x002082d4: cbz	w3, #0x208300
+0x002082d8: ldrb	w8, [x25, #0xb01]  ; [0x3dbb01]
+0x002082dc: cbz	w8, #0x2082f8
+0x002082e0: adrp	x1, #0x5f000
+0x002082e4: adrp	x2, #0x2c000
+0x002082e8: add	x1, x1, #0x497  ; "%s: Connect failed with error code: %d"
+0x002082ec: add	x2, x2, #0x783  ; "handle_rc_connect"
+0x002082f0: mov	w0, #0x500
+0x002082f4: bl	#0x101b38  -> LogMsg
+0x002082f8: strb	wzr, [x22, x23]
+0x002082fc: b	#0x2087fc
+0x00208300: ldrb	w8, [x22, x23]
+0x00208304: cbz	w8, #0x208390
+0x00208308: ldrb	w8, [x25, #0xb01]  ; [0x3dbb01]
+0x0020830c: cbz	w8, #0x208334
+0x00208310: add	x8, x22, x23
+0x00208314: ldrb	w3, [x8, #2]  ; [0x3dc002]
+0x00208318: ldrb	w4, [x20]
+0x0020831c: adrp	x1, #0x5c000
+0x00208320: adrp	x2, #0x2c000
+0x00208324: add	x1, x1, #0x1b4  ; "%s: Got RC OPEN in connected state, Connected RC: %d             and Current RC: %d"
+0x00208328: add	x2, x2, #0x783  ; "handle_rc_connect"
+0x0020832c: mov	w0, #0x500
+0x00208330: bl	#0x101b38  -> LogMsg
+0x00208334: add	x8, x22, x23
+0x00208338: ldrb	w9, [x8, #2]  ; [0x3dc002]
+0x0020833c: ldrb	w10, [x20]
+0x00208340: cmp	w9, w10
+0x00208344: b.eq	#0x208390
+0x00208348: ldr	w9, [x8, #0xc]  ; [0x3dc00c]
+0x0020834c: ldr	w10, [x20, #4]
+0x00208350: ldrh	w8, [x8, #0x10]
+0x00208354: ldrh	w11, [x20, #8]
+0x00208358: eor	w9, w9, w10
+0x0020835c: eor	w8, w8, w11
+0x00208360: orr	w8, w9, w8
+0x00208364: cbz	w8, #0x208390
+0x00208368: ldrb	w8, [x25, #0xb01]  ; [0x3dbb01]
+0x0020836c: adrp	x1, #0x5f000
+0x00208370: adrp	x2, #0x2c000
+0x00208374: add	x1, x1, #0x4be  ; "%s: Got RC connected for some other handle"
+0x00208378: add	x2, x2, #0x783  ; "handle_rc_connect"
+0x0020837c: mov	w0, #0x504
+0x00208380: cmp	w8, #5
+0x00208384: b.lo	#0x2086b0
+0x00208388: bl	#0x101b38  -> LogMsg
+0x0020838c: b	#0x2086b4
+0x00208390: ldr	w8, [x20, #4]
+0x00208394: ldrh	w9, [x20, #8]
+0x00208398: add	x26, x22, x23
+0x0020839c: mov	x27, x26
+0x002083a0: str	w8, [x27, #0xc]!
+0x002083a4: strh	w9, [x26, #0x10]
+0x002083a8: ldrh	w4, [x20, #2]
+0x002083ac: adrp	x1, #0x41000
+0x002083b0: adrp	x2, #0x2c000
+0x002083b4: add	x1, x1, #0xa4c  ; "%s: handle_rc_connect in features: 0x%x out features 0x%x"
+0x002083b8: strh	w4, [x26, #4]
+0x002083bc: ldrh	w8, [x20, #0xc]
+0x002083c0: add	x2, x2, #0x783  ; "handle_rc_connect"
+0x002083c4: mov	w0, #0x504
+0x002083c8: strh	w8, [x26, #6]
+0x002083cc: ldrb	w8, [x25, #0xb01]  ; [0x3dbb01]
+0x002083d0: ldrh	w3, [x20, #2]
+0x002083d4: cmp	w8, #5
+0x002083d8: b.lo	#0x2083e4
+0x002083dc: bl	#0x101b38  -> LogMsg
+0x002083e0: b	#0x2083e8
+0x002083e4: bl	#0x101d1c  -> vnd_LogMsg
+0x002083e8: add	x28, x22, x23
+0x002083ec: mov	w8, #0x10
+0x002083f0: movi	v0.2s, #0x80
+0x002083f4: strb	w8, [x28, #0x368]
+0x002083f8: ldrh	w8, [x28, #0x10]
+0x002083fc: str	d0, [x28, #0x360]
+0x00208400: ldr	w9, [x28, #0xc]
+0x00208404: ldr	w10, [x21]  ; [0x3d9000]
+0x00208408: ldrh	w11, [x21, #4]
+0x0020840c: sturh	w8, [x29, #-0xc]
+0x00208410: and	w8, w8, #0xffff
+0x00208414: stur	w9, [x29, #-0x10]
+0x00208418: eor	w9, w9, w10
+0x0020841c: eor	w8, w8, w11
+0x00208420: orr	w8, w9, w8
+0x00208424: sturh	wzr, [x29, #-0x1c]
+0x00208428: cbz	w8, #0x208558
+0x0020842c: add	x8, sp, #8
+0x00208430: sub	x0, x29, #0x10
+0x00208434: bl	#0x3cbc50
+0x00208438: add	x0, sp, #8
+0x0020843c: bl	#0x101abc  -> _ZNKSt3__117__compressed_pairINS_12basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEE5__repES5_E5firstEv
+0x00208440: ldrb	w21, [x0]
+0x00208444: add	x0, sp, #8
+0x00208448: bl	#0x101abc  -> _ZNKSt3__117__compressed_pairINS_12basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEE5__repES5_E5firstEv
+0x0020844c: tbnz	w21, #0, #0x20845c
+0x00208450: add	x0, x0, #1
+0x00208454: bl	#0x10224c  -> _ZNSt3__19addressofIKcEEPT_RS2_
+0x00208458: b	#0x208460
+0x0020845c: ldr	x0, [x0, #0x10]
+0x00208460: adrp	x1, #0x28000
+0x00208464: add	x1, x1, #0x67  ; "AvdtpVersion"
+0x00208468: sub	x2, x29, #0x1c
+0x0020846c: bl	#0x1d2d3c  -> _Z22btif_config_get_uint16PKcS0_Pt
+0x00208470: mov	w21, w0
+0x00208474: add	x0, sp, #8
+0x00208478: bl	#0x101abc  -> _ZNKSt3__117__compressed_pairINS_12basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEE5__repES5_E5firstEv
+0x0020847c: ldrb	w8, [x0]
+0x00208480: tbz	w8, #0, #0x2084a8
+0x00208484: add	x0, sp, #8
+0x00208488: bl	#0x101ac8  -> _ZNSt3__117__compressed_pairINS_12basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEE5__repES5_E6secondEv
+0x0020848c: add	x0, sp, #8
+0x00208490: bl	#0x101ac0  -> _ZNSt3__117__compressed_pairINS_12basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEE5__repES5_E5firstEv
+0x00208494: ldr	x22, [x0, #0x10]
+0x00208498: add	x0, sp, #8
+0x0020849c: bl	#0x101abc  -> _ZNKSt3__117__compressed_pairINS_12basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEE5__repES5_E5firstEv
+0x002084a0: mov	x0, x22
+0x002084a4: bl	#0x3cf650
+0x002084a8: add	x8, sp, #8
+0x002084ac: sub	x0, x29, #0x10
+0x002084b0: bl	#0x3cbc50
+0x002084b4: add	x0, sp, #8
+0x002084b8: bl	#0x101abc  -> _ZNKSt3__117__compressed_pairINS_12basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEE5__repES5_E5firstEv
+0x002084bc: ldrb	w22, [x0]
+0x002084c0: add	x0, sp, #8
+0x002084c4: bl	#0x101abc  -> _ZNKSt3__117__compressed_pairINS_12basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEE5__repES5_E5firstEv
+0x002084c8: tbnz	w22, #0, #0x2084d8
+0x002084cc: add	x0, x0, #1
+0x002084d0: bl	#0x10224c  -> _ZNSt3__19addressofIKcEEPT_RS2_
+0x002084d4: b	#0x2084dc
+0x002084d8: ldr	x0, [x0, #0x10]
+0x002084dc: adrp	x1, #0x1c000
+0x002084e0: add	x1, x1, #0xe7a  ; "AvrcpCtVersion"
+0x002084e4: sub	x2, x29, #0x1c
+0x002084e8: bl	#0x1d2d3c  -> _Z22btif_config_get_uint16PKcS0_Pt
+0x002084ec: mov	w22, w0
+0x002084f0: add	x0, sp, #8
+0x002084f4: bl	#0x101abc  -> _ZNKSt3__117__compressed_pairINS_12basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEE5__repES5_E5firstEv
+0x002084f8: ldrb	w8, [x0]
+0x002084fc: tbz	w8, #0, #0x208524
+0x00208500: add	x0, sp, #8
+0x00208504: bl	#0x101ac8  -> _ZNSt3__117__compressed_pairINS_12basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEE5__repES5_E6secondEv
+0x00208508: add	x0, sp, #8
+0x0020850c: bl	#0x101ac0  -> _ZNSt3__117__compressed_pairINS_12basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEE5__repES5_E5firstEv
+0x00208510: ldr	x23, [x0, #0x10]
+0x00208514: add	x0, sp, #8
+0x00208518: bl	#0x101abc  -> _ZNKSt3__117__compressed_pairINS_12basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEE5__repES5_E5firstEv
+0x0020851c: mov	x0, x23
+0x00208520: bl	#0x3cf650
+0x00208524: ldrb	w8, [x25, #0xb01]  ; [0x3dbb01]
+0x00208528: adrp	x1, #0x50000
+0x0020852c: and	w2, w21, #1
+0x00208530: and	w3, w22, #1
+0x00208534: cmp	w8, #2
+0x00208538: add	x1, x1, #0x1fa  ; "peer supports a2dp: %d, avrcp: %d"
+0x0020853c: mov	w0, #0x501
+0x00208540: b.lo	#0x20854c
+0x00208544: bl	#0x101b38  -> LogMsg
+0x00208548: b	#0x208550
+0x0020854c: bl	#0x101d1c  -> vnd_LogMsg
+0x00208550: eor	w8, w21, #1
+0x00208554: and	w8, w22, w8
+0x00208558: mov	w9, #0x1638
+0x0020855c: and	w8, w8, #1
+0x00208560: mov	w10, #1
+0x00208564: add	x9, x28, x9
+0x00208568: strb	w8, [x9]
+0x0020856c: adrp	x8, #0x1a000
+0x00208570: strb	w10, [x28]
+0x00208574: ldrb	w11, [x20]
+0x00208578: ldr	d0, [x8, #0x2f8]  ; [0x1a2f8]
+0x0020857c: add	x8, x28, #0x104
+0x00208580: str	w10, [x28, #8]
+0x00208584: strb	w11, [x28, #2]
+0x00208588: add	x10, x28, #0x134
+0x0020858c: strb	wzr, [x9, #3]
+0x00208590: add	x9, x28, #0x164
+0x00208594: str	wzr, [x28, #0x1c]
+0x00208598: stur	d0, [x28, #0x14]
+0x0020859c: str	wzr, [x28, #0x4c]
+0x002085a0: stur	d0, [x28, #0x44]
+0x002085a4: str	wzr, [x28, #0x7c]
+0x002085a8: stur	d0, [x28, #0x74]
+0x002085ac: str	wzr, [x28, #0xac]
+0x002085b0: stur	d0, [x28, #0xa4]
+0x002085b4: str	wzr, [x28, #0xdc]
+0x002085b8: stur	d0, [x28, #0xd4]
+0x002085bc: str	wzr, [x28, #0x10c]
+0x002085c0: str	d0, [x8]  ; [0x1a000]
+0x002085c4: add	x8, x28, #0x194
+0x002085c8: str	wzr, [x28, #0x13c]
+0x002085cc: str	d0, [x10]
+0x002085d0: add	x10, x28, #0x1c4
+0x002085d4: str	wzr, [x28, #0x16c]
+0x002085d8: str	d0, [x9]
+0x002085dc: add	x9, x28, #0x1f4
+0x002085e0: str	wzr, [x28, #0x19c]
+0x002085e4: str	d0, [x8]  ; [0x1a000]
+0x002085e8: add	x8, x28, #0x224
+0x002085ec: str	wzr, [x28, #0x1cc]
+0x002085f0: str	d0, [x10]
+0x002085f4: add	x10, x28, #0x254
+0x002085f8: str	wzr, [x28, #0x1fc]
+0x002085fc: str	d0, [x9]
+0x00208600: add	x9, x28, #0x284
+0x00208604: str	wzr, [x28, #0x22c]
+0x00208608: str	d0, [x8]  ; [0x1a000]
+0x0020860c: add	x8, x28, #0x2b4
+0x00208610: str	wzr, [x28, #0x25c]
+0x00208614: str	d0, [x10]
+0x00208618: add	x10, x28, #0x2e4
+0x0020861c: str	wzr, [x28, #0x28c]
+0x00208620: str	d0, [x9]
+0x00208624: add	x9, x28, #0x314
+0x00208628: str	wzr, [x28, #0x2bc]
+0x0020862c: str	d0, [x8]  ; [0x1a000]
+0x00208630: mov	x8, #-1
+0x00208634: str	wzr, [x28, #0x2ec]
+0x00208638: str	d0, [x10]
+0x0020863c: str	wzr, [x28, #0x31c]
+0x00208640: str	d0, [x9]
+0x00208644: str	x8, [x28, #0x1630]
+0x00208648: ldrh	w8, [x27, #4]
+0x0020864c: ldr	w9, [x27]
+0x00208650: sturh	w8, [x29, #-0x14]
+0x00208654: stur	w9, [x29, #-0x18]
+0x00208658: ldrh	w8, [x26, #4]
+0x0020865c: cbz	w8, #0x208738
+0x00208660: adrp	x20, #0x400000
+0x00208664: ldr	x9, [x20, #0x3e8]  ; [0x4003e8]
+0x00208668: cbz	x9, #0x208738
+0x0020866c: tbz	w8, #1, #0x208730
+0x00208670: ldr	x8, [x9, #0xb0]
+0x00208674: cbz	x8, #0x2086c0
+0x00208678: ldrb	w8, [x25, #0xb01]  ; [0x3dbb01]
+0x0020867c: adrp	x1, #0x26000
+0x00208680: adrp	x2, #0x2c000
+0x00208684: adrp	x3, #0x1d000
+0x00208688: adrp	x4, #0x3a000
+0x0020868c: add	x1, x1, #0xe8  ; "%s: HAL %s->%s"
+0x00208690: add	x2, x2, #0x783  ; "handle_rc_connect"
+0x00208694: add	x3, x3, #0xcc6  ; "bt_rc_callbacks"
+0x00208698: add	x4, x4, #0xc88  ; "connection_state_cb"
+0x0020869c: mov	w0, #0x502
+0x002086a0: cmp	w8, #3
+0x002086a4: b.lo	#0x2086fc
+0x002086a8: bl	#0x101b38  -> LogMsg
+0x002086ac: b	#0x208700
+0x002086b0: bl	#0x101d1c  -> vnd_LogMsg
+0x002086b4: ldrb	w0, [x20]  ; [0x400000]
+0x002086b8: bl	#0x127000  -> _Z13BTA_AvCloseRch
+0x002086bc: b	#0x2087fc
+0x002086c0: adrp	x1, #0x68000
+0x002086c4: adrp	x2, #0x3a000
+0x002086c8: adrp	x3, #0x38000
+0x002086cc: adrp	x4, #0x2c000
+0x002086d0: adrp	x6, #0x76000
+0x002086d4: add	x1, x1, #0x510  ; "bt_btif_avrc"
+0x002086d8: add	x2, x2, #0xc30  ; "### ASSERT : %s %s line %d %s (%d) ###"
+0x002086dc: add	x3, x3, #0x3a3  ; "vendor/qcom/opensource/commonsys/system/bt/btif/src/btif_rc.cc"
+0x002086e0: add	x4, x4, #0x783  ; "handle_rc_connect"
+0x002086e4: add	x6, x6, #0xc58  ; "Callback is NULL"
+0x002086e8: mov	w0, #6
+0x002086ec: mov	w5, #0x39f
+0x002086f0: mov	w7, wzr
+0x002086f4: bl	#0x3cf520
+0x002086f8: b	#0x208730
+0x002086fc: bl	#0x101d1c  -> vnd_LogMsg
+0x00208700: ldr	x8, [x20, #0x3e8]  ; [0x4003e8]
+0x00208704: mov	x0, #0x8e5d
+0x00208708: movk	x0, #0x5f4e, lsl #16
+0x0020870c: movk	x0, #0x7056, lsl #32
+0x00208710: ldr	x20, [x8, #0xb0]  ; [0x1a0b0]
+0x00208714: movk	x0, #0xb1fb, lsl #48
+0x00208718: mov	x1, x20
+0x0020871c: bl	#0x3cf680
+0x00208720: sub	x2, x29, #0x18
+0x00208724: mov	w0, #1
+0x00208728: mov	w1, wzr
+0x0020872c: blr	x20
+0x00208730: mov	x0, x19
+0x00208734: bl	#0x2075b4  -> _Z18handle_rc_featuresP19btif_rc_device_cb_t
+0x00208738: adrp	x20, #0x400000
+0x0020873c: ldr	x8, [x20, #0x3e0]  ; [0x4003e0]
+0x00208740: cbz	x8, #0x2087f4
+0x00208744: ldr	x8, [x8, #0x18]  ; [0x1a018]
+0x00208748: cbz	x8, #0x208784
+0x0020874c: ldrb	w8, [x25, #0xb01]  ; [0x3dbb01]
+0x00208750: adrp	x1, #0x26000
+0x00208754: adrp	x2, #0x2c000
+0x00208758: adrp	x3, #0x5c000
+0x0020875c: adrp	x4, #0x3a000
+0x00208760: add	x1, x1, #0xe8  ; "%s: HAL %s->%s"
+0x00208764: add	x2, x2, #0x783  ; "handle_rc_connect"
+0x00208768: add	x3, x3, #0x175  ; "bt_rc_ctrl_callbacks"
+0x0020876c: add	x4, x4, #0xc88  ; "connection_state_cb"
+0x00208770: mov	w0, #0x502
+0x00208774: cmp	w8, #3
+0x00208778: b.lo	#0x2087c0
+0x0020877c: bl	#0x101b38  -> LogMsg
+0x00208780: b	#0x2087c4
+0x00208784: adrp	x1, #0x68000
+0x00208788: adrp	x2, #0x3a000
+0x0020878c: adrp	x3, #0x38000
+0x00208790: adrp	x4, #0x2c000
+0x00208794: adrp	x6, #0x76000
+0x00208798: add	x1, x1, #0x510  ; "bt_btif_avrc"
+0x0020879c: add	x2, x2, #0xc30  ; "### ASSERT : %s %s line %d %s (%d) ###"
+0x002087a0: add	x3, x3, #0x3a3  ; "vendor/qcom/opensource/commonsys/system/bt/btif/src/btif_rc.cc"
+0x002087a4: add	x4, x4, #0x783  ; "handle_rc_connect"
+0x002087a8: add	x6, x6, #0xc58  ; "Callback is NULL"
+0x002087ac: mov	w0, #6
+0x002087b0: mov	w5, #0x3a5
+0x002087b4: mov	w7, wzr
+0x002087b8: bl	#0x3cf520
+0x002087bc: b	#0x2087f4
+0x002087c0: bl	#0x101d1c  -> vnd_LogMsg
+0x002087c4: ldr	x8, [x20, #0x3e0]  ; [0x4003e0]
+0x002087c8: mov	x0, #0x8e5d
+0x002087cc: movk	x0, #0x5f4e, lsl #16
+0x002087d0: movk	x0, #0x7056, lsl #32
+0x002087d4: ldr	x20, [x8, #0x18]  ; [0x1a018]
+0x002087d8: movk	x0, #0xb1fb, lsl #48
+0x002087dc: mov	x1, x20
+0x002087e0: bl	#0x3cf680
+0x002087e4: sub	x2, x29, #0x18
+0x002087e8: mov	w0, #1
+0x002087ec: mov	w1, wzr
+0x002087f0: blr	x20
+0x002087f4: mov	x0, x19
+0x002087f8: bl	#0x204b2c  -> _Z23handle_rc_ctrl_featuresP19btif_rc_device_cb_t
+0x002087fc: ldr	x8, [x24, #0x28]
+0x00208800: ldur	x9, [x29, #-8]
+0x00208804: cmp	x8, x9
+0x00208808: b.ne	#0x208830
+0x0020880c: ldp	x29, x30, [sp, #0x40]
+0x00208810: ldp	x20, x19, [sp, #0x90]
+0x00208814: ldp	x22, x21, [sp, #0x80]
+0x00208818: ldp	x24, x23, [sp, #0x70]
+0x0020881c: ldp	x26, x25, [sp, #0x60]
+0x00208820: ldp	x28, x27, [sp, #0x50]
+0x00208824: ldr	x30, [x18, #-8]!
+0x00208828: add	sp, sp, #0xa0
+0x0020882c: ret	
+0x00208830: bl	#0x3cf550

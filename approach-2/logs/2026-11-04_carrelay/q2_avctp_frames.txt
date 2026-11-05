@@ -1,0 +1,26 @@
+AVCTP frames from a filtered HCI snoop, 2026-11-04, iPhone connecting to the tablet
+(carrelay_ivi v1.0.2 + btdual_patch v5, tablet is CT toward the iPhone). The snoop itself was deleted (privacy); only these frames were kept.
+Times are seconds from the first AVCTP frame. Format: AVCTP(3) | AV/C ctype, subunit, opcode | company id(3) | PDU, packet type, param len(2), params
+
+Connection 1 (Bluetooth restart at 09:39:55, tablet clock)
+ 0.000 TX tablet->iPhone 00 11 0e 03 48 00 00 19 58 31 00 00 05 0d 00 00 00 00      lbl 0 NOTIFY  RegisterNotification(VOLUME_CHANGED)  company OK
+ 0.016 TX tablet->iPhone 10 11 0e 01 48 00 da a1 19 10 00 00 01 02                  lbl 1 STATUS  GetCapabilities(COMPANY_ID)  company = AVRC_CO_GOOGLE, not METADATA
+ 0.064 RX iPhone->tablet 10 11 0e 01 48 00 00 19 58 10 00 00 01 03                  lbl 1 STATUS  iPhone asks GetCapabilities(EVENTS)
+ 0.066 TX tablet->iPhone 12 11 0e 0c 48 00 00 19 58 10 00 00 08 03 06 01 02 05 08 0a 0b   lbl 1 STABLE  tablet answers: events 01 02 05 08 0a 0b (no 0x0d VOLUME_CHANGED)
+ 0.066 RX iPhone->tablet 02 11 0e 08 48 00 00 19 58 31 00 00 00                     lbl 0 NOT_IMPL  RegisterNotification
+ 0.067 RX iPhone->tablet 12 11 0e 0a 48 00 00 19 58 10 00 00 01 03                  lbl 1 REJECTED  GetCapabilities, status 03 (internal error)
+18.468 TX tablet->iPhone 10 11 0e 00 48 7c 44 00                                    lbl 1 PASS THROUGH PLAY press    (Car Home Play)
+18.475 TX tablet->iPhone 20 11 0e 00 48 7c c4 00                                    lbl 2 PASS THROUGH PLAY release
+19.210 RX iPhone->tablet  ACCEPTED (both), then the iPhone starts the A2DP stream
+
+Connection 2 (Bluetooth restart at 09:42:42, identical result; label numbering differs)
+ 0.000 TX tablet->iPhone 00 11 0e 03 48 00 00 19 58 31 00 00 05 0d 00 00 00 00
+ 0.025 TX tablet->iPhone 10 11 0e 01 48 00 da a1 19 10 00 00 01 02
+ 0.057 RX iPhone->tablet 20 11 0e 01 48 00 00 19 58 10 00 00 01 03
+ 0.057 RX iPhone->tablet 02 11 0e 08 48 00 00 19 58 31 00 00 00
+ 0.059 TX tablet->iPhone 22 11 0e 0c 48 00 00 19 58 10 00 00 08 03 06 01 02 05 08 0a 0b
+ 0.098 RX iPhone->tablet 12 11 0e 0a 48 00 00 19 58 10 00 00 01 03
+50.691 TX tablet->iPhone 10 11 0e 00 48 7c 44 00
+50.700 TX tablet->iPhone 20 11 0e 00 48 7c c4 00
+
+No L2CAP connect for PSM 0x1B (AVCTP browsing) from either side in either connection.

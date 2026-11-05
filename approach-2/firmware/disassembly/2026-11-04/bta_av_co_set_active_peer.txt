@@ -1,0 +1,97 @@
+
+==== bta_av_co_set_active_peer @ 0x2262dc size=0x17c
+0x002262dc: str	x30, [x18], #8
+0x002262e0: stp	x29, x30, [sp, #-0x60]!
+0x002262e4: stp	x28, x27, [sp, #0x10]
+0x002262e8: stp	x26, x25, [sp, #0x20]
+0x002262ec: stp	x24, x23, [sp, #0x30]
+0x002262f0: stp	x22, x21, [sp, #0x40]
+0x002262f4: stp	x20, x19, [sp, #0x50]
+0x002262f8: mov	x29, sp
+0x002262fc: adrp	x27, #0x3d9000
+0x00226300: ldr	x27, [x27, #0x5e8]  ; [0x3d95e8]
+0x00226304: adrp	x20, #0x406000
+0x00226308: adrp	x21, #0x23000
+0x0022630c: adrp	x22, #0x29000
+0x00226310: adrp	x24, #0x7d000
+0x00226314: mov	x19, x0
+0x00226318: mov	w8, wzr
+0x0022631c: add	x20, x20, #0xe30  ; &0x406e30
+0x00226320: mov	w26, #5
+0x00226324: adrp	x28, #0x3db000
+0x00226328: add	x21, x21, #0xbfb  ; "%s: set active peer, trigger reconfig again"
+0x0022632c: add	x22, x22, #0x936  ; "bta_av_co_set_active_peer"
+0x00226330: add	x24, x24, #0x37b  ; ".."
+0x00226334: mov	w23, #0x100
+0x00226338: b	#0x22634c
+0x0022633c: strb	wzr, [x20, #0x40]  ; [0x406e70]
+0x00226340: subs	x26, x26, #1
+0x00226344: add	x20, x20, #0x478  ; &0x4072a8
+0x00226348: b.eq	#0x226434
+0x0022634c: ldr	w9, [x19]
+0x00226350: ldr	w10, [x27]  ; [0x3d9000]
+0x00226354: ldrh	w11, [x19, #4]
+0x00226358: ldrh	w12, [x27, #4]
+0x0022635c: eor	w9, w9, w10
+0x00226360: eor	w10, w11, w12
+0x00226364: orr	w9, w9, w10
+0x00226368: cbz	w9, #0x226428
+0x0022636c: sub	x25, x20, #0x420
+0x00226370: ldr	w9, [x19]
+0x00226374: ldrh	w10, [x19, #4]
+0x00226378: ldr	w11, [x25]
+0x0022637c: ldrh	w12, [x25, #4]
+0x00226380: eor	w9, w11, w9
+0x00226384: eor	w10, w12, w10
+0x00226388: orr	w9, w9, w10
+0x0022638c: cbnz	w9, #0x22633c
+0x00226390: ldrb	w9, [x20, #0x49]  ; [0x4072f1]
+0x00226394: mov	w8, #1
+0x00226398: strb	w8, [x20, #0x40]  ; [0x4072e8]
+0x0022639c: cbz	w9, #0x226340
+0x002263a0: ldrb	w8, [x28, #0xb00]  ; [0x3dbb00]
+0x002263a4: cmp	w8, #5
+0x002263a8: b.lo	#0x2263bc
+0x002263ac: mov	w0, #0x504
+0x002263b0: mov	x1, x21
+0x002263b4: mov	x2, x22
+0x002263b8: bl	#0x101b38  -> LogMsg
+0x002263bc: mov	x0, x25
+0x002263c0: bl	#0x226458  -> _ZL25bta_av_co_audio_set_codecP15tBTA_AV_CO_PEER
+0x002263c4: cbz	x0, #0x226420
+0x002263c8: ldrb	w8, [x20, #0x2f]  ; [0x4072d7]
+0x002263cc: cbz	w8, #0x226420
+0x002263d0: ldrb	w8, [x28, #0xb00]  ; [0x3dbb00]
+0x002263d4: mov	x25, x0
+0x002263d8: cmp	w8, #5
+0x002263dc: b.lo	#0x2263f8
+0x002263e0: ldrb	w3, [x20, #0x36]  ; [0x4072de]
+0x002263e4: adrp	x1, #0x38000
+0x002263e8: mov	w0, #0x504
+0x002263ec: add	x1, x1, #0x7a3  ; "%s: call BTA_AvReconfig(x%x)"
+0x002263f0: mov	x2, x22
+0x002263f4: bl	#0x101b38  -> LogMsg
+0x002263f8: ldrb	w0, [x20, #0x36]  ; [0x4072de]
+0x002263fc: bl	#0x1c4490  -> _Z25btif_av_set_reconfig_flagh
+0x00226400: ldrb	w2, [x25]
+0x00226404: ldrb	w0, [x20, #0x36]  ; [0x4072de]
+0x00226408: mov	w1, #1
+0x0022640c: mov	x3, x20
+0x00226410: mov	w4, wzr
+0x00226414: mov	x5, x24
+0x00226418: bl	#0x126ba4  -> _Z14BTA_AvReconfighbhPhhPKh
+0x0022641c: sturh	w23, [x20, #0x2f]
+0x00226420: strb	wzr, [x20, #0x49]  ; [0x4072f1]
+0x00226424: b	#0x22642c
+0x00226428: strb	wzr, [x20, #0x40]  ; [0x4072e8]
+0x0022642c: mov	w8, #1
+0x00226430: b	#0x226340
+0x00226434: ldp	x20, x19, [sp, #0x50]
+0x00226438: ldp	x22, x21, [sp, #0x40]
+0x0022643c: ldp	x24, x23, [sp, #0x30]
+0x00226440: ldp	x26, x25, [sp, #0x20]
+0x00226444: ldp	x28, x27, [sp, #0x10]
+0x00226448: and	w0, w8, #1
+0x0022644c: ldp	x29, x30, [sp], #0x60
+0x00226450: ldr	x30, [x18, #-8]!
+0x00226454: ret	

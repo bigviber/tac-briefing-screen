@@ -1,0 +1,276 @@
+
+==== _Z21handle_rc_metamsg_cmdP16tBTA_AV_META_MSG @ 0x209d20 size=0x448
+0x00209d20: str	x30, [x18], #8
+0x00209d24: stp	x29, x30, [sp, #-0x50]!
+0x00209d28: str	x28, [sp, #0x10]
+0x00209d2c: stp	x24, x23, [sp, #0x20]
+0x00209d30: stp	x22, x21, [sp, #0x30]
+0x00209d34: stp	x20, x19, [sp, #0x40]
+0x00209d38: mov	x29, sp
+0x00209d3c: sub	sp, sp, #0x240
+0x00209d40: mrs	x23, tpidr_el0
+0x00209d44: ldr	x8, [x23, #0x28]
+0x00209d48: movi	v0.2d, #0000000000000000
+0x00209d4c: adrp	x24, #0x3db000
+0x00209d50: stur	x8, [x29, #-8]
+0x00209d54: stp	q0, q0, [sp, #0x210]
+0x00209d58: stp	q0, q0, [sp, #0x1f0]
+0x00209d5c: stp	q0, q0, [sp, #0x1d0]
+0x00209d60: stp	q0, q0, [sp, #0x1b0]
+0x00209d64: stp	q0, q0, [sp, #0x190]
+0x00209d68: stp	q0, q0, [sp, #0x170]
+0x00209d6c: stp	q0, q0, [sp, #0x150]
+0x00209d70: stp	q0, q0, [sp, #0x130]
+0x00209d74: stp	q0, q0, [sp, #0x110]
+0x00209d78: stp	q0, q0, [sp, #0xf0]
+0x00209d7c: stp	q0, q0, [sp, #0xd0]
+0x00209d80: stp	q0, q0, [sp, #0xb0]
+0x00209d84: stp	q0, q0, [sp, #0x90]
+0x00209d88: stp	q0, q0, [sp, #0x70]
+0x00209d8c: stp	q0, q0, [sp, #0x50]
+0x00209d90: stp	q0, q0, [sp, #0x30]
+0x00209d94: str	xzr, [sp, #0x20]
+0x00209d98: stp	q0, q0, [sp]
+0x00209d9c: cbz	x0, #0x209ddc
+0x00209da0: ldr	x9, [x0, #0x18]
+0x00209da4: ldrb	w8, [x24, #0xb01]  ; [0x3dbb01]
+0x00209da8: mov	x19, x0
+0x00209dac: cbz	x9, #0x209dec
+0x00209db0: ldrb	w3, [x9, #3]
+0x00209db4: ldrb	w4, [x19, #5]
+0x00209db8: adrp	x1, #0x71000
+0x00209dbc: adrp	x2, #0x4a000
+0x00209dc0: add	x1, x1, #0x473  ; "%s: pmeta_msg: opcode: %x, code: %x"
+0x00209dc4: add	x2, x2, #0x750  ; "handle_rc_metamsg_cmd"
+0x00209dc8: mov	w0, #0x503
+0x00209dcc: cmp	w8, #4
+0x00209dd0: b.lo	#0x209e18
+0x00209dd4: bl	#0x101b38  -> LogMsg
+0x00209dd8: b	#0x209e1c
+0x00209ddc: ldrb	w8, [x24, #0xb01]  ; [0x3dbb01]
+0x00209de0: adrp	x1, #0x26000
+0x00209de4: add	x1, x1, #0x6e5  ; "%s: Exiting as pmeta_msg is NULL"
+0x00209de8: b	#0x209df4
+0x00209dec: adrp	x1, #0x5f000
+0x00209df0: add	x1, x1, #0x4e9  ; "%s: Exiting as pmeta_msg->p_msg is NULL"
+0x00209df4: adrp	x2, #0x4a000
+0x00209df8: add	x2, x2, #0x750  ; "handle_rc_metamsg_cmd"
+0x00209dfc: mov	w0, #0x503
+0x00209e00: cmp	w8, #4
+0x00209e04: b.lo	#0x209e10
+0x00209e08: bl	#0x101b38  -> LogMsg
+0x00209e0c: b	#0x20a130
+0x00209e10: bl	#0x101d1c  -> vnd_LogMsg
+0x00209e14: b	#0x20a130
+0x00209e18: bl	#0x101d1c  -> vnd_LogMsg
+0x00209e1c: ldrb	w0, [x19]
+0x00209e20: bl	#0x20469c  -> _Z28btif_rc_get_device_by_handleh
+0x00209e24: cbz	x0, #0x209e6c
+0x00209e28: ldr	x8, [x19, #0x18]
+0x00209e2c: mov	x20, x0
+0x00209e30: ldrb	w2, [x8, #3]
+0x00209e34: cbz	w2, #0x209e40
+0x00209e38: cmp	w2, #0xff
+0x00209e3c: b.ne	#0x209f28
+0x00209e40: ldrb	w8, [x24, #0xb01]  ; [0x3dbb01]
+0x00209e44: ldrh	w3, [x19, #2]
+0x00209e48: adrp	x1, #0x3b000
+0x00209e4c: adrp	x2, #0x4a000
+0x00209e50: add	x1, x1, #0x314  ; "%s: pmeta_msg->len: %d"
+0x00209e54: add	x2, x2, #0x750  ; "handle_rc_metamsg_cmd"
+0x00209e58: mov	w0, #0x503
+0x00209e5c: cmp	w8, #4
+0x00209e60: b.lo	#0x209e90
+0x00209e64: bl	#0x101b38  -> LogMsg
+0x00209e68: b	#0x209e94
+0x00209e6c: ldrb	w8, [x24, #0xb01]  ; [0x3dbb01]
+0x00209e70: cbz	w8, #0x20a130
+0x00209e74: adrp	x1, #0x35000
+0x00209e78: add	x1, x1, #0x839  ; "%s: Meta msg event for Invalid rc handle"
+0x00209e7c: adrp	x2, #0x4a000
+0x00209e80: add	x2, x2, #0x750  ; "handle_rc_metamsg_cmd"
+0x00209e84: mov	w0, #0x500
+0x00209e88: bl	#0x101b38  -> LogMsg
+0x00209e8c: b	#0x20a130
+0x00209e90: bl	#0x101d1c  -> vnd_LogMsg
+0x00209e94: ldrh	w4, [x19, #2]
+0x00209e98: cmp	w4, #2
+0x00209e9c: b.hi	#0x209ed0
+0x00209ea0: ldr	x8, [x19, #0x18]
+0x00209ea4: ldrb	w9, [x24, #0xb01]  ; [0x3dbb01]
+0x00209ea8: adrp	x1, #0x32000
+0x00209eac: adrp	x2, #0x4a000
+0x00209eb0: ldrb	w3, [x8, #3]
+0x00209eb4: add	x1, x1, #0x95a  ; "%s: Invalid length. opcode: 0x%x, len: 0x%x"
+0x00209eb8: add	x2, x2, #0x750  ; "handle_rc_metamsg_cmd"
+0x00209ebc: mov	w0, #0x501
+0x00209ec0: cmp	w9, #2
+0x00209ec4: b.lo	#0x20a0b4
+0x00209ec8: bl	#0x101b38  -> LogMsg
+0x00209ecc: b	#0x20a130
+0x00209ed0: add	x0, x20, #0xc
+0x00209ed4: bl	#0x2044c4  -> _Z22btif_rc_get_idx_by_bdaP10RawAddress
+0x00209ed8: cmn	w0, #1
+0x00209edc: b.eq	#0x209f50
+0x00209ee0: mov	w22, w0
+0x00209ee4: ldr	x0, [x19, #0x18]
+0x00209ee8: mov	x1, sp
+0x00209eec: add	x2, sp, #0x30
+0x00209ef0: mov	w3, #0x200
+0x00209ef4: bl	#0x284658  -> _Z16AVRC_ParsCommandP9tAVRC_MSGP13tAVRC_COMMANDPht
+0x00209ef8: ldrb	w8, [x24, #0xb01]  ; [0x3dbb01]
+0x00209efc: ldrb	w3, [sp, #3]
+0x00209f00: adrp	x1, #0x56000
+0x00209f04: adrp	x2, #0x4a000
+0x00209f08: cmp	w8, #5
+0x00209f0c: mov	w21, w0
+0x00209f10: add	x1, x1, #0x26e  ; "%s: event_id: %d"
+0x00209f14: add	x2, x2, #0x750  ; "handle_rc_metamsg_cmd"
+0x00209f18: mov	w0, #0x504
+0x00209f1c: b.lo	#0x209f64
+0x00209f20: bl	#0x101b38  -> LogMsg
+0x00209f24: b	#0x209f68
+0x00209f28: ldrb	w8, [x24, #0xb01]  ; [0x3dbb01]
+0x00209f2c: adrp	x1, #0x5c000
+0x00209f30: add	x1, x1, #0x225  ; "Invalid opcode: %x"
+0x00209f34: mov	w0, #0x501
+0x00209f38: cmp	w8, #2
+0x00209f3c: b.lo	#0x209f48
+0x00209f40: bl	#0x101b38  -> LogMsg
+0x00209f44: b	#0x20a130
+0x00209f48: bl	#0x101d1c  -> vnd_LogMsg
+0x00209f4c: b	#0x20a130
+0x00209f50: ldrb	w8, [x24, #0xb01]  ; [0x3dbb01]
+0x00209f54: cbz	w8, #0x20a130
+0x00209f58: adrp	x1, #0x1d000
+0x00209f5c: add	x1, x1, #0xc9f  ; "%s: idx is invalid"
+0x00209f60: b	#0x209e7c
+0x00209f64: bl	#0x101d1c  -> vnd_LogMsg
+0x00209f68: ldrb	w3, [x19, #5]
+0x00209f6c: cmp	w3, #8
+0x00209f70: b.lo	#0x209f94
+0x00209f74: ldrb	w0, [x19, #4]
+0x00209f78: mov	w1, w22
+0x00209f7c: bl	#0x2055f8  -> _ZL22get_transaction_by_lblhi
+0x00209f80: cbz	x0, #0x20a048
+0x00209f84: mov	x0, x19
+0x00209f88: mov	x1, x20
+0x00209f8c: bl	#0x20a168  -> _ZL21handle_rc_metamsg_rspP16tBTA_AV_META_MSGP19btif_rc_device_cb_t
+0x00209f90: b	#0x20a130
+0x00209f94: ldrb	w8, [x24, #0xb01]  ; [0x3dbb01]
+0x00209f98: ldrb	w4, [sp]
+0x00209f9c: ldrb	w5, [x19, #4]
+0x00209fa0: adrp	x1, #0x71000
+0x00209fa4: adrp	x2, #0x4a000
+0x00209fa8: add	x1, x1, #0x497  ; "%s: Received vendor command.code,PDU and label: %d, %d, %d"
+0x00209fac: add	x2, x2, #0x750  ; "handle_rc_metamsg_cmd"
+0x00209fb0: mov	w0, #0x504
+0x00209fb4: cmp	w8, #5
+0x00209fb8: b.lo	#0x209fc4
+0x00209fbc: bl	#0x101b38  -> LogMsg
+0x00209fc0: b	#0x209fc8
+0x00209fc4: bl	#0x101d1c  -> vnd_LogMsg
+0x00209fc8: and	w3, w21, #0xff
+0x00209fcc: cmp	w3, #4
+0x00209fd0: b.ne	#0x20a020
+0x00209fd4: ldrb	w0, [sp]
+0x00209fd8: cmp	w0, #0x31
+0x00209fdc: b.ne	#0x20a0e4
+0x00209fe0: ldrb	w0, [sp, #3]
+0x00209fe4: ldrb	w22, [x24, #0xb01]  ; [0x3dbb01]
+0x00209fe8: and	x21, x0, #0xff
+0x00209fec: bl	#0x224da0  -> _Z29dump_rc_notification_event_idh
+0x00209ff0: ldrb	w4, [x19, #4]
+0x00209ff4: ldrb	w5, [x19, #5]
+0x00209ff8: adrp	x1, #0x4a000
+0x00209ffc: adrp	x2, #0x4a000
+0x0020a000: cmp	w22, #4
+0x0020a004: mov	x3, x0
+0x0020a008: add	x1, x1, #0x766  ; "%s: New register notification received.event_id: %s, label: 0x%x, code: %x"
+0x0020a00c: add	x2, x2, #0x750  ; "handle_rc_metamsg_cmd"
+0x0020a010: mov	w0, #0x503
+0x0020a014: b.lo	#0x20a0bc
+0x0020a018: bl	#0x101b38  -> LogMsg
+0x0020a01c: b	#0x20a0c0
+0x0020a020: ldrb	w8, [x24, #0xb01]  ; [0x3dbb01]
+0x0020a024: adrp	x1, #0x2f000
+0x0020a028: adrp	x2, #0x4a000
+0x0020a02c: add	x1, x1, #0x359  ; "%s: Error in parsing received metamsg command. status: 0x%02x"
+0x0020a030: add	x2, x2, #0x750  ; "handle_rc_metamsg_cmd"
+0x0020a034: mov	w0, #0x501
+0x0020a038: cmp	w8, #2
+0x0020a03c: b.lo	#0x20a068
+0x0020a040: bl	#0x101b38  -> LogMsg
+0x0020a044: b	#0x20a06c
+0x0020a048: ldrb	w8, [sp, #3]
+0x0020a04c: cmp	w8, #0xd
+0x0020a050: b.ne	#0x20a08c
+0x0020a054: ldrb	w0, [x20, #0x368]
+0x0020a058: mov	w1, w22
+0x0020a05c: bl	#0x2055f8  -> _ZL22get_transaction_by_lblhi
+0x0020a060: cbnz	x0, #0x209f84
+0x0020a064: b	#0x20a130
+0x0020a068: bl	#0x101d1c  -> vnd_LogMsg
+0x0020a06c: ldr	x8, [x19, #0x18]
+0x0020a070: ldrb	w1, [x19, #4]
+0x0020a074: ldrb	w0, [x19]
+0x0020a078: ldrb	w2, [sp]
+0x0020a07c: ldrb	w4, [x8, #3]
+0x0020a080: mov	w3, w21
+0x0020a084: bl	#0x204950  -> _ZL20send_reject_responsehhhhh
+0x0020a088: b	#0x20a130
+0x0020a08c: ldrb	w8, [x24, #0xb01]  ; [0x3dbb01]
+0x0020a090: ldrb	w3, [x19, #5]
+0x0020a094: ldrb	w4, [x19, #4]
+0x0020a098: adrp	x1, #0x3b000
+0x0020a09c: adrp	x2, #0x4a000
+0x0020a0a0: add	x1, x1, #0x32b  ; "%s: Discard vendor dependent rsp. code: %d label: %d."
+0x0020a0a4: add	x2, x2, #0x750  ; "handle_rc_metamsg_cmd"
+0x0020a0a8: mov	w0, #0x504
+0x0020a0ac: cmp	w8, #5
+0x0020a0b0: b.hs	#0x209ec8
+0x0020a0b4: bl	#0x101d1c  -> vnd_LogMsg
+0x0020a0b8: b	#0x20a130
+0x0020a0bc: bl	#0x101d1c  -> vnd_LogMsg
+0x0020a0c0: sub	x8, x21, #1
+0x0020a0c4: cmp	x8, #0xd
+0x0020a0c8: b.hs	#0x20a164
+0x0020a0cc: add	x8, x20, x8, lsl #1
+0x0020a0d0: mov	w9, #1
+0x0020a0d4: strb	w9, [x8, #0x344]
+0x0020a0d8: ldrb	w9, [x19, #4]
+0x0020a0dc: strb	w9, [x8, #0x345]
+0x0020a0e0: ldrb	w0, [sp]
+0x0020a0e4: ldrb	w21, [x24, #0xb01]  ; [0x3dbb01]
+0x0020a0e8: bl	#0x224dd0  -> _Z11dump_rc_pduh
+0x0020a0ec: adrp	x1, #0x71000
+0x0020a0f0: adrp	x2, #0x4a000
+0x0020a0f4: cmp	w21, #4
+0x0020a0f8: mov	x3, x0
+0x0020a0fc: add	x1, x1, #0x4d2  ; "%s: Passing received metamsg command to app. pdu: %s"
+0x0020a100: add	x2, x2, #0x750  ; "handle_rc_metamsg_cmd"
+0x0020a104: mov	w0, #0x503
+0x0020a108: b.lo	#0x20a114
+0x0020a10c: bl	#0x101b38  -> LogMsg
+0x0020a110: b	#0x20a118
+0x0020a114: bl	#0x101d1c  -> vnd_LogMsg
+0x0020a118: ldrb	w0, [sp]
+0x0020a11c: ldrb	w3, [x19, #4]
+0x0020a120: ldrb	w2, [x19, #5]
+0x0020a124: mov	x1, sp
+0x0020a128: mov	x4, x20
+0x0020a12c: bl	#0x20a6e8  -> _ZL21btif_rc_upstreams_evttP13tAVRC_COMMANDhhP19btif_rc_device_cb_t
+0x0020a130: ldr	x8, [x23, #0x28]
+0x0020a134: ldur	x9, [x29, #-8]
+0x0020a138: cmp	x8, x9
+0x0020a13c: b.ne	#0x20a160
+0x0020a140: add	sp, sp, #0x240
+0x0020a144: ldp	x20, x19, [sp, #0x40]
+0x0020a148: ldp	x22, x21, [sp, #0x30]
+0x0020a14c: ldp	x24, x23, [sp, #0x20]
+0x0020a150: ldr	x28, [sp, #0x10]
+0x0020a154: ldp	x29, x30, [sp], #0x50
+0x0020a158: ldr	x30, [x18, #-8]!
+0x0020a15c: ret	
+0x0020a160: bl	#0x3cf550
+0x0020a164: bl	#0x3cf4f0

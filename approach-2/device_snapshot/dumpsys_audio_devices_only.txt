@@ -1,0 +1,60 @@
+  source:android.os.BinderProxy@256066a -- pack: com.android.bluetooth -- client: android.media.AudioManager@64dd7d9com.android.bluetooth.a2dpsink.A2dpSinkStreamHandler$1@1bf359e -- gain: GAIN -- flags: PAUSES_ON_DUCKABLE_LOSS -- loss: none -- notified: true -- uid: 1002 -- attr: AudioAttributes: usage=USAGE_MEDIA content=CONTENT_TYPE_UNKNOWN flags=0x800 tags= bundle=null -- sdk:30
+08-10 16:46:05:012 requestAudioFocus() from uid/pid 1002/1937 clientId=android.media.AudioManager@b3e7cf0com.android.bluetooth.a2dpsink.A2dpSinkStreamHandler$1@54c8269 callingPack=com.android.bluetooth req=1 flags=0x2 sdk=30
+08-10 16:46:05:686 requestAudioFocus() from uid/pid 1002/1937 clientId=android.media.AudioManager@e1af538 callingPack=com.android.bluetooth req=2 flags=0x0 sdk=30
+08-10 16:46:10:908 abandonAudioFocus() from uid/pid 1002/1937 clientId=android.media.AudioManager@b3e7cf0com.android.bluetooth.a2dpsink.A2dpSinkStreamHandler$1@54c8269
+08-11 09:35:14:551 requestAudioFocus() from uid/pid 1002/1937 clientId=android.media.AudioManager@b3e7cf0com.android.bluetooth.a2dpsink.A2dpSinkStreamHandler$1@54c8269 callingPack=com.android.bluetooth req=1 flags=0x2 sdk=30
+08-11 09:40:27:271 requestAudioFocus() from uid/pid 1002/13360 clientId=android.media.AudioManager@82130a2com.android.bluetooth.a2dpsink.A2dpSinkStreamHandler$1@23f4133 callingPack=com.android.bluetooth req=1 flags=0x2 sdk=30
+08-11 09:43:36:718 requestAudioFocus() from uid/pid 1002/14549 clientId=android.media.AudioManager@5650daacom.android.bluetooth.a2dpsink.A2dpSinkStreamHandler$1@1accd9b callingPack=com.android.bluetooth req=1 flags=0x2 sdk=30
+08-11 09:46:24:665 requestAudioFocus() from uid/pid 1002/15352 clientId=android.media.AudioManager@64dd7d9com.android.bluetooth.a2dpsink.A2dpSinkStreamHandler$1@1bf359e callingPack=com.android.bluetooth req=1 flags=0x2 sdk=30
+   Current: 2 (speaker): 2, 40000000 (default): 5
+   Devices: speaker
+   Current: 40000000 (default): 8
+   Devices: speaker
+   Current: 40000000 (default): 8
+   Devices: speaker
+- STREAM_MUSIC:
+   Current: 2 (speaker): 3, 4000000 (usb_headset): 0, 40000000 (default): 8
+   Devices: speaker
+   Current: 40000000 (default): 8
+   Devices: speaker
+   Current: 40000000 (default): 8
+   Devices: speaker
+   Current: 40000000 (default): 8
+   Devices: speaker
+   Current: 40000000 (default): 15
+   Devices: speaker
+   Current: 2 (speaker): 3, 4000000 (usb_headset): 0, 40000000 (default): 8
+   Devices: speaker
+   Current: 2 (speaker): 3, 4000000 (usb_headset): 0, 40000000 (default): 8
+   Devices: speaker
+   Current: 2 (speaker): 4, 4000000 (usb_headset): 1, 40000000 (default): 9
+   Devices: speaker
+   Current: 2 (speaker): 3, 4000000 (usb_headset): 0, 40000000 (default): 8
+   Devices: speaker
+   Current: 40000000 (default): 9
+   Devices: speaker
+   Current: 40000000 (default): 8
+   Devices: speaker
+   Current: 40000000 (default): 8
+   Devices: speaker
+   Current: 40000000 (default): 8
+   Devices: speaker
+   Current: 40000000 (default): 15
+   Devices: speaker
+- VOLUME GROUP AUDIO_STREAM_MUSIC:
+   Current: 40000000 (default): 8
+   Devices: speaker
+   Current: 40000000 (default): 8
+   Devices: speaker
+   Current: 40000000 (default): 8
+   Devices: speaker
+   Current: 40000000 (default): 8
+   Devices: speaker
+   Current: 40000000 (default): 8
+   Devices: speaker
+   Current: 40000000 (default): 5
+   Devices: speaker
+   Current: 40000000 (default): 8
+   Devices: speaker
+  mFixedVolumeDevices=0x1000,0x800,0x200000,0x40000,0x80000
+  APM Connected device (A2DP sink only):

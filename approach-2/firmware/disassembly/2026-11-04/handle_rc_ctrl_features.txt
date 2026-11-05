@@ -1,0 +1,116 @@
+
+==== _Z23handle_rc_ctrl_featuresP19btif_rc_device_cb_t @ 0x204b2c size=0x1c8
+0x00204b2c: sub	sp, sp, #0x40
+0x00204b30: str	x30, [x18], #8
+0x00204b34: stp	x29, x30, [sp, #0x10]
+0x00204b38: stp	x22, x21, [sp, #0x20]
+0x00204b3c: stp	x20, x19, [sp, #0x30]
+0x00204b40: add	x29, sp, #0x10
+0x00204b44: ldrh	w8, [x0, #4]
+0x00204b48: mov	x19, x0
+0x00204b4c: and	w9, w8, #0x2020202
+0x00204b50: tbnz	w8, #0, #0x204b5c
+0x00204b54: cmp	w9, #0x202
+0x00204b58: b.ne	#0x204c44
+0x00204b5c: cmp	w9, #0x202
+0x00204b60: mov	w9, #0x48
+0x00204b64: cset	w10, eq
+0x00204b68: bics	wzr, w9, w8
+0x00204b6c: lsl	w20, w10, #1
+0x00204b70: b.ne	#0x204ba8
+0x00204b74: mov	w8, #0x1628
+0x00204b78: add	x8, x19, x8
+0x00204b7c: ldrb	w9, [x8]
+0x00204b80: cmp	w9, #1
+0x00204b84: b.eq	#0x204ba8
+0x00204b88: mov	w9, #1
+0x00204b8c: orr	w20, w20, #1
+0x00204b90: strb	w9, [x8]
+0x00204b94: bl	#0x1be6d4  -> _Z23btif_av_is_sink_enabledv
+0x00204b98: tbz	w0, #0, #0x204ba8
+0x00204b9c: mov	w0, #2
+0x00204ba0: mov	x1, x19
+0x00204ba4: bl	#0x204cf4  -> _ZL19getcapabilities_cmdhP19btif_rc_device_cb_t
+0x00204ba8: ldrh	w8, [x19, #4]
+0x00204bac: adrp	x22, #0x3db000
+0x00204bb0: ldrb	w9, [x22, #0xb01]  ; [0x3dbb01]
+0x00204bb4: adrp	x1, #0x23000
+0x00204bb8: lsr	w10, w8, #9
+0x00204bbc: lsr	w8, w8, #2
+0x00204bc0: and	w10, w10, #8
+0x00204bc4: and	w8, w8, #4
+0x00204bc8: orr	w10, w20, w10
+0x00204bcc: orr	w20, w10, w8
+0x00204bd0: adrp	x2, #0x4a000
+0x00204bd4: cmp	w9, #5
+0x00204bd8: add	x1, x1, #0x879  ; "%s: Update rc features to CTRL: %d"
+0x00204bdc: add	x2, x2, #0x67a  ; "handle_rc_ctrl_features"
+0x00204be0: mov	w0, #0x504
+0x00204be4: mov	w3, w20
+0x00204be8: b.lo	#0x204bf4
+0x00204bec: bl	#0x101b38  -> LogMsg
+0x00204bf0: b	#0x204bf8
+0x00204bf4: bl	#0x101d1c  -> vnd_LogMsg
+0x00204bf8: adrp	x21, #0x400000
+0x00204bfc: ldr	x8, [x21, #0x3d8]  ; [0x4003d8]
+0x00204c00: cbz	x8, #0x204c44
+0x00204c04: ldr	x8, [x8, #8]
+0x00204c08: cbz	x8, #0x204c5c
+0x00204c0c: ldrb	w8, [x22, #0xb01]  ; [0x3dbb01]
+0x00204c10: adrp	x1, #0x26000
+0x00204c14: adrp	x2, #0x4a000
+0x00204c18: adrp	x3, #0x6a000
+0x00204c1c: adrp	x4, #0x59000
+0x00204c20: add	x1, x1, #0xe8  ; "%s: HAL %s->%s"
+0x00204c24: add	x2, x2, #0x67a  ; "handle_rc_ctrl_features"
+0x00204c28: add	x3, x3, #0xfde  ; "bt_rc_vendor_ctrl_callbacks"
+0x00204c2c: add	x4, x4, #0x99  ; "getrcfeatures_cb"
+0x00204c30: mov	w0, #0x502
+0x00204c34: cmp	w8, #3
+0x00204c38: b.lo	#0x204ca8
+0x00204c3c: bl	#0x101b38  -> LogMsg
+0x00204c40: b	#0x204cac
+0x00204c44: ldp	x29, x30, [sp, #0x10]
+0x00204c48: ldp	x20, x19, [sp, #0x30]
+0x00204c4c: ldp	x22, x21, [sp, #0x20]
+0x00204c50: ldr	x30, [x18, #-8]!
+0x00204c54: add	sp, sp, #0x40
+0x00204c58: ret	
+0x00204c5c: ldp	x29, x30, [sp, #0x10]
+0x00204c60: ldp	x20, x19, [sp, #0x30]
+0x00204c64: ldp	x22, x21, [sp, #0x20]
+0x00204c68: ldr	x30, [x18, #-8]!
+0x00204c6c: adrp	x1, #0x68000
+0x00204c70: adrp	x2, #0x3a000
+0x00204c74: adrp	x3, #0x38000
+0x00204c78: adrp	x4, #0x4a000
+0x00204c7c: adrp	x6, #0x76000
+0x00204c80: add	x1, x1, #0x510  ; "bt_btif_avrc"
+0x00204c84: add	x2, x2, #0xc30  ; "### ASSERT : %s %s line %d %s (%d) ###"
+0x00204c88: add	x3, x3, #0x3a3  ; "vendor/qcom/opensource/commonsys/system/bt/btif/src/btif_rc.cc"
+0x00204c8c: add	x4, x4, #0x67a  ; "handle_rc_ctrl_features"
+0x00204c90: add	x6, x6, #0xc58  ; "Callback is NULL"
+0x00204c94: mov	w0, #6
+0x00204c98: mov	w5, #0x29e
+0x00204c9c: mov	w7, wzr
+0x00204ca0: add	sp, sp, #0x40
+0x00204ca4: b	#0x3cf520
+0x00204ca8: bl	#0x101d1c  -> vnd_LogMsg
+0x00204cac: ldr	x8, [x21, #0x3d8]  ; [0x4003d8]
+0x00204cb0: mov	x0, #0xe39a
+0x00204cb4: movk	x0, #0x2dab, lsl #16
+0x00204cb8: movk	x0, #0xaa91, lsl #32
+0x00204cbc: ldr	x1, [x8, #8]
+0x00204cc0: movk	x0, #0xaa12, lsl #48
+0x00204cc4: str	x1, [sp, #8]
+0x00204cc8: bl	#0x3cf680
+0x00204ccc: ldp	x29, x30, [sp, #0x10]
+0x00204cd0: ldrh	w2, [x19, #6]
+0x00204cd4: add	x0, x19, #0xc
+0x00204cd8: mov	w1, w20
+0x00204cdc: ldr	x3, [sp, #8]
+0x00204ce0: ldp	x20, x19, [sp, #0x30]
+0x00204ce4: ldp	x22, x21, [sp, #0x20]
+0x00204ce8: ldr	x30, [x18, #-8]!
+0x00204cec: add	sp, sp, #0x40
+0x00204cf0: br	x3

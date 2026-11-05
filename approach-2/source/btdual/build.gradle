@@ -1,0 +1,8 @@
+plugins {
+    id 'com.android.application' version '8.5.2' apply false
+}
+
+// Build outputs live outside the source tree (Windows locks files in build/ after a failed compile).
+allprojects {
+    layout.buildDirectory = new File(rootDir, "../../../toolchain/build-btdual/" + (project == rootProject ? "root" : project.name))
+}

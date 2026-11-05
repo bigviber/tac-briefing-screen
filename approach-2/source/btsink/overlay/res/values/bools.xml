@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Firmware value: false. Turns on A2dpSinkService so a phone can stream music to the tablet. -->
+    <bool name="profile_supported_a2dp_sink">true</bool>
+    <!-- v2. Firmware value: false. Turns on HeadsetClientService: the tablet is the phone's hands-free unit, so calls ring,
+         are answered and are heard on the tablet (Car Home drives them; the Qualcomm audio HAL routes hfp-sco to speaker + mic). -->
+    <bool name="profile_supported_hfpclient">true</bool>
+    <!-- v2. Firmware value: false. Turns on PbapClientService: the phone's contacts are copied to the tablet so calls show names. -->
+    <bool name="profile_supported_pbapclient">true</bool>
+</resources>

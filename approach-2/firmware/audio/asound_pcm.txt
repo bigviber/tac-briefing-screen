@@ -1,0 +1,32 @@
+00-00: MultiMedia1 (*) :  : playback 1 : capture 1
+00-01: MultiMedia2 (*) :  : playback 1 : capture 1
+00-02: VoiceMMode1 (*) :  : playback 1 : capture 1
+00-03: VoIP (*) :  : playback 1 : capture 1
+00-04: MultiMedia3 (*) :  : playback 1
+00-05: AFE-PROXY RX msm-stub-rx-5 :  : playback 1
+00-06: AFE-PROXY TX msm-stub-tx-6 :  : capture 1
+00-08: AUXPCM Hostless (*) :  : playback 1 : capture 1
+00-09: MultiMedia5 (*) :  : playback 1 : capture 1
+00-10: Listen 1 Audio Service (*) :  : capture 1
+00-12: MultiMedia10 (*) :  : playback 1 : capture 1
+00-13: MM_NOIRQ (*) :  : playback 1 : capture 1
+00-14: HDMI_RX_HOSTLESS (*) :  : playback 1
+00-15: VoiceMMode2 (*) :  : playback 1 : capture 1
+00-16: Listen 2 Audio Service (*) :  : capture 1
+00-17: Listen 3 Audio Service (*) :  : capture 1
+00-18: Listen 4 Audio Service (*) :  : capture 1
+00-19: Listen 5 Audio Service (*) :  : capture 1
+00-20: Listen 6 Audio Service (*) :  : capture 1
+00-21: Listen 7 Audio Service (*) :  : capture 1
+00-22: Listen 8 Audio Service (*) :  : capture 1
+00-23: MultiMedia9 (*) :  : playback 1 : capture 1
+00-29: MM_NOIRQ_2 (*) :  : playback 1 : capture 1
+00-30: CDC_DMA Hostless (*) :  : playback 1 : capture 1
+00-31: TX3_CDC_DMA Hostless (*) :  : capture 1
+00-32: Tertiary MI2S_TX Hostless Capture (*) :  : capture 1
+00-33: MultiMedia6 (*) :  : playback 1 : capture 1
+00-34: USB Audio Hostless (*) :  : playback 1 : capture 1
+00-35: SLIMBUS_7 Hostless (*) :  : playback 1 : capture 1
+00-37: SLIMBUS_8 Hostless (*) :  : playback 1 : capture 1
+00-38: TX CDC DMA5 Capture tx_macro_tx3-38 :  : capture 1
+00-39: Primary TDM0 Hostless Capture (*) :  : capture 1

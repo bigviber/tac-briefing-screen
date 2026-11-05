@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Xposed module (loaded by LSPosed into com.android.bluetooth only). No UI, no permissions. -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application android:label="BT Dual Audio" android:allowBackup="false">
+        <meta-data android:name="xposedmodule" android:value="true" />
+        <meta-data android:name="xposeddescription" android:value="Lets the tablet receive Bluetooth audio from a phone while still sending audio to the car (removes the Qualcomm either/or between A2DP source and sink)." />
+        <meta-data android:name="xposedminversion" android:value="82" />
+        <meta-data android:name="xposedscope" android:resource="@array/scope" />
+    </application>
+</manifest>

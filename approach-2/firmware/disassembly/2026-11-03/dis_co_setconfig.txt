@@ -1,0 +1,745 @@
+0x0022a05c: ffc306d1   sub     sp, sp, #0x1b0
+0x0022a060: 5e8600f8   str     x30, [x18], #8
+0x0022a064: fd7b15a9   stp     x29, x30, [sp, #0x150]
+0x0022a068: fc6f16a9   stp     x28, x27, [sp, #0x160]
+0x0022a06c: fa6717a9   stp     x26, x25, [sp, #0x170]
+0x0022a070: f85f18a9   stp     x24, x23, [sp, #0x180]
+0x0022a074: f65719a9   stp     x22, x21, [sp, #0x190]
+0x0022a078: f44f1aa9   stp     x20, x19, [sp, #0x1a0]
+0x0022a07c: fd430591   add     x29, sp, #0x150
+0x0022a080: e75700b9   str     w7, [sp, #0x54]
+0x0022a084: 5cd03bd5   mrs     x28, tpidr_el0
+0x0022a088: 881740f9   ldr     x8, [x28, #0x28]
+0x0022a08c: ea830291   add     x10, sp, #0xa0
+0x0022a090: 00e4006f   movi    v0.2d, #0000000000000000
+0x0022a094: f403002a   mov     w20, w0
+0x0022a098: a8831ef8   stur    x8, [x29, #-0x18]
+0x0022a09c: c82c8c52   mov     w8, #0x6166
+0x0022a0a0: 886dae72   movk    w8, #0x736c, lsl #16
+0x0022a0a4: a90c8052   mov     w9, #0x65
+0x0022a0a8: 40c1843c   stur    q0, [x10, #0x4c]
+0x0022a0ac: 4011803d   str     q0, [x10, #0x40]
+0x0022a0b0: e00305ad   stp     q0, q0, [sp, #0xa0]
+0x0022a0b4: e8a300b9   str     w8, [sp, #0xa0]
+0x0022a0b8: e8630191   add     x8, sp, #0x58
+0x0022a0bc: e00303aa   mov     x0, x3
+0x0022a0c0: f703062a   mov     w23, w6
+0x0022a0c4: f90305aa   mov     x25, x5
+0x0022a0c8: f803042a   mov     w24, w4
+0x0022a0cc: f60303aa   mov     x22, x3
+0x0022a0d0: f50301aa   mov     x21, x1
+0x0022a0d4: e2d30139   strb    w2, [sp, #0x74]
+0x0022a0d8: e00306ad   stp     q0, q0, [sp, #0xc0]
+0x0022a0dc: e9930239   strb    w9, [sp, #0xa4]
+0x0022a0e0: ffff05a9   stp     xzr, xzr, [sp, #0x58]
+0x0022a0e4: ff3700f9   str     xzr, [sp, #0x68]
+0x0022a0e8: da860694   bl      #0x3cbc50  -> sub_3cbc50
+0x0022a0ec: e0630191   add     x0, sp, #0x58
+0x0022a0f0: 735efb97   bl      #0x101abc  -> _ZNKSt3__117__compressed_pairINS_12basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEE5__repES5_E5firstEv
+0x0022a0f4: 13004039   ldrb    w19, [x0]
+0x0022a0f8: e0630191   add     x0, sp, #0x58
+0x0022a0fc: 705efb97   bl      #0x101abc  -> _ZNKSt3__117__compressed_pairINS_12basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEE5__repES5_E5firstEv
+0x0022a100: b3000037   tbnz    w19, #0, #0x22a114
+0x0022a104: 1a040091   add     x26, x0, #1
+0x0022a108: e0031aaa   mov     x0, x26
+0x0022a10c: 5060fb97   bl      #0x10224c  -> _ZNSt3__19addressofIKcEEPT_RS2_
+0x0022a110: 02000014   b       #0x22a118
+0x0022a114: 1a0840f9   ldr     x26, [x0, #0x10]
+0x0022a118: 930d00b0   adrp    x19, #0x3db000
+0x0022a11c: 68026c39   ldrb    w8, [x19, #0xb00]
+0x0022a120: 1f150071   cmp     w8, #5
+0x0022a124: 23010054   b.lo    #0x22a148
+0x0022a128: e4d34139   ldrb    w4, [sp, #0x74]
+0x0022a12c: 01f2ffb0   adrp    x1, #0x6b000
+0x0022a130: 82f0ffb0   adrp    x2, #0x3b000
+0x0022a134: 21581491   add     x1, x1, #0x516  ; "%s: Device [%s], seid = %d"
+0x0022a138: 42041e91   add     x2, x2, #0x781  ; "bta_av_co_audio_setconfig"
+0x0022a13c: 80a08052   mov     w0, #0x504
+0x0022a140: e3031aaa   mov     x3, x26
+0x0022a144: 7d5efb97   bl      #0x101b38  -> LogMsg
+0x0022a148: a3064039   ldrb    w3, [x21, #1]
+0x0022a14c: a40a4039   ldrb    w4, [x21, #2]
+0x0022a150: a50e4039   ldrb    w5, [x21, #3]
+0x0022a154: a6124039   ldrb    w6, [x21, #4]
+0x0022a158: a7164039   ldrb    w7, [x21, #5]
+0x0022a15c: a81a4039   ldrb    w8, [x21, #6]
+0x0022a160: 5af1ff90   adrp    x26, #0x52000
+0x0022a164: 9bf0ffb0   adrp    x27, #0x3b000
+0x0022a168: 5ae73391   add     x26, x26, #0xcf9  ; "%s: p_codec_info[%x:%x:%x:%x:%x:%x]"
+0x0022a16c: 7b071e91   add     x27, x27, #0x781  ; "bta_av_co_audio_setconfig"
+0x0022a170: 80a08052   mov     w0, #0x504
+0x0022a174: e1031aaa   mov     x1, x26
+0x0022a178: e2031baa   mov     x2, x27
+0x0022a17c: e80300b9   str     w8, [sp]
+0x0022a180: 6e5efb97   bl      #0x101b38  -> LogMsg
+0x0022a184: a3064039   ldrb    w3, [x21, #1]
+0x0022a188: a40a4039   ldrb    w4, [x21, #2]
+0x0022a18c: a50e4039   ldrb    w5, [x21, #3]
+0x0022a190: a6124039   ldrb    w6, [x21, #4]
+0x0022a194: a7164039   ldrb    w7, [x21, #5]
+0x0022a198: a81a4039   ldrb    w8, [x21, #6]
+0x0022a19c: 80a08052   mov     w0, #0x504
+0x0022a1a0: e1031aaa   mov     x1, x26
+0x0022a1a4: e2031baa   mov     x2, x27
+0x0022a1a8: e80300b9   str     w8, [sp]
+0x0022a1ac: dc5efb97   bl      #0x101d1c  -> vnd_LogMsg
+0x0022a1b0: 68026c39   ldrb    w8, [x19, #0xb00]
+0x0022a1b4: 1f150071   cmp     w8, #5
+0x0022a1b8: 23010054   b.lo    #0x22a1dc
+0x0022a1bc: 23034039   ldrb    w3, [x25]
+0x0022a1c0: 24074039   ldrb    w4, [x25, #1]
+0x0022a1c4: 250b4039   ldrb    w5, [x25, #2]
+0x0022a1c8: c1f0ffd0   adrp    x1, #0x44000
+0x0022a1cc: 021f0012   and     w2, w24, #0xff
+0x0022a1d0: 21743491   add     x1, x1, #0xd1d  ; "num_protect:0x%02x protect_info:0x%02x%02x%02x"
+0x0022a1d4: 80a08052   mov     w0, #0x504
+0x0022a1d8: 585efb97   bl      #0x101b38  -> LogMsg
+0x0022a1dc: e00315aa   mov     x0, x21
+0x0022a1e0: 20c50094   bl      #0x25b660  -> _Z18A2DP_DumpCodecInfoPKh
+0x0022a1e4: 68026c39   ldrb    w8, [x19, #0xb00]
+0x0022a1e8: 89160012   and     w9, w20, #0x3f
+0x0022a1ec: 39050051   sub     w25, w9, #1
+0x0022a1f0: 1f150071   cmp     w8, #5
+0x0022a1f4: 23010054   b.lo    #0x22a218
+0x0022a1f8: a1f0fff0   adrp    x1, #0x41000
+0x0022a1fc: 02f0ffd0   adrp    x2, #0x2c000
+0x0022a200: 831e0012   and     w3, w20, #0xff
+0x0022a204: 241f0012   and     w4, w25, #0xff
+0x0022a208: 21803791   add     x1, x1, #0xde0  ; "%s: handle = %d index = %d"
+0x0022a20c: 42002f91   add     x2, x2, #0xbc0  ; "bta_av_co_get_peer"
+0x0022a210: 80a08052   mov     w0, #0x504
+0x0022a214: 495efb97   bl      #0x101b38  -> LogMsg
+0x0022a218: 281f0012   and     w8, w25, #0xff
+0x0022a21c: 1f150071   cmp     w8, #5
+0x0022a220: e3020054   b.lo    #0x22a27c
+0x0022a224: 68026c39   ldrb    w8, [x19, #0xb00]
+0x0022a228: 08020034   cbz     w8, #0x22a268
+0x0022a22c: e1f0ffb0   adrp    x1, #0x47000
+0x0022a230: 02f0ffd0   adrp    x2, #0x2c000
+0x0022a234: 231f0012   and     w3, w25, #0xff
+0x0022a238: 21282c91   add     x1, x1, #0xb0a  ; "%s: peer index out of bounds: %d"
+0x0022a23c: 42002f91   add     x2, x2, #0xbc0  ; "bta_av_co_get_peer"
+0x0022a240: 00a08052   mov     w0, #0x500
+0x0022a244: 3d5efb97   bl      #0x101b38  -> LogMsg
+0x0022a248: 68026c39   ldrb    w8, [x19, #0xb00]
+0x0022a24c: e8000034   cbz     w8, #0x22a268
+0x0022a250: 01f2ffb0   adrp    x1, #0x6b000
+0x0022a254: 82f0ffb0   adrp    x2, #0x3b000
+0x0022a258: 21601291   add     x1, x1, #0x498  ; "%s: could not find peer entry"
+0x0022a25c: 42041e91   add     x2, x2, #0x781  ; "bta_av_co_audio_setconfig"
+0x0022a260: 00a08052   mov     w0, #0x500
+0x0022a264: 355efb97   bl      #0x101b38  -> LogMsg
+0x0022a268: e4d30191   add     x4, sp, #0x74
+0x0022a26c: 61018052   mov     w1, #0xb
+0x0022a270: e2008052   mov     w2, #7
+0x0022a274: e003142a   mov     w0, w20
+0x0022a278: 0c020014   b       #0x22aaa8
+0x0022a27c: 68026c39   ldrb    w8, [x19, #0xb00]
+0x0022a280: 3b1f4092   and     x27, x25, #0xff
+0x0022a284: f90e0090   adrp    x25, #0x406000
+0x0022a288: 39432891   add     x25, x25, #0xa10
+0x0022a28c: 1f150071   cmp     w8, #5
+0x0022a290: 63040054   b.lo    #0x22a31c
+0x0022a294: 088f8052   mov     w8, #0x478
+0x0022a298: 687f089b   mul     x8, x27, x8
+0x0022a29c: 08fd44d3   lsr     x8, x8, #4
+0x0022a2a0: 1f9104f1   cmp     x8, #0x124
+0x0022a2a4: 484a0054   b.hi    #0x22abec
+0x0022a2a8: 088f8052   mov     w8, #0x478
+0x0022a2ac: 687f089b   mul     x8, x27, x8
+0x0022a2b0: c9538252   mov     w9, #0x129e
+0x0022a2b4: 1f0109eb   cmp     x8, x9
+0x0022a2b8: a8490054   b.hi    #0x22abec
+0x0022a2bc: 098f8052   mov     w9, #0x478
+0x0022a2c0: 697f099b   mul     x9, x27, x9
+0x0022a2c4: 2afd42d3   lsr     x10, x9, #2
+0x0022a2c8: 5f9912f1   cmp     x10, #0x4a6
+0x0022a2cc: 08490054   b.hi    #0x22abec
+0x0022a2d0: 0a8f8052   mov     w10, #0x478
+0x0022a2d4: 6a7f0a9b   mul     x10, x27, x10
+0x0022a2d8: 4afd41d3   lsr     x10, x10, #1
+0x0022a2dc: 5f3125f1   cmp     x10, #0x94c
+0x0022a2e0: 68480054   b.hi    #0x22abec
+0x0022a2e4: 2803088b   add     x8, x25, x8
+0x0022a2e8: 0a8f8052   mov     w10, #0x478
+0x0022a2ec: 2903098b   add     x9, x25, x9
+0x0022a2f0: 03455139   ldrb    w3, [x8, #0x451]
+0x0022a2f4: 68670a9b   madd    x8, x27, x10, x25
+0x0022a2f8: 24095039   ldrb    w4, [x9, #0x402]
+0x0022a2fc: 05155039   ldrb    w5, [x8, #0x405]
+0x0022a300: 061d5039   ldrb    w6, [x8, #0x407]
+0x0022a304: a1f0fff0   adrp    x1, #0x41000
+0x0022a308: 82f0ffb0   adrp    x2, #0x3b000
+0x0022a30c: 21a43891   add     x1, x1, #0xe29  ; "%s: peer(o=%d, n_sinks=%d, n_rx_sinks=%d, n_sup_sinks=%d)"
+0x0022a310: 42041e91   add     x2, x2, #0x781  ; "bta_av_co_audio_setconfig"
+0x0022a314: 80a08052   mov     w0, #0x504
+0x0022a318: 085efb97   bl      #0x101b38  -> LogMsg
+0x0022a31c: e00316aa   mov     x0, x22
+0x0022a320: fa03182a   mov     w26, w24
+0x0022a324: f74300b9   str     w23, [sp, #0x40]
+0x0022a328: cc01fc97   bl      #0x12aa58  -> _Z33bta_av_get_is_peer_state_incomingRK10RawAddress
+0x0022a32c: 088f8052   mov     w8, #0x478
+0x0022a330: 777f089b   mul     x23, x27, x8
+0x0022a334: c8478252   mov     w8, #0x123e
+0x0022a338: ff0208eb   cmp     x23, x8
+0x0022a33c: 88450054   b.hi    #0x22abec
+0x0022a340: 68026c39   ldrb    w8, [x19, #0xb00]
+0x0022a344: 2903178b   add     x9, x25, x23
+0x0022a348: 38891191   add     x24, x9, #0x462
+0x0022a34c: 03000012   and     w3, w0, #1
+0x0022a350: 1f150071   cmp     w8, #5
+0x0022a354: 03030039   strb    w3, [x24]
+0x0022a358: fb2700f9   str     x27, [sp, #0x48]
+0x0022a35c: f81b00f9   str     x24, [sp, #0x30]
+0x0022a360: 63010054   b.lo    #0x22a38c
+0x0022a364: e1efff90   adrp    x1, #0x26000
+0x0022a368: 82f0ffb0   adrp    x2, #0x3b000
+0x0022a36c: 21382391   add     x1, x1, #0x8ce  ; "%s: isIncoming: %d"
+0x0022a370: 42041e91   add     x2, x2, #0x781  ; "bta_av_co_audio_setconfig"
+0x0022a374: 80a08052   mov     w0, #0x504
+0x0022a378: f05dfb97   bl      #0x101b38  -> LogMsg
+0x0022a37c: c8478252   mov     w8, #0x123e
+0x0022a380: ff0208eb   cmp     x23, x8
+0x0022a384: 48430054   b.hi    #0x22abec
+0x0022a388: 03034039   ldrb    w3, [x24]
+0x0022a38c: f8031a2a   mov     w24, w26
+0x0022a390: e3050034   cbz     w3, #0x22a44c
+0x0022a394: e00315aa   mov     x0, x21
+0x0022a398: f61f00f9   str     x22, [sp, #0x38]
+0x0022a39c: f80317aa   mov     x24, x23
+0x0022a3a0: f703142a   mov     w23, w20
+0x0022a3a4: f4031caa   mov     x20, x28
+0x0022a3a8: 40b60094   bl      #0x257ca8  -> _Z21A2DP_SourceCodecIndexPKh
+0x0022a3ac: f62740f9   ldr     x22, [sp, #0x48]
+0x0022a3b0: 088f8052   mov     w8, #0x478
+0x0022a3b4: d97e089b   mul     x25, x22, x8
+0x0022a3b8: 88478252   mov     w8, #0x123c
+0x0022a3bc: 3f0308eb   cmp     x25, x8
+0x0022a3c0: 68410054   b.hi    #0x22abec
+0x0022a3c4: fc0e0090   adrp    x28, #0x406000
+0x0022a3c8: 9c432891   add     x28, x28, #0xa10
+0x0022a3cc: 8803198b   add     x8, x28, x25
+0x0022a3d0: 1b911191   add     x27, x8, #0x464
+0x0022a3d4: 600300b9   str     w0, [x27]
+0x0022a3d8: e00315aa   mov     x0, x21
+0x0022a3dc: c0ba0094   bl      #0x258edc  -> _Z14A2DP_CodecNamePKh
+0x0022a3e0: 088f8052   mov     w8, #0x478
+0x0022a3e4: c87e089b   mul     x8, x22, x8
+0x0022a3e8: 08fd44d3   lsr     x8, x8, #4
+0x0022a3ec: 1f8904f1   cmp     x8, #0x122
+0x0022a3f0: e83f0054   b.hi    #0x22abec
+0x0022a3f4: 68026c39   ldrb    w8, [x19, #0xb00]
+0x0022a3f8: 098f8052   mov     w9, #0x478
+0x0022a3fc: c972099b   madd    x9, x22, x9, x28
+0x0022a400: f61f40f9   ldr     x22, [sp, #0x38]
+0x0022a404: e40300aa   mov     x4, x0
+0x0022a408: 1f150071   cmp     w8, #5
+0x0022a40c: fc0314aa   mov     x28, x20
+0x0022a410: f403172a   mov     w20, w23
+0x0022a414: f70318aa   mov     x23, x24
+0x0022a418: f8031a2a   mov     w24, w26
+0x0022a41c: 203902f9   str     x0, [x9, #0x470]
+0x0022a420: 63010054   b.lo    #0x22a44c
+0x0022a424: 88478252   mov     w8, #0x123c
+0x0022a428: 3f0308eb   cmp     x25, x8
+0x0022a42c: 083e0054   b.hi    #0x22abec
+0x0022a430: 630340b9   ldr     w3, [x27]
+0x0022a434: 81f2ff90   adrp    x1, #0x7a000
+0x0022a438: 82f0ffb0   adrp    x2, #0x3b000
+0x0022a43c: 21941d91   add     x1, x1, #0x765  ; "%s: codecIndextoCompare: %d, incoming_codec_name: %s"
+0x0022a440: 42041e91   add     x2, x2, #0x781  ; "bta_av_co_audio_setconfig"
+0x0022a444: 80a08052   mov     w0, #0x504
+0x0022a448: bc5dfb97   bl      #0x101b38  -> LogMsg
+0x0022a44c: fa2740f9   ldr     x26, [sp, #0x48]
+0x0022a450: 088f8052   mov     w8, #0x478
+0x0022a454: 487f089b   mul     x8, x26, x8
+0x0022a458: 08fd44d3   lsr     x8, x8, #4
+0x0022a45c: 1f9104f1   cmp     x8, #0x124
+0x0022a460: 683c0054   b.hi    #0x22abec
+0x0022a464: f90e0090   adrp    x25, #0x406000
+0x0022a468: 088f8052   mov     w8, #0x478
+0x0022a46c: 39432891   add     x25, x25, #0xa10
+0x0022a470: 4867089b   madd    x8, x26, x8, x25
+0x0022a474: 08455139   ldrb    w8, [x8, #0x451]
+0x0022a478: 28010034   cbz     w8, #0x22a49c
+0x0022a47c: 68026c39   ldrb    w8, [x19, #0xb00]
+0x0022a480: e8000034   cbz     w8, #0x22a49c
+0x0022a484: a1f0fff0   adrp    x1, #0x41000
+0x0022a488: 82f0ffb0   adrp    x2, #0x3b000
+0x0022a48c: 21343a91   add     x1, x1, #0xe8d  ; "%s: peer already in use"
+0x0022a490: 42041e91   add     x2, x2, #0x781  ; "bta_av_co_audio_setconfig"
+0x0022a494: 00a08052   mov     w0, #0x500
+0x0022a498: a85dfb97   bl      #0x101b38  -> LogMsg
+0x0022a49c: 1f1f0072   tst     w24, #0xff
+0x0022a4a0: c0010054   b.eq    #0x22a4d8
+0x0022a4a4: 68026c39   ldrb    w8, [x19, #0xb00]
+0x0022a4a8: 48070034   cbz     w8, #0x22a590
+0x0022a4ac: 01f1ff90   adrp    x1, #0x4a000
+0x0022a4b0: 82f0ffb0   adrp    x2, #0x3b000
+0x0022a4b4: 216c2c91   add     x1, x1, #0xb1b  ; "%s: wrong CP configuration"
+0x0022a4b8: 42041e91   add     x2, x2, #0x781  ; "bta_av_co_audio_setconfig"
+0x0022a4bc: 00a08052   mov     w0, #0x500
+0x0022a4c0: 9e5dfb97   bl      #0x101b38  -> LogMsg
+0x0022a4c4: 95008052   mov     w21, #4
+0x0022a4c8: 161c8052   mov     w22, #0xe0
+0x0022a4cc: 68026c39   ldrb    w8, [x19, #0xb00]
+0x0022a4d0: 482d0035   cbnz    w8, #0x22aa78
+0x0022a4d4: 71010014   b       #0x22aa98
+0x0022a4d8: e84340b9   ldr     w8, [sp, #0x40]
+0x0022a4dc: 081d0072   ands    w8, w8, #0xff
+0x0022a4e0: e0050054   b.eq    #0x22a59c
+0x0022a4e4: 1f050071   cmp     w8, #1
+0x0022a4e8: 012c0054   b.ne    #0x22aa68
+0x0022a4ec: 68026c39   ldrb    w8, [x19, #0xb00]
+0x0022a4f0: 1f150071   cmp     w8, #5
+0x0022a4f4: e3000054   b.lo    #0x22a510
+0x0022a4f8: c1f0ffd0   adrp    x1, #0x44000
+0x0022a4fc: 82f0ffb0   adrp    x2, #0x3b000
+0x0022a500: 21303591   add     x1, x1, #0xd4c  ; "%s: peer is A2DP SRC"
+0x0022a504: 42041e91   add     x2, x2, #0x781  ; "bta_av_co_audio_setconfig"
+0x0022a508: 80a08052   mov     w0, #0x504
+0x0022a50c: 8b5dfb97   bl      #0x101b38  -> LogMsg
+0x0022a510: e00315aa   mov     x0, x21
+0x0022a514: 30be0094   bl      #0x259dd4  -> _Z25A2DP_IsSinkCodecSupportedPKh
+0x0022a518: 802a0036   tbz     w0, #0, #0x22aa68
+0x0022a51c: 68026c39   ldrb    w8, [x19, #0xb00]
+0x0022a520: 1f150071   cmp     w8, #5
+0x0022a524: e3000054   b.lo    #0x22a540
+0x0022a528: 01f0ffb0   adrp    x1, #0x2b000
+0x0022a52c: 82f2ff90   adrp    x2, #0x7a000
+0x0022a530: 217c0791   add     x1, x1, #0x1df  ; "%s"
+0x0022a534: 42b81b91   add     x2, x2, #0x6ee  ; "bta_av_co_save_new_codec_config"
+0x0022a538: 80a08052   mov     w0, #0x504
+0x0022a53c: 7f5dfb97   bl      #0x101b38  -> LogMsg
+0x0022a540: e00315aa   mov     x0, x21
+0x0022a544: 47c40094   bl      #0x25b660  -> _Z18A2DP_DumpCodecInfoPKh
+0x0022a548: 33980494   bl      #0x350614  -> _Z17mutex_global_lockv
+0x0022a54c: a0d2c13c   ldur    q0, [x21, #0x1d]
+0x0022a550: a10a40ad   ldp     q1, q2, [x21]
+0x0022a554: 08cb8252   mov     w8, #0x1658
+0x0022a558: 2803088b   add     x8, x25, x8
+0x0022a55c: 00d1813c   stur    q0, [x8, #0x1d]
+0x0022a560: 010900ad   stp     q1, q2, [x8]
+0x0022a564: a0d2c13c   ldur    q0, [x21, #0x1d]
+0x0022a568: a10a40ad   ldp     q1, q2, [x21]
+0x0022a56c: 098f8052   mov     w9, #0x478
+0x0022a570: 4867099b   madd    x8, x26, x9, x25
+0x0022a574: 09811091   add     x9, x8, #0x420
+0x0022a578: 20d1813c   stur    q0, [x9, #0x1d]
+0x0022a57c: 020d813d   str     q2, [x8, #0x430]
+0x0022a580: 0109813d   str     q1, [x8, #0x420]
+0x0022a584: 27980494   bl      #0x350620  -> _Z19mutex_global_unlockv
+0x0022a588: f6031f2a   mov     w22, wzr
+0x0022a58c: e5000014   b       #0x22a920
+0x0022a590: 161c8052   mov     w22, #0xe0
+0x0022a594: 95008052   mov     w21, #4
+0x0022a598: 40010014   b       #0x22aa98
+0x0022a59c: 68026c39   ldrb    w8, [x19, #0xb00]
+0x0022a5a0: 098f8052   mov     w9, #0x478
+0x0022a5a4: 587f099b   mul     x24, x26, x9
+0x0022a5a8: 3b03188b   add     x27, x25, x24
+0x0022a5ac: 1f150071   cmp     w8, #5
+0x0022a5b0: e3000054   b.lo    #0x22a5cc
+0x0022a5b4: a1efff90   adrp    x1, #0x1e000
+0x0022a5b8: 82f0ffb0   adrp    x2, #0x3b000
+0x0022a5bc: 21140491   add     x1, x1, #0x105  ; "%s: peer is A2DP SINK"
+0x0022a5c0: 42041e91   add     x2, x2, #0x781  ; "bta_av_co_audio_setconfig"
+0x0022a5c4: 80a08052   mov     w0, #0x504
+0x0022a5c8: 5c5dfb97   bl      #0x101b38  -> LogMsg
+0x0022a5cc: c90240b9   ldr     w9, [x22]
+0x0022a5d0: ca0a4079   ldrh    w10, [x22, #4]
+0x0022a5d4: 088f8052   mov     w8, #0x478
+0x0022a5d8: 487f089b   mul     x8, x26, x8
+0x0022a5dc: 0bfd43d3   lsr     x11, x8, #3
+0x0022a5e0: 7f2109f1   cmp     x11, #0x248
+0x0022a5e4: 6a0b0079   strh    w10, [x27, #4]
+0x0022a5e8: 690300b9   str     w9, [x27]
+0x0022a5ec: 08300054   b.hi    #0x22abec
+0x0022a5f0: 2803088b   add     x8, x25, x8
+0x0022a5f4: 09611191   add     x9, x8, #0x458
+0x0022a5f8: 280140f9   ldr     x8, [x9]
+0x0022a5fc: e82100b4   cbz     x8, #0x22aa38
+0x0022a600: 68026c39   ldrb    w8, [x19, #0xb00]
+0x0022a604: e91700f9   str     x9, [sp, #0x28]
+0x0022a608: 00e4006f   movi    v0.2d, #0000000000000000
+0x0022a60c: e9830291   add     x9, sp, #0xa0
+0x0022a610: 1f150071   cmp     w8, #5
+0x0022a614: ebe303a9   stp     x11, x24, [sp, #0x38]
+0x0022a618: 20d1873c   stur    q0, [x9, #0x7d]
+0x0022a61c: 200103ad   stp     q0, q0, [x9, #0x60]
+0x0022a620: ff730239   strb    wzr, [sp, #0x9c]
+0x0022a624: ff630239   strb    wzr, [sp, #0x98]
+0x0022a628: ff530239   strb    wzr, [sp, #0x94]
+0x0022a62c: e3000054   b.lo    #0x22a648
+0x0022a630: 01f0ffb0   adrp    x1, #0x2b000
+0x0022a634: 62f2ffb0   adrp    x2, #0x77000
+0x0022a638: 217c0791   add     x1, x1, #0x1df  ; "%s"
+0x0022a63c: 42101791   add     x2, x2, #0x5c4  ; "bta_av_co_set_codec_ota_config"
+0x0022a640: 80a08052   mov     w0, #0x504
+0x0022a644: 3d5dfb97   bl      #0x101b38  -> LogMsg
+0x0022a648: e00315aa   mov     x0, x21
+0x0022a64c: 05c40094   bl      #0x25b660  -> _Z18A2DP_DumpCodecInfoPKh
+0x0022a650: e00315aa   mov     x0, x21
+0x0022a654: 95b50094   bl      #0x257ca8  -> _Z21A2DP_SourceCodecIndexPKh
+0x0022a658: 1f280071   cmp     w0, #0xa
+0x0022a65c: 41010054   b.ne    #0x22a684
+0x0022a660: 68026c39   ldrb    w8, [x19, #0xb00]
+0x0022a664: 1f090071   cmp     w8, #2
+0x0022a668: e3130054   b.lo    #0x22a8e4
+0x0022a66c: 81f1ffd0   adrp    x1, #0x5c000
+0x0022a670: 62f2ffb0   adrp    x2, #0x77000
+0x0022a674: 21801d91   add     x1, x1, #0x760  ; "%s: invalid peer codec config"
+0x0022a678: 42101791   add     x2, x2, #0x5c4  ; "bta_av_co_set_codec_ota_config"
+0x0022a67c: 20a08052   mov     w0, #0x501
+0x0022a680: 98000014   b       #0x22a8e0
+0x0022a684: 088f8052   mov     w8, #0x478
+0x0022a688: 487f089b   mul     x8, x26, x8
+0x0022a68c: f7f301a9   stp     x23, x28, [sp, #0x18]
+0x0022a690: 17fd41d3   lsr     x23, x8, #1
+0x0022a694: ff3225f1   cmp     x23, #0x94c
+0x0022a698: a82a0054   b.hi    #0x22abec
+0x0022a69c: 2803088b   add     x8, x25, x8
+0x0022a6a0: 1c1d1091   add     x28, x8, #0x407
+0x0022a6a4: 88034039   ldrb    w8, [x28]
+0x0022a6a8: a8040034   cbz     w8, #0x22a73c
+0x0022a6ac: 088f8052   mov     w8, #0x478
+0x0022a6b0: 4867089b   madd    x8, x26, x8, x25
+0x0022a6b4: f803002a   mov     w24, w0
+0x0022a6b8: fb0b00f9   str     x27, [sp, #0x10]
+0x0022a6bc: fb031faa   mov     x27, xzr
+0x0022a6c0: 19210091   add     x25, x8, #8
+0x0022a6c4: 7f2b00f1   cmp     x27, #0xa
+0x0022a6c8: 60290054   b.eq    #0x22abf4
+0x0022a6cc: e00319aa   mov     x0, x25
+0x0022a6d0: 76b50094   bl      #0x257ca8  -> _Z21A2DP_SourceCodecIndexPKh
+0x0022a6d4: 1f00186b   cmp     w0, w24
+0x0022a6d8: a1000054   b.ne    #0x22a6ec
+0x0022a6dc: 360b00d1   sub     x22, x25, #2
+0x0022a6e0: e00316aa   mov     x0, x22
+0x0022a6e4: 68f5ff97   bl      #0x227c84  -> _ZL32bta_av_co_audio_sink_supports_cpPK15tBTA_AV_CO_SINK
+0x0022a6e8: 00030037   tbnz    w0, #0, #0x22a748
+0x0022a6ec: ff3225f1   cmp     x23, #0x94c
+0x0022a6f0: e8270054   b.hi    #0x22abec
+0x0022a6f4: 88034039   ldrb    w8, [x28]
+0x0022a6f8: 7b070091   add     x27, x27, #1  ; "ta_av_co_audio_setconfig"
+0x0022a6fc: 39cf0091   add     x25, x25, #0x33
+0x0022a700: 7f0308eb   cmp     x27, x8
+0x0022a704: 03feff54   b.lo    #0x22a6c4
+0x0022a708: fb0b40f9   ldr     x27, [sp, #0x10]
+0x0022a70c: f82340f9   ldr     x24, [sp, #0x40]
+0x0022a710: 88020034   cbz     w8, #0x22a760
+0x0022a714: 68026c39   ldrb    w8, [x19, #0xb00]
+0x0022a718: f7f341a9   ldp     x23, x28, [sp, #0x18]
+0x0022a71c: fa2740f9   ldr     x26, [sp, #0x48]
+0x0022a720: f90e0090   adrp    x25, #0x406000
+0x0022a724: 39432891   add     x25, x25, #0xa10
+0x0022a728: 48200034   cbz     w8, #0x22ab30
+0x0022a72c: c1f1ff90   adrp    x1, #0x62000
+0x0022a730: 62f2ffb0   adrp    x2, #0x77000
+0x0022a734: 21641a91   add     x1, x1, #0x699  ; "%s: cannot find peer SEP to configure"
+0x0022a738: 68000014   b       #0x22a8d8
+0x0022a73c: f70f40f9   ldr     x23, [sp, #0x18]
+0x0022a740: f6031faa   mov     x22, xzr
+0x0022a744: 05000014   b       #0x22a758
+0x0022a748: fb5f41a9   ldp     x27, x23, [sp, #0x10]
+0x0022a74c: fa2740f9   ldr     x26, [sp, #0x48]
+0x0022a750: f90e0090   adrp    x25, #0x406000
+0x0022a754: 39432891   add     x25, x25, #0xa10
+0x0022a758: f82340f9   ldr     x24, [sp, #0x40]
+0x0022a75c: 06000014   b       #0x22a774
+0x0022a760: f70f40f9   ldr     x23, [sp, #0x18]
+0x0022a764: fa2740f9   ldr     x26, [sp, #0x48]
+0x0022a768: f90e0090   adrp    x25, #0x406000
+0x0022a76c: f6031faa   mov     x22, xzr
+0x0022a770: 39432891   add     x25, x25, #0xa10
+0x0022a774: e0430291   add     x0, sp, #0x90
+0x0022a778: ff9300b9   str     wzr, [sp, #0x90]
+0x0022a77c: e0fcff97   bl      #0x229afc  -> bta_av_co_get_peer_params
+0x0022a780: e81f40f9   ldr     x8, [sp, #0x38]
+0x0022a784: 1f2109f1   cmp     x8, #0x248
+0x0022a788: 28230054   b.hi    #0x22abec
+0x0022a78c: fc2342a9   ldp     x28, x8, [sp, #0x20]
+0x0022a790: 000140f9   ldr     x0, [x8]
+0x0022a794: 800900b4   cbz     x0, #0x22a8c4
+0x0022a798: 08ff45d3   lsr     x8, x24, #5
+0x0022a79c: 1fd102f1   cmp     x8, #0xb4
+0x0022a7a0: 68220054   b.hi    #0x22abec
+0x0022a7a4: 680b4079   ldrh    w8, [x27, #4]
+0x0022a7a8: 670340b9   ldr     w7, [x27]
+0x0022a7ac: e2430291   add     x2, sp, #0x90
+0x0022a7b0: a34301d1   sub     x3, x29, #0x50
+0x0022a7b4: e4730291   add     x4, sp, #0x9c
+0x0022a7b8: 073d60b3   bfi     x7, x8, #0x20, #0x10
+0x0022a7bc: e5630291   add     x5, sp, #0x98
+0x0022a7c0: e6530291   add     x6, sp, #0x94
+0x0022a7c4: e10315aa   mov     x1, x21
+0x0022a7c8: b1b70094   bl      #0x25868c  -> _ZN10A2dpCodecs17setCodecOtaConfigEPKhPK30tA2DP_ENCODER_INIT_PEER_PARAMSPhPbS6_S6_10RawAddress
+0x0022a7cc: c0070036   tbz     w0, #0, #0x22a8c4
+0x0022a7d0: 68026c39   ldrb    w8, [x19, #0xb00]
+0x0022a7d4: 1f150071   cmp     w8, #5
+0x0022a7d8: 43010054   b.lo    #0x22a800
+0x0022a7dc: e3634239   ldrb    w3, [sp, #0x98]
+0x0022a7e0: e4734239   ldrb    w4, [sp, #0x9c]
+0x0022a7e4: e5534239   ldrb    w5, [sp, #0x94]
+0x0022a7e8: 81f0ffb0   adrp    x1, #0x3b000
+0x0022a7ec: 62f2ffb0   adrp    x2, #0x77000
+0x0022a7f0: 216c1e91   add     x1, x1, #0x79b  ; "%s: restart_output:%d, restart_input:%d, config_updated:%d"
+0x0022a7f4: 42101791   add     x2, x2, #0x5c4  ; "bta_av_co_set_codec_ota_config"
+0x0022a7f8: 80a08052   mov     w0, #0x504
+0x0022a7fc: cf5cfb97   bl      #0x101b38  -> LogMsg
+0x0022a800: e8634239   ldrb    w8, [sp, #0x98]
+0x0022a804: c81b0034   cbz     w8, #0x22ab7c
+0x0022a808: 68026c39   ldrb    w8, [x19, #0xb00]
+0x0022a80c: 1f150071   cmp     w8, #5
+0x0022a810: e3000054   b.lo    #0x22a82c
+0x0022a814: 81f2ff90   adrp    x1, #0x7a000
+0x0022a818: 62f2ffb0   adrp    x2, #0x77000
+0x0022a81c: 21681e91   add     x1, x1, #0x79a  ; "%s: restart output"
+0x0022a820: 42101791   add     x2, x2, #0x5c4  ; "bta_av_co_set_codec_ota_config"
+0x0022a824: 80a08052   mov     w0, #0x504
+0x0022a828: c45cfb97   bl      #0x101b38  -> LogMsg
+0x0022a82c: a04301d1   sub     x0, x29, #0x50
+0x0022a830: 8cc30094   bl      #0x25b660  -> _Z18A2DP_DumpCodecInfoPKh
+0x0022a834: 088f8052   mov     w8, #0x478
+0x0022a838: 487f089b   mul     x8, x26, x8
+0x0022a83c: 08fd44d3   lsr     x8, x8, #4
+0x0022a840: 1fa104f1   cmp     x8, #0x128
+0x0022a844: 481d0054   b.hi    #0x22abec
+0x0022a848: 68026c39   ldrb    w8, [x19, #0xb00]
+0x0022a84c: 098f8052   mov     w9, #0x478
+0x0022a850: 4967099b   madd    x9, x26, x9, x25
+0x0022a854: 360902f9   str     x22, [x9, #0x410]
+0x0022a858: 1f150071   cmp     w8, #5
+0x0022a85c: e3000054   b.lo    #0x22a878
+0x0022a860: 01f0ffb0   adrp    x1, #0x2b000
+0x0022a864: 82f2ff90   adrp    x2, #0x7a000
+0x0022a868: 217c0791   add     x1, x1, #0x1df  ; "%s"
+0x0022a86c: 42b81b91   add     x2, x2, #0x6ee  ; "bta_av_co_save_new_codec_config"
+0x0022a870: 80a08052   mov     w0, #0x504
+0x0022a874: b15cfb97   bl      #0x101b38  -> LogMsg
+0x0022a878: a04301d1   sub     x0, x29, #0x50
+0x0022a87c: 79c30094   bl      #0x25b660  -> _Z18A2DP_DumpCodecInfoPKh
+0x0022a880: 65970494   bl      #0x350614  -> _Z17mutex_global_lockv
+0x0022a884: e9830291   add     x9, sp, #0xa0
+0x0022a888: 200543ad   ldp     q0, q1, [x9, #0x60]
+0x0022a88c: 22d1c73c   ldur    q2, [x9, #0x7d]
+0x0022a890: 098f8052   mov     w9, #0x478
+0x0022a894: 08cb8252   mov     w8, #0x1658
+0x0022a898: 4967099b   madd    x9, x26, x9, x25
+0x0022a89c: 2803088b   add     x8, x25, x8
+0x0022a8a0: 2a811091   add     x10, x9, #0x420
+0x0022a8a4: 000500ad   stp     q0, q1, [x8]
+0x0022a8a8: 02d1813c   stur    q2, [x8, #0x1d]
+0x0022a8ac: 42d1813c   stur    q2, [x10, #0x1d]
+0x0022a8b0: 210d813d   str     q1, [x9, #0x430]
+0x0022a8b4: 2009813d   str     q0, [x9, #0x420]
+0x0022a8b8: 5a970494   bl      #0x350620  -> _Z19mutex_global_unlockv
+0x0022a8bc: 36008052   mov     w22, #1
+0x0022a8c0: b0000014   b       #0x22ab80
+0x0022a8c4: 68026c39   ldrb    w8, [x19, #0xb00]
+0x0022a8c8: 48130034   cbz     w8, #0x22ab30
+0x0022a8cc: 21f0ffb0   adrp    x1, #0x2f000
+0x0022a8d0: 62f2ffb0   adrp    x2, #0x77000
+0x0022a8d4: 214c1d91   add     x1, x1, #0x753  ; "%s: cannot set OTA config"
+0x0022a8d8: 42101791   add     x2, x2, #0x5c4  ; "bta_av_co_set_codec_ota_config"
+0x0022a8dc: 00a08052   mov     w0, #0x500
+0x0022a8e0: 965cfb97   bl      #0x101b38  -> LogMsg
+0x0022a8e4: f6031f2a   mov     w22, wzr
+0x0022a8e8: e8031f2a   mov     w8, wzr
+0x0022a8ec: 680a0036   tbz     w8, #0, #0x22aa38
+0x0022a8f0: 68026c39   ldrb    w8, [x19, #0xb00]
+0x0022a8f4: 1f150071   cmp     w8, #5
+0x0022a8f8: 03010054   b.lo    #0x22a918
+0x0022a8fc: a1efffd0   adrp    x1, #0x20000
+0x0022a900: 82f0ffb0   adrp    x2, #0x3b000
+0x0022a904: 21c03291   add     x1, x1, #0xcb0  ; "%s: restart_output: %d"
+0x0022a908: 42041e91   add     x2, x2, #0x781  ; "bta_av_co_audio_setconfig"
+0x0022a90c: 80a08052   mov     w0, #0x504
+0x0022a910: e303162a   mov     w3, w22
+0x0022a914: 895cfb97   bl      #0x101b38  -> LogMsg
+0x0022a918: df020071   cmp     w22, #0
+0x0022a91c: f6079f1a   cset    w22, ne
+0x0022a920: c0f0ffd0   adrp    x0, #0x44000
+0x0022a924: 22f0fff0   adrp    x2, #0x31000
+0x0022a928: 00843591   add     x0, x0, #0xd61  ; "persist.vendor.bt.a2dp.ldac_96k_support"
+0x0022a92c: 42f80991   add     x2, x2, #0x27e  ; "false"
+0x0022a930: e1830291   add     x1, sp, #0xa0
+0x0022a934: 8f930694   bl      #0x3cf770
+0x0022a938: e8a340b9   ldr     w8, [sp, #0xa0]
+0x0022a93c: 894e8e52   mov     w9, #0x7274
+0x0022a940: a9aeac72   movk    w9, #0x6575, lsl #16
+0x0022a944: 1f01096b   cmp     w8, w9
+0x0022a948: 61030054   b.ne    #0x22a9b4
+0x0022a94c: e00315aa   mov     x0, x21
+0x0022a950: d6b40094   bl      #0x257ca8  -> _Z21A2DP_SourceCodecIndexPKh
+0x0022a954: c8478252   mov     w8, #0x123e
+0x0022a958: ff0208eb   cmp     x23, x8
+0x0022a95c: 88140054   b.hi    #0x22abec
+0x0022a960: 1f140071   cmp     w0, #5
+0x0022a964: 81020054   b.ne    #0x22a9b4
+0x0022a968: e81b40f9   ldr     x8, [sp, #0x30]
+0x0022a96c: 08014039   ldrb    w8, [x8]
+0x0022a970: 28020034   cbz     w8, #0x22a9b4
+0x0022a974: e00315aa   mov     x0, x21
+0x0022a978: 42be0094   bl      #0x25a280  -> _Z23A2DP_GetTrackSampleRatePKh
+0x0022a97c: 08e08e52   mov     w8, #0x7700
+0x0022a980: 2800a072   movk    w8, #1, lsl #16
+0x0022a984: 1f00086b   cmp     w0, w8
+0x0022a988: 60010054   b.eq    #0x22a9b4
+0x0022a98c: 68026c39   ldrb    w8, [x19, #0xb00]
+0x0022a990: 1f110071   cmp     w8, #4
+0x0022a994: 290d0054   b.ls    #0x22ab38
+0x0022a998: 41f1ffb0   adrp    x1, #0x53000
+0x0022a99c: 82f0ffb0   adrp    x2, #0x3b000
+0x0022a9a0: 21702191   add     x1, x1, #0x85c  ; "%s: Selected codec is LDAC and reconfig is needed"
+0x0022a9a4: 42041e91   add     x2, x2, #0x781  ; "bta_av_co_audio_setconfig"
+0x0022a9a8: 80a08052   mov     w0, #0x504
+0x0022a9ac: 635cfb97   bl      #0x101b38  -> LogMsg
+0x0022a9b0: 36008052   mov     w22, #1
+0x0022a9b4: 088f8052   mov     w8, #0x478
+0x0022a9b8: 487f089b   mul     x8, x26, x8
+0x0022a9bc: 494a8252   mov     w9, #0x1252
+0x0022a9c0: 1f0109eb   cmp     x8, x9
+0x0022a9c4: 48110054   b.hi    #0x22abec
+0x0022a9c8: 68026c39   ldrb    w8, [x19, #0xb00]
+0x0022a9cc: 098f8052   mov     w9, #0x478
+0x0022a9d0: 497f099b   mul     x9, x26, x9
+0x0022a9d4: 2b03098b   add     x11, x25, x9
+0x0022a9d8: 29fd41d3   lsr     x9, x9, #1
+0x0022a9dc: 2a008052   mov     w10, #1
+0x0022a9e0: 3fa124f1   cmp     x9, #0x928
+0x0022a9e4: 6a391139   strb    w10, [x11, #0x44e]
+0x0022a9e8: 28100054   b.hi    #0x22abec
+0x0022a9ec: 098f8052   mov     w9, #0x478
+0x0022a9f0: 4967099b   madd    x9, x26, x9, x25
+0x0022a9f4: 1f150071   cmp     w8, #5
+0x0022a9f8: 363d1139   strb    w22, [x9, #0x44f]
+0x0022a9fc: 03010054   b.lo    #0x22aa1c
+0x0022aa00: 41f1ffb0   adrp    x1, #0x53000
+0x0022aa04: 82f0ffb0   adrp    x2, #0x3b000
+0x0022aa08: 21382291   add     x1, x1, #0x88e  ; "%s: accept reconf=%d"
+0x0022aa0c: 42041e91   add     x2, x2, #0x781  ; "bta_av_co_audio_setconfig"
+0x0022aa10: 80a08052   mov     w0, #0x504
+0x0022aa14: e303162a   mov     w3, w22
+0x0022aa18: 485cfb97   bl      #0x101b38  -> LogMsg
+0x0022aa1c: e4d30191   add     x4, sp, #0x74
+0x0022aa20: e003142a   mov     w0, w20
+0x0022aa24: e1031f2a   mov     w1, wzr
+0x0022aa28: e2031f2a   mov     w2, wzr
+0x0022aa2c: e3031f2a   mov     w3, wzr
+0x0022aa30: e503162a   mov     w5, w22
+0x0022aa34: 1f000014   b       #0x22aab0
+0x0022aa38: 68026c39   ldrb    w8, [x19, #0xb00]
+0x0022aa3c: 1f150071   cmp     w8, #5
+0x0022aa40: 03070054   b.lo    #0x22ab20
+0x0022aa44: e00315aa   mov     x0, x21
+0x0022aa48: 25b90094   bl      #0x258edc  -> _Z14A2DP_CodecNamePKh
+0x0022aa4c: a1efffd0   adrp    x1, #0x20000
+0x0022aa50: 82f0ffb0   adrp    x2, #0x3b000
+0x0022aa54: e30300aa   mov     x3, x0
+0x0022aa58: 21643191   add     x1, x1, #0xc59  ; "%s: cannot set source codec %s"
+0x0022aa5c: 42041e91   add     x2, x2, #0x781  ; "bta_av_co_audio_setconfig"
+0x0022aa60: 80a08052   mov     w0, #0x504
+0x0022aa64: 355cfb97   bl      #0x101b38  -> LogMsg
+0x0022aa68: f5008052   mov     w21, #7
+0x0022aa6c: b6018052   mov     w22, #0xd
+0x0022aa70: 68026c39   ldrb    w8, [x19, #0xb00]
+0x0022aa74: 28010034   cbz     w8, #0x22aa98
+0x0022aa78: 21f0ffb0   adrp    x1, #0x2f000
+0x0022aa7c: 82f0ffb0   adrp    x2, #0x3b000
+0x0022aa80: 21b41d91   add     x1, x1, #0x76d  ; "%s: reject s=%d c=%d"
+0x0022aa84: 42041e91   add     x2, x2, #0x781  ; "bta_av_co_audio_setconfig"
+0x0022aa88: 00a08052   mov     w0, #0x500
+0x0022aa8c: e303162a   mov     w3, w22
+0x0022aa90: e403152a   mov     w4, w21
+0x0022aa94: 295cfb97   bl      #0x101b38  -> LogMsg
+0x0022aa98: e4d30191   add     x4, sp, #0x74
+0x0022aa9c: e003142a   mov     w0, w20
+0x0022aaa0: e103162a   mov     w1, w22
+0x0022aaa4: e203152a   mov     w2, w21
+0x0022aaa8: e3031f2a   mov     w3, wzr
+0x0022aaac: e5031f2a   mov     w5, wzr
+0x0022aab0: e65740b9   ldr     w6, [sp, #0x54]
+0x0022aab4: 0bf2fb97   bl      #0x1272e0  -> _Z19bta_av_ci_setconfighhhhPhbh
+0x0022aab8: e0630191   add     x0, sp, #0x58
+0x0022aabc: 005cfb97   bl      #0x101abc  -> _ZNKSt3__117__compressed_pairINS_12basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEE5__repES5_E5firstEv
+0x0022aac0: 08004039   ldrb    w8, [x0]
+0x0022aac4: 48010036   tbz     w8, #0, #0x22aaec
+0x0022aac8: e0630191   add     x0, sp, #0x58
+0x0022aacc: ff5bfb97   bl      #0x101ac8  -> _ZNSt3__117__compressed_pairINS_12basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEE5__repES5_E6secondEv
+0x0022aad0: e0630191   add     x0, sp, #0x58
+0x0022aad4: fb5bfb97   bl      #0x101ac0  -> _ZNSt3__117__compressed_pairINS_12basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEE5__repES5_E5firstEv
+0x0022aad8: 130840f9   ldr     x19, [x0, #0x10]
+0x0022aadc: e0630191   add     x0, sp, #0x58
+0x0022aae0: f75bfb97   bl      #0x101abc  -> _ZNKSt3__117__compressed_pairINS_12basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEE5__repES5_E5firstEv
+0x0022aae4: e00313aa   mov     x0, x19
+0x0022aae8: da920694   bl      #0x3cf650
+0x0022aaec: 881740f9   ldr     x8, [x28, #0x28]
+0x0022aaf0: a9835ef8   ldur    x9, [x29, #-0x18]
+0x0022aaf4: 1f0109eb   cmp     x8, x9
+0x0022aaf8: c1070054   b.ne    #0x22abf0
+0x0022aafc: fd7b55a9   ldp     x29, x30, [sp, #0x150]
+0x0022ab00: f44f5aa9   ldp     x20, x19, [sp, #0x1a0]
+0x0022ab04: f65759a9   ldp     x22, x21, [sp, #0x190]
+0x0022ab08: f85f58a9   ldp     x24, x23, [sp, #0x180]
+0x0022ab0c: fa6757a9   ldp     x26, x25, [sp, #0x170]
+0x0022ab10: fc6f56a9   ldp     x28, x27, [sp, #0x160]
+0x0022ab14: 5e8e5ff8   ldr     x30, [x18, #-8]!
+0x0022ab18: ffc30691   add     sp, sp, #0x1b0
+0x0022ab1c: c0035fd6   ret     
+0x0022ab20: f5008052   mov     w21, #7
+0x0022ab24: b6018052   mov     w22, #0xd
+0x0022ab28: 88faff35   cbnz    w8, #0x22aa78
+0x0022ab2c: dbffff17   b       #0x22aa98
+0x0022ab30: f6031f2a   mov     w22, wzr
+0x0022ab34: 6effff17   b       #0x22a8ec
+0x0022ab38: 088f8052   mov     w8, #0x478
+0x0022ab3c: 487f089b   mul     x8, x26, x8
+0x0022ab40: 494a8252   mov     w9, #0x1252
+0x0022ab44: 1f0109eb   cmp     x8, x9
+0x0022ab48: 28050054   b.hi    #0x22abec
+0x0022ab4c: 088f8052   mov     w8, #0x478
+0x0022ab50: 487f089b   mul     x8, x26, x8
+0x0022ab54: 2903088b   add     x9, x25, x8
+0x0022ab58: 08fd41d3   lsr     x8, x8, #1
+0x0022ab5c: 36008052   mov     w22, #1
+0x0022ab60: 1fa124f1   cmp     x8, #0x928
+0x0022ab64: 36391139   strb    w22, [x9, #0x44e]
+0x0022ab68: 28040054   b.hi    #0x22abec
+0x0022ab6c: 088f8052   mov     w8, #0x478
+0x0022ab70: 4867089b   madd    x8, x26, x8, x25
+0x0022ab74: 163d1139   strb    w22, [x8, #0x44f]
+0x0022ab78: a9ffff17   b       #0x22aa1c
+0x0022ab7c: f6031f2a   mov     w22, wzr
+0x0022ab80: e8734239   ldrb    w8, [sp, #0x9c]
+0x0022ab84: e9534239   ldrb    w9, [sp, #0x94]
+0x0022ab88: 2801082a   orr     w8, w9, w8
+0x0022ab8c: c8020034   cbz     w8, #0x22abe4
+0x0022ab90: 80048052   mov     w0, #0x24
+0x0022ab94: c2008052   mov     w2, #6
+0x0022ab98: e1031baa   mov     x1, x27
+0x0022ab9c: c93afe97   bl      #0x1b96c0  -> _Z22btif_dispatch_sm_event18btif_av_sm_event_tPvi
+0x0022aba0: 68026c39   ldrb    w8, [x19, #0xb00]
+0x0022aba4: 1f150071   cmp     w8, #5
+0x0022aba8: e3010054   b.lo    #0x22abe4
+0x0022abac: e8e30191   add     x8, sp, #0x78
+0x0022abb0: e0031baa   mov     x0, x27
+0x0022abb4: 27840694   bl      #0x3cbc50  -> sub_3cbc50
+0x0022abb8: e0e30191   add     x0, sp, #0x78
+0x0022abbc: 0b7bfb97   bl      #0x1097e8  -> _ZNKSt3__112basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEE4dataEv
+0x0022abc0: a1f0ff90   adrp    x1, #0x3e000
+0x0022abc4: 62f2ffb0   adrp    x2, #0x77000
+0x0022abc8: e30300aa   mov     x3, x0
+0x0022abcc: 21f42191   add     x1, x1, #0x87d  ; "%s BDA:%s"
+0x0022abd0: 42101791   add     x2, x2, #0x5c4  ; "bta_av_co_set_codec_ota_config"
+0x0022abd4: 80a08052   mov     w0, #0x504
+0x0022abd8: d85bfb97   bl      #0x101b38  -> LogMsg
+0x0022abdc: e0e30191   add     x0, sp, #0x78
+0x0022abe0: f8920694   bl      #0x3cf7c0
+0x0022abe4: 28008052   mov     w8, #1
+0x0022abe8: 41ffff17   b       #0x22a8ec
+0x0022abec: 200020d4   brk     #1
+0x0022abf0: 58920694   bl      #0x3cf550
+0x0022abf4: 3f920694   bl      #0x3cf4f0
+
+==== bta_av_co_audio_setconfig @ 0x22a05c size=0xb9c ====

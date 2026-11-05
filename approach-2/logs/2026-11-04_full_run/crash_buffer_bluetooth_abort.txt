@@ -1,0 +1,86 @@
+--------- beginning of crash
+01-03 13:22:50.142   541   541 F libc    : Fatal signal 6 (SIGABRT), code -1 (SI_QUEUE) in tid 541 (init), pid 541 (init)
+01-03 13:22:50.172   541   541 F libc    : crash_dump helper failed to exec
+01-03 13:22:50.178   549   549 F libc    : Fatal signal 6 (SIGABRT), code -1 (SI_QUEUE) in tid 549 (init), pid 549 (init)
+01-03 13:22:50.193   549   549 F libc    : crash_dump helper failed to exec
+08-10 16:44:23.126  2628  2628 F libc    : Fatal signal 6 (SIGABRT), code -1 (SI_QUEUE) in tid 2628 (init), pid 2628 (init)
+08-10 16:44:23.177  2628  2628 F libc    : crash_dump helper failed to exec
+08-10 16:46:15.754  1926  2545 F libc    : Fatal signal 6 (SIGABRT), code -1 (SI_QUEUE) in tid 2545 (btu message loo), pid 1926 (droid.bluetooth)
+08-10 16:46:15.886  5869  5869 F DEBUG   : *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** ***
+08-10 16:46:15.886  5869  5869 F DEBUG   : Build fingerprint: 'Lenovo/LenovoTB-J606F/J606F:11/RKQ1.210303.002/S320311_230810_ROW:user/release-keys'
+08-10 16:46:15.886  5869  5869 F DEBUG   : Revision: '0'
+08-10 16:46:15.886  5869  5869 F DEBUG   : ABI: 'arm64'
+08-10 16:46:15.887  5869  5869 F DEBUG   : Timestamp: 2023-08-10 16:46:15+0900
+08-10 16:46:15.887  5869  5869 F DEBUG   : pid: 1926, tid: 2545, name: btu message loo  >>> com.android.bluetooth <<<
+08-10 16:46:15.887  5869  5869 F DEBUG   : uid: 1002
+08-10 16:46:15.887  5869  5869 F DEBUG   : signal 6 (SIGABRT), code -1 (SI_QUEUE), fault addr --------
+08-10 16:46:15.887  5869  5869 F DEBUG   :     x0  0000000000000000  x1  00000000000009f1  x2  0000000000000006  x3  0000007772aeccb0
+08-10 16:46:15.887  5869  5869 F DEBUG   :     x4  0000000000000009  x5  0000000000000009  x6  0000000000000009  x7  7f7f7f7f7f7f7f7f
+08-10 16:46:15.887  5869  5869 F DEBUG   :     x8  00000000000000f0  x9  fbba14fead260918  x10 0000000000000000  x11 ffffffc0fffffbdf
+08-10 16:46:15.887  5869  5869 F DEBUG   :     x12 0000000000000001  x13 0000007772aeccf0  x14 00000000000003c5  x15 ffffffffffffffff
+08-10 16:46:15.888  5869  5869 F DEBUG   :     x16 0000007ae0640c80  x17 0000007ae0622bb0  x18 0000007771e1e058  x19 0000000000000786
+08-10 16:46:15.888  5869  5869 F DEBUG   :     x20 00000000000009f1  x21 00000000ffffffff  x22 0000000000000005  x23 0000007772aee000
+08-10 16:46:15.888  5869  5869 F DEBUG   :     x24 0000007787438000  x25 0000007787438000  x26 0000007787470000  x27 000000778742a924
+08-10 16:46:15.888  5869  5869 F DEBUG   :     x28 0000007787470000  x29 0000007772aecd30
+08-10 16:46:15.888  5869  5869 F DEBUG   :     lr  0000007ae05d63e0  sp  0000007772aecc90  pc  0000007ae05d640c  pst 0000000000000000
+08-10 16:46:15.947  5869  5869 F DEBUG   : backtrace:
+08-10 16:46:15.947  5869  5869 F DEBUG   :       #00 pc 000000000004e40c  /apex/com.android.runtime/lib64/bionic/libc.so (abort+164) (BuildId: 4b0a60ca3b69d2d66dca24bb01c8d1aa)
+08-10 16:46:15.947  5869  5869 F DEBUG   :       #01 pc 00000000001bf1ec  /system_ext/lib64/libbluetooth_qti.so (bte_av_sink_media_callback(unsigned char, tBTA_AV_MEDIA*, RawAddress) (.cfi)+608) (BuildId: f60d9d156786635ff8ca09994cb9be7b)
+08-10 16:46:15.947  5869  5869 F DEBUG   :       #02 pc 000000000011c824  /system_ext/lib64/libbluetooth_qti.so (bta_av_sink_data_cback(unsigned char, BT_HDR*, unsigned int, unsigned char) (.cfi)+420) (BuildId: f60d9d156786635ff8ca09994cb9be7b)
+08-10 16:46:15.947  5869  5869 F DEBUG   :       #03 pc 0000000000279030  /system_ext/lib64/libbluetooth_qti.so (avdt_scb_event(tAVDT_SCB*, unsigned char, tAVDT_SCB_EVT*)+576) (BuildId: f60d9d156786635ff8ca09994cb9be7b)
+08-10 16:46:15.947  5869  5869 F DEBUG   :       #04 pc 000000000027060c  /system_ext/lib64/libbluetooth_qti.so (avdt_ad_tc_data_ind(tAVDT_TC_TBL*, BT_HDR*)+252) (BuildId: f60d9d156786635ff8ca09994cb9be7b)
+08-10 16:46:15.947  5869  5869 F DEBUG   :       #05 pc 0000000000308934  /system_ext/lib64/libbluetooth_qti.so (l2c_csm_execute(t_l2c_ccb*, unsigned short, void*)+7540) (BuildId: f60d9d156786635ff8ca09994cb9be7b)
+08-10 16:46:15.947  5869  5869 F DEBUG   :       #06 pc 000000000030eb80  /system_ext/lib64/libbluetooth_qti.so (l2c_rcv_acl_data(BT_HDR*)+1180) (BuildId: f60d9d156786635ff8ca09994cb9be7b)
+08-10 16:46:15.947  5869  5869 F DEBUG   :       #07 pc 000000000009e60c  /system/lib64/libchrome.so (base::debug::TaskAnnotator::RunTask(char const*, base::PendingTask*)+196) (BuildId: 538ba2fb3107f9b4688008a711e5a5d1)
+08-10 16:46:15.947  5869  5869 F DEBUG   :       #08 pc 00000000000be60c  /system/lib64/libchrome.so (base::MessageLoop::RunTask(base::PendingTask*)+324) (BuildId: 538ba2fb3107f9b4688008a711e5a5d1)
+08-10 16:46:15.947  5869  5869 F DEBUG   :       #09 pc 00000000000be9a8  /system/lib64/libchrome.so (base::MessageLoop::DoWork()+448) (BuildId: 538ba2fb3107f9b4688008a711e5a5d1)
+08-10 16:46:15.947  5869  5869 F DEBUG   :       #10 pc 00000000000c0110  /system/lib64/libchrome.so (base::MessagePumpDefault::Run(base::MessagePump::Delegate*)+104) (BuildId: 538ba2fb3107f9b4688008a711e5a5d1)
+08-10 16:46:15.947  5869  5869 F DEBUG   :       #11 pc 00000000000e20c4  /system/lib64/libchrome.so (base::RunLoop::Run()+84) (BuildId: 538ba2fb3107f9b4688008a711e5a5d1)
+08-10 16:46:15.947  5869  5869 F DEBUG   :       #12 pc 00000000002d0ac0  /system_ext/lib64/libbluetooth_qti.so (btu_message_loop_run(void*) (.cfi)+288) (BuildId: f60d9d156786635ff8ca09994cb9be7b)
+08-10 16:46:15.947  5869  5869 F DEBUG   :       #13 pc 0000000000352838  /system_ext/lib64/libbluetooth_qti.so (work_queue_read_cb(void*) (.cfi)+124) (BuildId: f60d9d156786635ff8ca09994cb9be7b)
+08-10 16:46:15.947  5869  5869 F DEBUG   :       #14 pc 0000000000350a58  /system_ext/lib64/libbluetooth_qti.so (run_reactor(reactor_t*, int)+408) (BuildId: f60d9d156786635ff8ca09994cb9be7b)
+08-10 16:46:15.947  5869  5869 F DEBUG   :       #15 pc 0000000000350890  /system_ext/lib64/libbluetooth_qti.so (reactor_start(reactor_t*)+88) (BuildId: f60d9d156786635ff8ca09994cb9be7b)
+08-10 16:46:15.947  5869  5869 F DEBUG   :       #16 pc 00000000003525dc  /system_ext/lib64/libbluetooth_qti.so (run_thread(void*) (.cfi)+188) (BuildId: f60d9d156786635ff8ca09994cb9be7b)
+08-10 16:46:15.947  5869  5869 F DEBUG   :       #17 pc 00000000000b008c  /apex/com.android.runtime/lib64/bionic/libc.so (__pthread_start(void*)+64) (BuildId: 4b0a60ca3b69d2d66dca24bb01c8d1aa)
+08-10 16:46:15.947  5869  5869 F DEBUG   :       #18 pc 00000000000503c8  /apex/com.android.runtime/lib64/bionic/libc.so (__start_thread+64) (BuildId: 4b0a60ca3b69d2d66dca24bb01c8d1aa)
+08-10 16:47:44.395  6680  6740 F libc    : Fatal signal 11 (SIGSEGV), code 1 (SEGV_MAPERR), fault addr 0x0 in tid 6740 (AudioOut_1D), pid 6680 (audioserver)
+08-10 16:47:44.481  6784  6784 F DEBUG   : *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** ***
+08-10 16:47:44.482  6784  6784 F DEBUG   : Build fingerprint: 'Lenovo/LenovoTB-J606F/J606F:11/RKQ1.210303.002/S320311_230810_ROW:user/release-keys'
+08-10 16:47:44.482  6784  6784 F DEBUG   : Revision: '0'
+08-10 16:47:44.482  6784  6784 F DEBUG   : ABI: 'arm64'
+08-10 16:47:44.483  6784  6784 F DEBUG   : Timestamp: 2023-08-10 16:47:44+0900
+08-10 16:47:44.483  6784  6784 F DEBUG   : pid: 6680, tid: 6740, name: AudioOut_1D  >>> /system/bin/audioserver <<<
+08-10 16:47:44.483  6784  6784 F DEBUG   : uid: 1041
+08-10 16:47:44.483  6784  6784 F DEBUG   : signal 11 (SIGSEGV), code 1 (SEGV_MAPERR), fault addr 0x0
+08-10 16:47:44.483  6784  6784 F DEBUG   : Cause: null pointer dereference
+08-10 16:47:44.483  6784  6784 F DEBUG   :     x0  b4000072593ceed0  x1  0000007519f34808  x2  000000000000001d  x3  000000751ba5f000
+08-10 16:47:44.483  6784  6784 F DEBUG   :     x4  0000000000000000  x5  0000000020000000  x6  00000072493f3820  x7  00000072493f35b0
+08-10 16:47:44.483  6784  6784 F DEBUG   :     x8  0000000000000001  x9  0000007519e54fd8  x10 0000007519f34aa8  x11 0000007519f34318
+08-10 16:47:44.483  6784  6784 F DEBUG   :     x12 00000000000000c0  x13 0000000000000000  x14 0000000000000002  x15 0000ffff00000fff
+08-10 16:47:44.483  6784  6784 F DEBUG   :     x16 0000007519f3d440  x17 000000751af28bd8  x18 00000072196fc000  x19 b4000072593ceed0
+08-10 16:47:44.483  6784  6784 F DEBUG   :     x20 b40000751baed280  x21 000000000000001d  x22 0000007219cec000  x23 0000000000000000
+08-10 16:47:44.483  6784  6784 F DEBUG   :     x24 0000007519f34318  x25 0000007519f38358  x26 0000007519f38358  x27 0000007219ceba60
+08-10 16:47:44.483  6784  6784 F DEBUG   :     x28 b40000751baed280  x29 0000007219ceb6a0
+08-10 16:47:44.483  6784  6784 F DEBUG   :     lr  0000007519ef0c2c  sp  0000007219ceb650  pc  0000007519e6d300  pst 0000000080000000
+08-10 16:47:44.509  6784  6784 F DEBUG   : backtrace:
+08-10 16:47:44.509  6784  6784 F DEBUG   :       #00 pc 000000000002c300  /system/lib64/libaudioflinger.so (android::AudioFlinger::EffectDapController::checkForBypass(android::AudioFlinger::ThreadBase::ActiveTracks<android::AudioFlinger::PlaybackThread::Track> const&, int)+152) (BuildId: 8dd8339d3ca4f74b2457e9565d6ab64b)
+08-10 16:47:44.509  6784  6784 F DEBUG   :       #01 pc 00000000000afc28  /system/lib64/libaudioflinger.so (android::AudioFlinger::MixerThread::prepareTracks_l(android::Vector<android::sp<android::AudioFlinger::PlaybackThread::Track> >*)+17184) (BuildId: 8dd8339d3ca4f74b2457e9565d6ab64b)
+08-10 16:47:44.509  6784  6784 F DEBUG   :       #02 pc 00000000000973ac  /system/lib64/libaudioflinger.so (android::AudioFlinger::PlaybackThread::threadLoop()+3740) (BuildId: 8dd8339d3ca4f74b2457e9565d6ab64b)
+08-10 16:47:44.510  6784  6784 F DEBUG   :       #03 pc 00000000000154cc  /system/lib64/libutils.so (android::Thread::_threadLoop(void*)+260) (BuildId: 4e69b93bf70ed592f0029dbd1097529e)
+08-10 16:47:44.510  6784  6784 F DEBUG   :       #04 pc 0000000000014d90  /system/lib64/libutils.so (thread_data_t::trampoline(thread_data_t const*)+412) (BuildId: 4e69b93bf70ed592f0029dbd1097529e)
+08-10 16:47:44.510  6784  6784 F DEBUG   :       #05 pc 00000000000b008c  /apex/com.android.runtime/lib64/bionic/libc.so (__pthread_start(void*)+64) (BuildId: 4b0a60ca3b69d2d66dca24bb01c8d1aa)
+08-10 16:47:44.510  6784  6784 F DEBUG   :       #06 pc 00000000000503c8  /apex/com.android.runtime/lib64/bionic/libc.so (__start_thread+64) (BuildId: 4b0a60ca3b69d2d66dca24bb01c8d1aa)
+08-10 16:47:49.190  1945  1945 E AndroidRuntime: FATAL EXCEPTION: main
+08-10 16:47:49.190  1945  1945 E AndroidRuntime: Process: com.android.systemui, PID: 1945
+08-10 16:47:49.190  1945  1945 E AndroidRuntime: java.lang.RuntimeException: Cannot initialize effect engine for type: ec7178ec-e5e1-4432-a3f4-4657e6795210 Error: -3
+08-10 16:47:49.190  1945  1945 E AndroidRuntime: 	at android.media.audiofx.AudioEffect.<init>(AudioEffect.java:521)
+08-10 16:47:49.190  1945  1945 E AndroidRuntime: 	at android.media.audiofx.AudioEffect.<init>(AudioEffect.java:488)
+08-10 16:47:49.190  1945  1945 E AndroidRuntime: 	at android.media.audiofx.AudioEffect.<init>(AudioEffect.java:462)
+08-10 16:47:49.190  1945  1945 E AndroidRuntime: 	at com.dolby.dax.DolbyAudioEffect.<init>(DolbyAudioEffect.java:109)
+08-10 16:47:49.190  1945  1945 E AndroidRuntime: 	at com.android.systemui.statusbar.policy.DolbyAudioControllerImpl$2.handleMessage(DolbyAudioControllerImpl.java:78)
+08-10 16:47:49.190  1945  1945 E AndroidRuntime: 	at android.os.Handler.dispatchMessage(Handler.java:106)
+08-10 16:47:49.190  1945  1945 E AndroidRuntime: 	at android.os.Looper.loop(Looper.java:223)
+08-10 16:47:49.190  1945  1945 E AndroidRuntime: 	at android.app.ActivityThread.main(ActivityThread.java:7791)
+08-10 16:47:49.190  1945  1945 E AndroidRuntime: 	at java.lang.reflect.Method.invoke(Native Method)
+08-10 16:47:49.190  1945  1945 E AndroidRuntime: 	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:592)
+08-10 16:47:49.190  1945  1945 E AndroidRuntime: 	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:952)

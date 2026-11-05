@@ -1,0 +1,6 @@
+id=hfp_audio
+name=Phone calls through the tablet (HFP client audio)
+version=v1
+versionCode=1
+author=ADBSTUFF
+description=Lenovo shipped the HFP route empty and pointed it at wrong PCM devices. Fixed mixer_paths.xml + audio_platform_info_intcodec.xml (uplink tablet mic -> phone in the DSP) and a root bridge that plays the caller's voice (SLIM_7_TX -> MultiMedia10) while a call's audio is up. Remove to undo.

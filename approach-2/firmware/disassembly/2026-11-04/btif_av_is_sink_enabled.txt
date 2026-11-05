@@ -1,0 +1,7 @@
+
+==== _Z23btif_av_is_sink_enabledv @ 0x1be6d4 size=0x14
+0x001be6d4: adrp	x8, #0x3f6000
+0x001be6d8: ldr	x8, [x8, #0xa70]  ; [0x3f6a70]
+0x001be6dc: cmp	x8, #0
+0x001be6e0: cset	w0, ne
+0x001be6e4: ret	

@@ -1,0 +1,229 @@
+<title>CarRelay v1.0.0 Findings</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@600&display=swap">
+<style>
+/* Layout: one reading column, a bench-report header, then items grouped by what the author has to do. */
+:root {
+  --bg: #f5f6f8;
+  --surface: #ffffff;
+  --fg: #1a1f26;
+  --muted: #5b6573;
+  --rule: #dde1e7;
+  --accent: #2c5f8a;
+  --code-bg: #eef1f5;
+  --fix: #9a5b00;      --fix-bg: #fdf1df;
+  --block: #a8322b;    --block-bg: #fbe7e5;
+  --ok: #2f6b3e;       --ok-bg: #e5f2e8;
+  --minor: #56606c;    --minor-bg: #eceef2;
+  --f-display: "IBM Plex Sans Condensed", "Arial Narrow", system-ui, sans-serif;
+  --f-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #12161b; --surface: #181d23; --fg: #e3e7ec; --muted: #98a2ae; --rule: #2a313a;
+    --accent: #7fb0d9; --code-bg: #0f1317;
+    --fix: #f0b866; --fix-bg: #2e2416; --block: #f08a82; --block-bg: #331c1a;
+    --ok: #8fd19f; --ok-bg: #1a2a1e; --minor: #aab3be; --minor-bg: #232a32;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #12161b; --surface: #181d23; --fg: #e3e7ec; --muted: #98a2ae; --rule: #2a313a;
+  --accent: #7fb0d9; --code-bg: #0f1317;
+  --fix: #f0b866; --fix-bg: #2e2416; --block: #f08a82; --block-bg: #331c1a;
+  --ok: #8fd19f; --ok-bg: #1a2a1e; --minor: #aab3be; --minor-bg: #232a32;
+  color-scheme: dark;
+}
+body { background: var(--bg); color: var(--fg); font-family: var(--f-body); font-size: 16px; line-height: 1.6; }
+.wrap { max-width: 800px; margin: 0 auto; padding-block: 40px 72px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex; flex-direction: column; gap: 40px; }
+header { display: flex; flex-direction: column; gap: 14px; border-bottom: 1px solid var(--rule); padding-bottom: 28px; }
+.eyebrow { font-family: var(--f-mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+h1 { font-family: var(--f-display); font-weight: 600; font-size: clamp(30px, 6vw, 42px); line-height: 1.1; margin: 0; text-wrap: balance; }
+.lede { margin: 0; max-width: 65ch; color: var(--fg); }
+.meta { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px 24px; margin: 6px 0 0; }
+.meta div { display: flex; flex-direction: column; min-width: 0; }
+.meta dt { font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.meta dd { margin: 0; font-family: var(--f-mono); font-size: 14px; overflow-wrap: anywhere; }
+section { display: flex; flex-direction: column; gap: 18px; }
+h2 { font-family: var(--f-display); font-weight: 600; font-size: 24px; margin: 0; text-wrap: balance; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.section-note { margin: -8px 0 0; color: var(--muted); max-width: 65ch; }
+.chip { font-family: var(--f-mono); font-size: 11.5px; font-weight: 500; letter-spacing: .05em; text-transform: uppercase; padding: 3px 9px; border-radius: 4px; white-space: nowrap; }
+.chip.fix { color: var(--fix); background: var(--fix-bg); }
+.chip.block { color: var(--block); background: var(--block-bg); }
+.chip.ok { color: var(--ok); background: var(--ok-bg); }
+.chip.minor { color: var(--minor); background: var(--minor-bg); }
+.item { background: var(--surface); border: 1px solid var(--rule); border-radius: 6px; padding: 20px 22px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.item h3 { margin: 0; font-size: 17px; font-weight: 600; line-height: 1.35; display: flex; gap: 12px; align-items: baseline; }
+.item h3 .id { font-family: var(--f-mono); font-size: 13px; color: var(--accent); flex: none; }
+.item p { margin: 0; max-width: 68ch; }
+.label { font-size: 12px; letter-spacing: .07em; text-transform: uppercase; color: var(--muted); font-weight: 600; margin-top: 4px; }
+code { font-family: var(--f-mono); font-size: .88em; background: var(--code-bg); padding: 1px 5px; border-radius: 3px; overflow-wrap: anywhere; }
+pre { margin: 0; background: var(--code-bg); border-radius: 4px; padding: 12px 14px; overflow-x: auto; font-family: var(--f-mono); font-size: 13px; line-height: 1.55; }
+pre code { background: none; padding: 0; font-size: inherit; overflow-wrap: normal; }
+ul.plain { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; max-width: 68ch; }
+.works { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; margin: 0; padding: 0; list-style: none; }
+.works li { background: var(--surface); border: 1px solid var(--rule); border-radius: 6px; padding: 12px 14px; font-size: 14.5px; line-height: 1.5; min-width: 0; }
+.works li strong { display: block; font-weight: 600; }
+ol.steps { margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 8px; max-width: 68ch; }
+footer { border-top: 1px solid var(--rule); padding-top: 20px; color: var(--muted); font-size: 14px; }
+a { color: var(--accent); }
+@media (max-width: 480px) { .item { padding: 16px; } .item h3 { flex-direction: column; gap: 2px; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <span class="eyebrow">Bench report · first pass, before the two-device test</span>
+    <h1>CarRelay v1.0.0 findings on the Lenovo TB-J606F</h1>
+    <p class="lede">The module installs and boots cleanly, and the overlay, props and privileged app all take effect. Below are the changes to make before the next build (F1 to F6), one blocker that needs your firmware insight (Q1), the main open risk under all three modes (Q2), and a few small items.</p>
+    <dl class="meta">
+      <div><dt>Device</dt><dd>TB-J606F, SM6115 / WCN3980</dd></div>
+      <div><dt>Build</dt><dd>S320311_230810_ROW, SDK 30</dd></div>
+      <div><dt>Stack under test</dt><dd>Magisk 30.7 + btdual_patch v5 + carrelay_ivi</dd></div>
+      <div><dt>Tested</dt><dd>2026-11-04, 2 reboots</dd></div>
+    </dl>
+  </header>
+
+  <section>
+    <h2>What already works <span class="chip ok">verified on device</span></h2>
+    <ul class="works">
+      <li><strong>Privapp whitelist is exact</strong>The 4 signature|privileged permissions match the merged manifest; the enforced whitelist booted without a violation.</li>
+      <li><strong>Install and audio policy</strong><code>customize.sh</code> confirmed the firmware; <code>post-fs-data.sh</code> found the a2dp module, port and route and mounted nothing.</li>
+      <li><strong>Props applied</strong>Offload caps <code>sbc-aac</code>, <code>maxconnectedaudiodevices=2</code>, AAC VBR on. <code>dumpsys</code> reports MaxConnectedAudioDevices 2.</li>
+      <li><strong>Overlay is effective</strong><code>a2dp_sink_automatically_request_audio_focus</code> looks up as <code>true</code>; both overlays show <code>[x]</code>.</li>
+      <li><strong>Relay app is privileged</strong>PRIVILEGED flag, all 4 privileged perms and RECORD_AUDIO granted, RelayForegroundService in the foreground.</li>
+      <li><strong>Sink link with a limit of 2</strong>The iPhone reconnected as A2DP sink + AVRCP CT. (With a limit of 1 the sink got no btif index on 2026-11-03.)</li>
+      <li><strong>Second boot is clean</strong>150 s watch after boot_completed: 0 crashes, 0 ANRs, no Bluetooth restarts.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Fix before the next build <span class="chip fix">6 items</span></h2>
+
+    <article class="item">
+      <h3><span class="id">F1</span>Drop <code>android:persistent="true"</code> from the relay app</h3>
+      <p>On this tablet a persistent system app that crashes during boot sends the device into a recovery loop. That happened on 2026-11-02 with Lenovo's own persistent <code>tbengine</code>. The relay does not need it: <code>service.sh</code> and the boot receiver already start the foreground service.</p>
+      <div class="label">Fix</div>
+      <p>Set <code>persistent="false"</code> or remove the attribute. Our test build already runs this way.</p>
+    </article>
+
+    <article class="item">
+      <h3><span class="id">F2</span>service.sh restarts Bluetooth on the first boot</h3>
+      <p>The first time <code>pm enable</code>/<code>pm disable</code> changes a Bluetooth component's state, PackageManager kills the owning app. On boot 1 this hit 12 s after boot_completed and the stack restarted three services:</p>
+      <pre><code>ActivityManager: Killing 1925:com.android.bluetooth/1002 (adj -700): change com.android.bluetooth
+am_kill : [0,1925,com.android.bluetooth,-700,change com.android.bluetooth]</code></pre>
+      <p>The trigger was the first-time state change on <code>avrcpcontroller.AvrcpControllerService</code> (enable) and <code>avrcp.AvrcpTargetService</code> (disable). Boot 2 was clean because the calls no longer change anything.</p>
+      <div class="label">Fix</div>
+      <p>Apply the component states once at install time, while the system is up, and keep the boot-time calls as no-ops. Also drop the AvrcpTargetService disable: its manifest gate <code>profile_supported_avrcp_target</code> (0x7f02000c) is already <code>false</code> on this build, so the call only adds a state change.</p>
+      <pre><code># customize.sh
+if $BOOTMODE; then
+  for c in a2dpsink.A2dpSinkService avrcpcontroller.AvrcpControllerService \
+           avrcpcontroller.BluetoothMediaBrowserService hfpclient.HeadsetClientService \
+           pbapclient.PbapClientService pbapclient.AuthenticationService; do
+    pm enable --user 0 com.android.bluetooth/.$c
+  done
+fi</code></pre>
+    </article>
+
+    <article class="item">
+      <h3><span class="id">F3</span>Removing the module does not undo everything</h3>
+      <p>The README says removal undoes everything, and the module has no <code>uninstall.sh</code>. These outlive the module:</p>
+      <ul class="plain">
+        <li>Component states set with <code>pm</code> (saved in package-restrictions).</li>
+        <li><code>settings global hidden_api_policy = 1</code>.</li>
+        <li>The <code>deviceidle</code> whitelist entry and <code>/data/adb/carrelay</code>.</li>
+        <li>Connection policies written by <em>Pin roles</em> (kept in the Bluetooth database per device).</li>
+      </ul>
+      <div class="label">Fix</div>
+      <p>Record the prior state of each component and setting at install, and restore exactly that. Magisk runs <code>uninstall.sh</code> early in boot when <code>pm</code> and <code>settings</code> are not available yet, so have it drop a one-shot <code>/data/adb/service.d/carrelay_cleanup.sh</code> that reverts after boot and deletes itself. Do not blanket-reset the sink services: on this tablet A2dpSinkService, HeadsetClientService, PbapClientService, AuthenticationService and BluetoothMediaBrowserService were already enabled by our own setup and must stay enabled.</p>
+    </article>
+
+    <article class="item">
+      <h3><span class="id">F4</span>Do not relax <code>hidden_api_policy</code> globally</h3>
+      <p><code>service.sh</code> and <code>SystemBootstrap</code> set <code>hidden_api_policy 1</code>, which turns hidden-API enforcement off for every app on the device and survives removal. The relay is a <code>/system/priv-app</code> with <code>usesNonSdkApi="true"</code>, so it is already exempt, as your own comment says.</p>
+      <div class="label">Fix</div>
+      <p>Remove both <code>settings put global hidden_api_policy 1</code> calls.</p>
+    </article>
+
+    <article class="item">
+      <h3><span class="id">F5</span>Overlay handling logs failures for overlays that are active</h3>
+      <p>Both overlays are static, so <code>cmd overlay enable</code> and <code>set-priority</code> cannot act on them. The boot log reports a failure although both are enabled and the lookups return the overlaid values:</p>
+      <pre><code>[CarRelay-svc] com.local.btsink.overlay not present (ok)
+[CarRelay-svc] com.carivi.bt.overlay enable failed/not present
+[CarRelay-svc] bool/a2dp_sink_automatically_request_audio_focus = true</code></pre>
+      <div class="label">Fix</div>
+      <p>Replace the enable and priority calls with a check of <code>cmd overlay list com.android.bluetooth</code> for <code>[x] com.carivi.bt.overlay</code>, and log a warning only if it is missing.</p>
+    </article>
+
+    <article class="item">
+      <h3><span class="id">F6</span>The app's root shell is never granted</h3>
+      <p>The dashboard shows <code>root=false</code>. The app asks for root through libsu at controller start, from a background process at boot, and nothing grants it, so <em>Activate stack</em> and <em>Diagnostics</em> do nothing. It is not blocking, because <code>service.sh</code> already does the same work as root.</p>
+      <div class="label">Fix</div>
+      <p>Drop libsu and <code>SystemBootstrap</code> (service.sh covers it). If you keep them, request root only when the user taps a button, and document granting the app in Magisk's Superuser list.</p>
+    </article>
+  </section>
+
+  <section>
+    <h2>Needs your firmware insight <span class="chip block">blocker found</span></h2>
+
+    <article class="item">
+      <h3><span class="id">Q1</span>The tablet cannot send AVRCP commands to the iPhone</h3>
+      <p>The dashboard Play button and <code>cmd media_session dispatch play</code> both reach <code>com.android.bluetooth/BluetoothMediaBrowserService</code> (it becomes the media button session), but no passthrough goes out and nothing starts on the phone. The session has been in an error state since boot, while both state machines report Connected:</p>
+      <pre><code>A2DPSinkStateMachine state=Connected
+AvrcpControllerStateMachine state=Connected
+BluetoothMediaBrowserService  active=true
+  PlaybackState {state=7, ... error=Bluetooth audio disconnected}   (updated 25 s after boot)
+MediaSessionService: Sending KeyEvent { KEYCODE_MEDIA_PLAY } ...    (no AVRCP traffic follows)
+bt_btif : bta_av_co_get_active_peer: peer index out of bounds: 5</code></pre>
+      <p><strong>Effect:</strong> <code>NowPlayingController.prepare()/play()</code> are no-ops, so Mode 1's fallback focus path and the Now Playing bar do nothing. The auto-focus overlay may still cover Mode 1 when the phone starts playback itself.</p>
+      <p><strong>Likely origin:</strong> dual mode from btdual_patch v5 rather than your module. When v5 was first verified, iPhone absolute volume had also stopped driving the tablet, which points to the same missing active device. We have not yet A/B-tested with carrelay_ivi removed.</p>
+      <div class="label">Question</div>
+      <p>On this QTI R stack, how should the sink-side peer become the active one in <code>bta_av_co</code> and AvrcpControllerService, so that the media session leaves the error state and transport commands are sent?</p>
+    </article>
+
+    <article class="item">
+      <h3><span class="id">Q2</span>Open risk under all three modes: source and sink at the same time</h3>
+      <p>Modes 1, 2 and 3 all assume the native stack can hold the car link (tablet as source) and the iPhone link (tablet as sink) at once. Our 2026-11-03 disassembly of <code>libbluetooth_qti.so</code> on this build found:</p>
+      <ul class="plain">
+        <li>One btif_av instance pool shared by both roles, sized in init_src by <code>maxconnectedaudiodevices</code> (global at <code>0x3dbf30</code>).</li>
+        <li><code>BTA_AV_REGISTER_EVT</code> assigns handles to indices in arrival order, with no role.</li>
+        <li><code>connect_int</code> takes the first IDLE index regardless of UUID.</li>
+        <li><code>bta_av_co</code> assumes a single active peer.</li>
+      </ul>
+      <p>btdual_patch v5 works around the second and third points: the sink worker starts, the 3 s suspend is removed, and the source registration also creates the SNK SEPs (codecs 7 to 9, tsep 1, <code>bte_av_sink_media_callback</code> and <code>bta_av_sink_data_cback</code>). With it, phone-to-tablet music decodes in dual mode, confirmed by ear. The car link at the same time has not been tested yet; that is our next test. If it fails, it fails below all three modes, and the fix belongs in the native stack, not in routing.</p>
+      <div class="label">Available on request</div>
+      <p>The disassembly notes and scripts (<code>analysis/bluetooth/fable/</code>) and the v1 to v5 patch history.</p>
+    </article>
+  </section>
+
+  <section>
+    <h2>Small items <span class="chip minor">minor</span></h2>
+    <article class="item">
+      <h3><span class="id">M1</span><code>LOCKED_BOOT_COMPLETED</code> never reaches the receiver</h3>
+      <p>The app is not <code>directBootAware</code>, so that action is never delivered. Mark the receiver direct-boot aware or drop the action.</p>
+    </article>
+    <article class="item">
+      <h3><span class="id">M2</span><code>media3-ui</code> is declared but unused</h3>
+      <p>Nothing imports it. Removing it shrinks the APK; we dropped it in the test build.</p>
+    </article>
+    <article class="item">
+      <h3><span class="id">M3</span>Build prerequisites</h3>
+      <p>Add to the README: NDK <code>26.3.11579264</code> and CMake <code>3.22.1</code> are required. <code>platforms/android-30</code> is optional, since the RRO links fine against android-34. We built with Gradle 8.10.2 instead of the bundled wrapper.</p>
+    </article>
+  </section>
+
+  <section>
+    <h2>What we test next</h2>
+    <ol class="steps">
+      <li>The iPhone starts playback itself: confirm decode and output with the overlay and the device limit of 2.</li>
+      <li>Pair a second A2DP sink (car, speaker or headphones), then run <em>Pin roles</em> and <em>Connect sequence + relay</em>.</li>
+      <li>Mode 1, then Mode 2 (HAL input, then forced loop-back), then Mode 3 (device patch, then UID render mix). For each: where the sound comes out, and whether both links stay up.</li>
+      <li>Optional: Q1 A/B with the module removed.</li>
+    </ol>
+  </section>
+
+  <footer>Test build differences from the received source: <code>persistent="false"</code>, <code>media3-ui</code> removed, built with the project's own Gradle. Everything else is as received.</footer>
+</div>
