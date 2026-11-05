@@ -102,9 +102,13 @@ fun CarHome(car: CarState, bt: BtLink, lib: PhoneLibrary, calls: CallLink, apps:
     // The music card only exists while music plays; after a pause it stays 60 s so it can be resumed, then gives way to Sound.
     var showMusic by remember { mutableStateOf(false) }
     val media = car.media
-    LaunchedEffect(media?.playing, media == null) {
+    // Show the player card whenever a connected phone's Bluetooth session is current, not only when it reports
+    // "playing": during real playback that session can sit at a stale state (state=7, actions=0) until AVRCP event
+    // registration completes, and the old `playing`-only gate kept the Sound card up over the music.
+    val phoneBtOn = bt.phones.any { it.connected }
+    LaunchedEffect(media?.playing, media == null, car.mediaActive && phoneBtOn) {
         when {
-            media?.playing == true -> showMusic = true
+            media?.playing == true || (car.mediaActive && phoneBtOn) -> showMusic = true
             media == null -> showMusic = false
             else -> { delay(60_000); showMusic = false }
         }

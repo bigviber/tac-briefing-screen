@@ -26,6 +26,8 @@ import android.os.BatteryManager
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.os.SystemClock
+import android.view.KeyEvent
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -62,6 +64,9 @@ class CarState(private val ctx: Context) {
     val volumeMax: Int = audio.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
     var volumeLocked by mutableStateOf(VolumeLock.locked(ctx)); private set
     var media by mutableStateOf<NowPlaying?>(null); private set
+    /** True while the phone's Bluetooth session is the current controller, even if it reports a stale/idle state.
+     *  Lets the home screen surface the player card before AVRCP event registration flips the session to "playing". */
+    var mediaActive by mutableStateOf(false); private set
     val heading = Heading(ctx)
 
     // ---------- GPS ----------
@@ -152,26 +157,32 @@ class CarState(private val ctx: Context) {
 
     private fun pickSession() {
         val list = runCatching { msm.getActiveSessions(listener) }.getOrDefault(emptyList()).toMutableList()
-        btSession?.let { bt ->
-            val st = bt.playbackState?.state
-            if (list.none { it.sessionToken == bt.sessionToken } && bt.metadata != null &&
-                (st == PlaybackState.STATE_PLAYING || st == PlaybackState.STATE_PAUSED)) list.add(bt)
-        }
-        val best = list.firstOrNull { it.playbackState?.state == PlaybackState.STATE_PLAYING } ?: list.firstOrNull()
+        val bt = btSession
+        // Surface the Bluetooth session as soon as it exists. The phone's session often sits at a stale state
+        // (state=7 "Bluetooth audio disconnected", metadata=null, actions=0) during real playback until AVRCP
+        // event registration completes, so the old metadata/PLAYING/PAUSED gate dropped it exactly when needed.
+        if (bt != null && list.none { it.sessionToken == bt.sessionToken }) list.add(bt)
+        val best = list.firstOrNull { it.playbackState?.state == PlaybackState.STATE_PLAYING }
+            ?: bt?.takeIf { b -> list.any { it.sessionToken == b.sessionToken } }   // prefer the phone over a stale local session while driving
+            ?: list.firstOrNull()
         if (best?.sessionToken != controller?.sessionToken) {
             controller?.unregisterCallback(mcb)
             controller = best
             best?.registerCallback(mcb, main)
+            optimisticPlaying = null                                                // new session: trust its real state again
         }
+        mediaActive = best != null && best.sessionToken == bt?.sessionToken
         publishMedia()
     }
 
     private var trackKey: String? = null
     private var trackArt: ImageBitmap? = null
     private var trackApp = ""
+    /** What the last button press intended, kept while the session's own state is unreliable (actions=0). */
+    private var optimisticPlaying: Boolean? = null
 
     private fun publishMedia() {
-        val c = controller ?: run { media = null; return }
+        val c = controller ?: run { media = null; mediaActive = false; return }
         val m = c.metadata
         val title = m?.getString(MediaMetadata.METADATA_KEY_TITLE) ?: m?.getString(MediaMetadata.METADATA_KEY_DISPLAY_TITLE) ?: ""
         val artist = m?.getString(MediaMetadata.METADATA_KEY_ARTIST) ?: m?.getString(MediaMetadata.METADATA_KEY_ALBUM_ARTIST) ?: ""
@@ -183,13 +194,43 @@ class CarState(private val ctx: Context) {
             trackApp = runCatching { ctx.packageManager.getApplicationLabel(ctx.packageManager.getApplicationInfo(c.packageName, 0)).toString() }.getOrDefault("")
         }
         val ps = c.playbackState
-        media = NowPlaying(title, artist, trackApp, c.packageName, trackArt, ps?.state == PlaybackState.STATE_PLAYING,
+        if (reliable(ps)) optimisticPlaying = null                                   // the session reports a trustworthy state again
+        val playing = if (reliable(ps)) ps!!.state == PlaybackState.STATE_PLAYING else (optimisticPlaying ?: false)
+        media = NowPlaying(title, artist, trackApp, c.packageName, trackArt, playing,
             m?.getLong(MediaMetadata.METADATA_KEY_DURATION) ?: 0L, ps?.position ?: 0L, ps?.lastPositionUpdateTime ?: 0L, ps?.playbackSpeed ?: 1f)
     }
 
-    fun playPause() { val c = controller ?: return; if (media?.playing == true) c.transportControls.pause() else c.transportControls.play() }
+    /** A playback state we can believe: it advertises transport actions and is actually PLAYING or PAUSED.
+     *  The Bluetooth session's stale `state=7, actions=0` fails this, so we fall back to an optimistic toggle. */
+    private fun reliable(ps: PlaybackState?): Boolean =
+        ps != null && ps.actions != 0L && (ps.state == PlaybackState.STATE_PLAYING || ps.state == PlaybackState.STATE_PAUSED)
+
+    fun playPause() {
+        val c = controller ?: return
+        val ps = c.playbackState
+        if (reliable(ps)) {
+            if (ps!!.state == PlaybackState.STATE_PLAYING) c.transportControls.pause() else c.transportControls.play()
+            optimisticPlaying = null
+        } else {
+            // Session state is stale (Bluetooth AVRCP not registered / actions=0), so transportControls.pause()
+            // would be swallowed and a plain toggle always sends PLAY. Send an explicit media key instead and
+            // remember the intended direction so the button and icon stop sticking on Play.
+            val playing = optimisticPlaying ?: false
+            sendMediaKey(if (playing) KeyEvent.KEYCODE_MEDIA_PAUSE else KeyEvent.KEYCODE_MEDIA_PLAY)
+            optimisticPlaying = !playing
+            publishMedia()
+        }
+    }
     fun next() { controller?.transportControls?.skipToNext() }
     fun prev() { controller?.transportControls?.skipToPrevious() }
+
+    private fun sendMediaKey(code: Int) {
+        val t = SystemClock.uptimeMillis()
+        runCatching {
+            audio.dispatchMediaKeyEvent(KeyEvent(t, t, KeyEvent.ACTION_DOWN, code, 0))
+            audio.dispatchMediaKeyEvent(KeyEvent(t, t, KeyEvent.ACTION_UP, code, 0))
+        }
+    }
 
     // ---------- volume ----------
     fun changeVolume(step: Int) {
