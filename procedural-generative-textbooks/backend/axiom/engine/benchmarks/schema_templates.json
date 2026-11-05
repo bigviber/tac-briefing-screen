@@ -1,0 +1,4421 @@
+{
+ "meta": {
+  "generated": "2026-11-05",
+  "notes": "Schema templates for datagen.py. typical_rows_per_month is a sizing hint for a mid-sized company; the generator scales by revenue and period count and caps total rows at 50,000 per case. All templates with gl_* tables must reconcile: sum(gl_lines.debit)=sum(gl_lines.credit) per entry; sub-ledgers (invoices, transactions, shipments) tie to GL revenue/AR except where an archetype's ground truth states the break. Dirt rules are applied by the generator after population, not encoded here."
+ },
+ "templates": {
+  "saas_billing": {
+   "description": "Subscription billing + GL. Modeled on Stripe Billing objects (Customer, Subscription, Price/Plan, Invoice, InvoiceLineItem, PaymentIntent, UsageRecord), Zendesk-style tickets, and a NetSuite-style GL.",
+   "tables": [
+    {
+     "name": "customers",
+     "description": "Billing customers (accounts).",
+     "columns": [
+      {
+       "name": "customer_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "name",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "segment",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": "smb|midmarket|enterprise"
+      },
+      {
+       "name": "industry",
+       "type": "VARCHAR",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "country",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "created_at",
+       "type": "TIMESTAMP",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "acquisition_channel",
+       "type": "VARCHAR",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "billing_email",
+       "type": "VARCHAR",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "tax_exempt",
+       "type": "BOOLEAN",
+       "nullable": true,
+       "description": ""
+      }
+     ],
+     "primary_key": [
+      "customer_id"
+     ],
+     "foreign_keys": [],
+     "typical_rows_per_month": 60
+    },
+    {
+     "name": "plans",
+     "description": "Price points (Stripe Price).",
+     "columns": [
+      {
+       "name": "plan_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "name",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "billing_interval",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": "month|year"
+      },
+      {
+       "name": "unit_amount",
+       "type": "DECIMAL(12,2)",
+       "nullable": false,
+       "description": "per seat per interval"
+      },
+      {
+       "name": "currency",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "tier",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "active",
+       "type": "BOOLEAN",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "created_at",
+       "type": "TIMESTAMP",
+       "nullable": false,
+       "description": ""
+      }
+     ],
+     "primary_key": [
+      "plan_id"
+     ],
+     "foreign_keys": [],
+     "typical_rows_per_month": 0
+    },
+    {
+     "name": "subscriptions",
+     "description": "Subscription state per customer; one active per customer, history preserved.",
+     "columns": [
+      {
+       "name": "subscription_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "customer_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "plan_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "seats",
+       "type": "INTEGER",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "status",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": "trialing|active|past_due|canceled"
+      },
+      {
+       "name": "start_date",
+       "type": "DATE",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "current_period_start",
+       "type": "DATE",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "current_period_end",
+       "type": "DATE",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "canceled_at",
+       "type": "TIMESTAMP",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "cancel_reason",
+       "type": "VARCHAR",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "discount_pct",
+       "type": "DECIMAL(5,2)",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "contract_months",
+       "type": "INTEGER",
+       "nullable": false,
+       "description": ""
+      }
+     ],
+     "primary_key": [
+      "subscription_id"
+     ],
+     "foreign_keys": [
+      [
+       "customer_id",
+       "customers",
+       "customer_id"
+      ],
+      [
+       "plan_id",
+       "plans",
+       "plan_id"
+      ]
+     ],
+     "typical_rows_per_month": 80
+    },
+    {
+     "name": "invoices",
+     "description": "Invoice headers (Stripe Invoice).",
+     "columns": [
+      {
+       "name": "invoice_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "customer_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "subscription_id",
+       "type": "VARCHAR",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "invoice_date",
+       "type": "DATE",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "due_date",
+       "type": "DATE",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "period_start",
+       "type": "DATE",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "period_end",
+       "type": "DATE",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "subtotal",
+       "type": "DECIMAL(14,2)",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "tax",
+       "type": "DECIMAL(14,2)",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "total",
+       "type": "DECIMAL(14,2)",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "amount_paid",
+       "type": "DECIMAL(14,2)",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "status",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": "draft|open|paid|void|uncollectible"
+      },
+      {
+       "name": "currency",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "created_at",
+       "type": "TIMESTAMP",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "voided_at",
+       "type": "TIMESTAMP",
+       "nullable": true,
+       "description": ""
+      }
+     ],
+     "primary_key": [
+      "invoice_id"
+     ],
+     "foreign_keys": [
+      [
+       "customer_id",
+       "customers",
+       "customer_id"
+      ],
+      [
+       "subscription_id",
+       "subscriptions",
+       "subscription_id"
+      ]
+     ],
+     "typical_rows_per_month": 700
+    },
+    {
+     "name": "invoice_lines",
+     "description": "Invoice line items; recognised ratably over period_start..period_end.",
+     "columns": [
+      {
+       "name": "invoice_line_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "invoice_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "plan_id",
+       "type": "VARCHAR",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "description",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "quantity",
+       "type": "INTEGER",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "unit_amount",
+       "type": "DECIMAL(12,2)",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "amount",
+       "type": "DECIMAL(14,2)",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "period_start",
+       "type": "DATE",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "period_end",
+       "type": "DATE",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "line_type",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": "subscription|usage|services|credit"
+      }
+     ],
+     "primary_key": [
+      "invoice_line_id"
+     ],
+     "foreign_keys": [
+      [
+       "invoice_id",
+       "invoices",
+       "invoice_id"
+      ],
+      [
+       "plan_id",
+       "plans",
+       "plan_id"
+      ]
+     ],
+     "typical_rows_per_month": 1500
+    },
+    {
+     "name": "payments",
+     "description": "Payment attempts (Stripe PaymentIntent/Charge).",
+     "columns": [
+      {
+       "name": "payment_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "invoice_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "customer_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "amount",
+       "type": "DECIMAL(14,2)",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "currency",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "method",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": "card|ach|wire|check"
+      },
+      {
+       "name": "status",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": "succeeded|failed|refunded|pending"
+      },
+      {
+       "name": "failure_code",
+       "type": "VARCHAR",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "attempted_at",
+       "type": "TIMESTAMP",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "settled_at",
+       "type": "TIMESTAMP",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "processor_ref",
+       "type": "VARCHAR",
+       "nullable": true,
+       "description": ""
+      }
+     ],
+     "primary_key": [
+      "payment_id"
+     ],
+     "foreign_keys": [
+      [
+       "invoice_id",
+       "invoices",
+       "invoice_id"
+      ],
+      [
+       "customer_id",
+       "customers",
+       "customer_id"
+      ]
+     ],
+     "typical_rows_per_month": 800
+    },
+    {
+     "name": "usage_events",
+     "description": "Metered usage (Stripe UsageRecord / Kafka events).",
+     "columns": [
+      {
+       "name": "event_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "customer_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "subscription_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "metric",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "quantity",
+       "type": "DECIMAL(14,4)",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "event_ts",
+       "type": "TIMESTAMP",
+       "nullable": false,
+       "description": "producer timestamp; may be local or UTC"
+      },
+      {
+       "name": "received_at",
+       "type": "TIMESTAMP",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "idempotency_key",
+       "type": "VARCHAR",
+       "nullable": true,
+       "description": ""
+      }
+     ],
+     "primary_key": [
+      "event_id"
+     ],
+     "foreign_keys": [
+      [
+       "customer_id",
+       "customers",
+       "customer_id"
+      ],
+      [
+       "subscription_id",
+       "subscriptions",
+       "subscription_id"
+      ]
+     ],
+     "typical_rows_per_month": 8000
+    },
+    {
+     "name": "support_tickets",
+     "description": "Support tickets (Zendesk).",
+     "columns": [
+      {
+       "name": "ticket_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "customer_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "opened_at",
+       "type": "TIMESTAMP",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "closed_at",
+       "type": "TIMESTAMP",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "priority",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "category",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "csat",
+       "type": "INTEGER",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "first_response_minutes",
+       "type": "INTEGER",
+       "nullable": true,
+       "description": ""
+      }
+     ],
+     "primary_key": [
+      "ticket_id"
+     ],
+     "foreign_keys": [
+      [
+       "customer_id",
+       "customers",
+       "customer_id"
+      ]
+     ],
+     "typical_rows_per_month": 300
+    },
+    {
+     "name": "gl_accounts",
+     "description": "Chart of accounts (NetSuite/SAP style: code, name, type, parent).",
+     "columns": [
+      {
+       "name": "account_code",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "account_name",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "account_type",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": "asset|liability|equity|revenue|expense|contra_asset|contra_revenue"
+      },
+      {
+       "name": "normal_balance",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "statement",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": "BS|IS"
+      },
+      {
+       "name": "section",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "parent_code",
+       "type": "VARCHAR",
+       "nullable": true,
+       "description": ""
+      }
+     ],
+     "primary_key": [
+      "account_code"
+     ],
+     "foreign_keys": [],
+     "typical_rows_per_month": 0
+    },
+    {
+     "name": "gl_journal",
+     "description": "Journal entry headers (one row per entry).",
+     "columns": [
+      {
+       "name": "entry_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "entry_date",
+       "type": "DATE",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "period",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": "e.g. 2024Q3 or 2024-09"
+      },
+      {
+       "name": "source",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": "sales|purchasing|payroll|inventory|adjustment|..."
+      },
+      {
+       "name": "memo",
+       "type": "VARCHAR",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "posted_at",
+       "type": "TIMESTAMP",
+       "nullable": true,
+       "description": "may be after entry_date (late postings)"
+      },
+      {
+       "name": "created_by",
+       "type": "VARCHAR",
+       "nullable": true,
+       "description": ""
+      }
+     ],
+     "primary_key": [
+      "entry_id"
+     ],
+     "foreign_keys": [],
+     "typical_rows_per_month": 400
+    },
+    {
+     "name": "gl_lines",
+     "description": "Journal entry lines; sum(debit)=sum(credit) per entry_id.",
+     "columns": [
+      {
+       "name": "line_id",
+       "type": "BIGINT",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "entry_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "account_code",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "debit",
+       "type": "DECIMAL(18,2)",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "credit",
+       "type": "DECIMAL(18,2)",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "dimension_customer_id",
+       "type": "VARCHAR",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "dimension_product_id",
+       "type": "VARCHAR",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "dimension_department",
+       "type": "VARCHAR",
+       "nullable": true,
+       "description": ""
+      }
+     ],
+     "primary_key": [
+      "line_id"
+     ],
+     "foreign_keys": [
+      [
+       "entry_id",
+       "gl_journal",
+       "entry_id"
+      ],
+      [
+       "account_code",
+       "gl_accounts",
+       "account_code"
+      ]
+     ],
+     "typical_rows_per_month": 1200
+    }
+   ]
+  },
+  "ecommerce_oms": {
+   "description": "Order management + inventory + GL. Modeled on Shopify Admin API objects (Customer, Order, LineItem, Product/Variant, Fulfillment, Refund, InventoryLevel), Saleor/Medusa order models, and an Odoo-style purchasing/stock-move ledger.",
+   "tables": [
+    {
+     "name": "customers",
+     "description": "Shoppers.",
+     "columns": [
+      {
+       "name": "customer_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "email",
+       "type": "VARCHAR",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "first_order_at",
+       "type": "TIMESTAMP",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "acquisition_channel",
+       "type": "VARCHAR",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "region",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "marketing_opt_in",
+       "type": "BOOLEAN",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "created_at",
+       "type": "TIMESTAMP",
+       "nullable": false,
+       "description": ""
+      }
+     ],
+     "primary_key": [
+      "customer_id"
+     ],
+     "foreign_keys": [],
+     "typical_rows_per_month": 2500
+    },
+    {
+     "name": "products",
+     "description": "Catalog variants (SKU level).",
+     "columns": [
+      {
+       "name": "product_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "sku",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "title",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "category",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "unit_cost",
+       "type": "DECIMAL(12,2)",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "list_price",
+       "type": "DECIMAL(12,2)",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "supplier_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "active",
+       "type": "BOOLEAN",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "introduced_at",
+       "type": "DATE",
+       "nullable": false,
+       "description": ""
+      }
+     ],
+     "primary_key": [
+      "product_id"
+     ],
+     "foreign_keys": [
+      [
+       "supplier_id",
+       "suppliers",
+       "supplier_id"
+      ]
+     ],
+     "typical_rows_per_month": 0
+    },
+    {
+     "name": "suppliers",
+     "description": "Vendors.",
+     "columns": [
+      {
+       "name": "supplier_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "name",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "country",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "lead_time_days_quoted",
+       "type": "INTEGER",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "payment_terms_days",
+       "type": "INTEGER",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "deposit_pct",
+       "type": "DECIMAL(5,2)",
+       "nullable": true,
+       "description": ""
+      }
+     ],
+     "primary_key": [
+      "supplier_id"
+     ],
+     "foreign_keys": [],
+     "typical_rows_per_month": 0
+    },
+    {
+     "name": "orders",
+     "description": "Order headers.",
+     "columns": [
+      {
+       "name": "order_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "customer_id",
+       "type": "VARCHAR",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "order_ts",
+       "type": "TIMESTAMP",
+       "nullable": false,
+       "description": "store local or UTC; see dirt rules"
+      },
+      {
+       "name": "channel",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": "web|amazon|wholesale|pos"
+      },
+      {
+       "name": "status",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": "paid|fulfilled|refunded|cancelled"
+      },
+      {
+       "name": "subtotal",
+       "type": "DECIMAL(12,2)",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "discount",
+       "type": "DECIMAL(12,2)",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "shipping",
+       "type": "DECIMAL(12,2)",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "tax",
+       "type": "DECIMAL(12,2)",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "total",
+       "type": "DECIMAL(12,2)",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "discount_code",
+       "type": "VARCHAR",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "currency",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "ship_region",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      }
+     ],
+     "primary_key": [
+      "order_id"
+     ],
+     "foreign_keys": [
+      [
+       "customer_id",
+       "customers",
+       "customer_id"
+      ]
+     ],
+     "typical_rows_per_month": 6000
+    },
+    {
+     "name": "order_items",
+     "description": "Order lines.",
+     "columns": [
+      {
+       "name": "order_item_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "order_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "product_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "quantity",
+       "type": "INTEGER",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "unit_price",
+       "type": "DECIMAL(12,2)",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "unit_cost_at_sale",
+       "type": "DECIMAL(12,2)",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "line_total",
+       "type": "DECIMAL(12,2)",
+       "nullable": false,
+       "description": ""
+      }
+     ],
+     "primary_key": [
+      "order_item_id"
+     ],
+     "foreign_keys": [
+      [
+       "order_id",
+       "orders",
+       "order_id"
+      ],
+      [
+       "product_id",
+       "products",
+       "product_id"
+      ]
+     ],
+     "typical_rows_per_month": 11000
+    },
+    {
+     "name": "shipments",
+     "description": "Fulfilments.",
+     "columns": [
+      {
+       "name": "shipment_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "order_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "carrier",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "service",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "shipped_at",
+       "type": "TIMESTAMP",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "delivered_at",
+       "type": "TIMESTAMP",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "warehouse_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "cost",
+       "type": "DECIMAL(10,2)",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "tracking_number",
+       "type": "VARCHAR",
+       "nullable": true,
+       "description": ""
+      }
+     ],
+     "primary_key": [
+      "shipment_id"
+     ],
+     "foreign_keys": [
+      [
+       "order_id",
+       "orders",
+       "order_id"
+      ]
+     ],
+     "typical_rows_per_month": 6000
+    },
+    {
+     "name": "returns",
+     "description": "Returns/refunds.",
+     "columns": [
+      {
+       "name": "return_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "order_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "order_item_id",
+       "type": "VARCHAR",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "requested_at",
+       "type": "TIMESTAMP",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "received_at",
+       "type": "TIMESTAMP",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "refunded_at",
+       "type": "TIMESTAMP",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "reason",
+       "type": "VARCHAR",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "refund_amount",
+       "type": "DECIMAL(12,2)",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "restock",
+       "type": "BOOLEAN",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "condition",
+       "type": "VARCHAR",
+       "nullable": true,
+       "description": ""
+      }
+     ],
+     "primary_key": [
+      "return_id"
+     ],
+     "foreign_keys": [
+      [
+       "order_id",
+       "orders",
+       "order_id"
+      ],
+      [
+       "order_item_id",
+       "order_items",
+       "order_item_id"
+      ]
+     ],
+     "typical_rows_per_month": 1400
+    },
+    {
+     "name": "purchase_orders",
+     "description": "POs to suppliers.",
+     "columns": [
+      {
+       "name": "po_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "supplier_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "product_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "ordered_at",
+       "type": "DATE",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "expected_at",
+       "type": "DATE",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "received_at",
+       "type": "DATE",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "quantity_ordered",
+       "type": "INTEGER",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "quantity_received",
+       "type": "INTEGER",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "unit_cost",
+       "type": "DECIMAL(12,2)",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "deposit_paid",
+       "type": "DECIMAL(12,2)",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "status",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      }
+     ],
+     "primary_key": [
+      "po_id"
+     ],
+     "foreign_keys": [
+      [
+       "supplier_id",
+       "suppliers",
+       "supplier_id"
+      ],
+      [
+       "product_id",
+       "products",
+       "product_id"
+      ]
+     ],
+     "typical_rows_per_month": 120
+    },
+    {
+     "name": "inventory_movements",
+     "description": "Stock ledger (Odoo stock.move style): every receipt, sale, return, adjustment.",
+     "columns": [
+      {
+       "name": "movement_id",
+       "type": "BIGINT",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "product_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "warehouse_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "movement_ts",
+       "type": "TIMESTAMP",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "movement_type",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": "receipt|sale|return|adjustment|transfer|writeoff"
+      },
+      {
+       "name": "quantity",
+       "type": "INTEGER",
+       "nullable": false,
+       "description": "signed"
+      },
+      {
+       "name": "unit_cost",
+       "type": "DECIMAL(12,2)",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "reference_id",
+       "type": "VARCHAR",
+       "nullable": true,
+       "description": "order_id/po_id/return_id"
+      }
+     ],
+     "primary_key": [
+      "movement_id"
+     ],
+     "foreign_keys": [
+      [
+       "product_id",
+       "products",
+       "product_id"
+      ]
+     ],
+     "typical_rows_per_month": 14000
+    },
+    {
+     "name": "gl_accounts",
+     "description": "Chart of accounts (NetSuite/SAP style: code, name, type, parent).",
+     "columns": [
+      {
+       "name": "account_code",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "account_name",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "account_type",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": "asset|liability|equity|revenue|expense|contra_asset|contra_revenue"
+      },
+      {
+       "name": "normal_balance",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "statement",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": "BS|IS"
+      },
+      {
+       "name": "section",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "parent_code",
+       "type": "VARCHAR",
+       "nullable": true,
+       "description": ""
+      }
+     ],
+     "primary_key": [
+      "account_code"
+     ],
+     "foreign_keys": [],
+     "typical_rows_per_month": 0
+    },
+    {
+     "name": "gl_journal",
+     "description": "Journal entry headers (one row per entry).",
+     "columns": [
+      {
+       "name": "entry_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "entry_date",
+       "type": "DATE",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "period",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": "e.g. 2024Q3 or 2024-09"
+      },
+      {
+       "name": "source",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": "sales|purchasing|payroll|inventory|adjustment|..."
+      },
+      {
+       "name": "memo",
+       "type": "VARCHAR",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "posted_at",
+       "type": "TIMESTAMP",
+       "nullable": true,
+       "description": "may be after entry_date (late postings)"
+      },
+      {
+       "name": "created_by",
+       "type": "VARCHAR",
+       "nullable": true,
+       "description": ""
+      }
+     ],
+     "primary_key": [
+      "entry_id"
+     ],
+     "foreign_keys": [],
+     "typical_rows_per_month": 400
+    },
+    {
+     "name": "gl_lines",
+     "description": "Journal entry lines; sum(debit)=sum(credit) per entry_id.",
+     "columns": [
+      {
+       "name": "line_id",
+       "type": "BIGINT",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "entry_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "account_code",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "debit",
+       "type": "DECIMAL(18,2)",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "credit",
+       "type": "DECIMAL(18,2)",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "dimension_customer_id",
+       "type": "VARCHAR",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "dimension_product_id",
+       "type": "VARCHAR",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "dimension_department",
+       "type": "VARCHAR",
+       "nullable": true,
+       "description": ""
+      }
+     ],
+     "primary_key": [
+      "line_id"
+     ],
+     "foreign_keys": [
+      [
+       "entry_id",
+       "gl_journal",
+       "entry_id"
+      ],
+      [
+       "account_code",
+       "gl_accounts",
+       "account_code"
+      ]
+     ],
+     "typical_rows_per_month": 1200
+    }
+   ]
+  },
+  "manufacturing_mes": {
+   "description": "Shop-floor execution + costing + GL. Modeled on SAP PP/CO objects (production order, routing, work center, BOM, confirmations), Odoo MRP (mrp.production, mrp.workorder, mrp.bom), and quality notifications.",
+   "tables": [
+    {
+     "name": "work_centers",
+     "description": "Machines/cells.",
+     "columns": [
+      {
+       "name": "work_center_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "name",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "family",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": "machining|weld_assembly|finish|inspection"
+      },
+      {
+       "name": "capacity_hours_per_week",
+       "type": "DECIMAL(8,2)",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "hourly_rate",
+       "type": "DECIMAL(10,2)",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "setup_minutes_avg",
+       "type": "INTEGER",
+       "nullable": false,
+       "description": ""
+      }
+     ],
+     "primary_key": [
+      "work_center_id"
+     ],
+     "foreign_keys": [],
+     "typical_rows_per_month": 0
+    },
+    {
+     "name": "products",
+     "description": "Finished parts.",
+     "columns": [
+      {
+       "name": "product_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "part_number",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "family",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "standard_cost",
+       "type": "DECIMAL(12,2)",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "list_price",
+       "type": "DECIMAL(12,2)",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "complexity",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": "low|medium|high"
+      },
+      {
+       "name": "annual_volume_plan",
+       "type": "INTEGER",
+       "nullable": false,
+       "description": ""
+      }
+     ],
+     "primary_key": [
+      "product_id"
+     ],
+     "foreign_keys": [],
+     "typical_rows_per_month": 0
+    },
+    {
+     "name": "bom",
+     "description": "Bill of materials.",
+     "columns": [
+      {
+       "name": "bom_line_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "product_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "component_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "quantity_per",
+       "type": "DECIMAL(10,4)",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "scrap_factor",
+       "type": "DECIMAL(6,4)",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "unit_cost",
+       "type": "DECIMAL(12,4)",
+       "nullable": false,
+       "description": ""
+      }
+     ],
+     "primary_key": [
+      "bom_line_id"
+     ],
+     "foreign_keys": [
+      [
+       "product_id",
+       "products",
+       "product_id"
+      ]
+     ],
+     "typical_rows_per_month": 0
+    },
+    {
+     "name": "routings",
+     "description": "Operation sequence per product.",
+     "columns": [
+      {
+       "name": "routing_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "product_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "op_seq",
+       "type": "INTEGER",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "work_center_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "setup_minutes",
+       "type": "INTEGER",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "run_minutes_per_unit",
+       "type": "DECIMAL(8,3)",
+       "nullable": false,
+       "description": ""
+      }
+     ],
+     "primary_key": [
+      "routing_id"
+     ],
+     "foreign_keys": [
+      [
+       "product_id",
+       "products",
+       "product_id"
+      ],
+      [
+       "work_center_id",
+       "work_centers",
+       "work_center_id"
+      ]
+     ],
+     "typical_rows_per_month": 0
+    },
+    {
+     "name": "work_orders",
+     "description": "Production orders.",
+     "columns": [
+      {
+       "name": "work_order_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "product_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "quantity_planned",
+       "type": "INTEGER",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "quantity_completed",
+       "type": "INTEGER",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "quantity_scrapped",
+       "type": "INTEGER",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "released_at",
+       "type": "TIMESTAMP",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "due_at",
+       "type": "DATE",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "closed_at",
+       "type": "TIMESTAMP",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "status",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": "released|in_progress|closed|cancelled"
+      },
+      {
+       "name": "customer_order_ref",
+       "type": "VARCHAR",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "priority",
+       "type": "INTEGER",
+       "nullable": true,
+       "description": ""
+      }
+     ],
+     "primary_key": [
+      "work_order_id"
+     ],
+     "foreign_keys": [
+      [
+       "product_id",
+       "products",
+       "product_id"
+      ]
+     ],
+     "typical_rows_per_month": 250
+    },
+    {
+     "name": "production_log",
+     "description": "Operation confirmations per shift (MES).",
+     "columns": [
+      {
+       "name": "log_id",
+       "type": "BIGINT",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "work_order_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "work_center_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "op_seq",
+       "type": "INTEGER",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "shift_date",
+       "type": "DATE",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "shift",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "start_ts",
+       "type": "TIMESTAMP",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "end_ts",
+       "type": "TIMESTAMP",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "setup_minutes_actual",
+       "type": "INTEGER",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "run_minutes_actual",
+       "type": "INTEGER",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "good_qty",
+       "type": "INTEGER",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "scrap_qty",
+       "type": "INTEGER",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "downtime_minutes",
+       "type": "INTEGER",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "downtime_reason",
+       "type": "VARCHAR",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "operator_id",
+       "type": "VARCHAR",
+       "nullable": true,
+       "description": ""
+      }
+     ],
+     "primary_key": [
+      "log_id"
+     ],
+     "foreign_keys": [
+      [
+       "work_order_id",
+       "work_orders",
+       "work_order_id"
+      ],
+      [
+       "work_center_id",
+       "work_centers",
+       "work_center_id"
+      ]
+     ],
+     "typical_rows_per_month": 3000
+    },
+    {
+     "name": "quality_events",
+     "description": "NCRs / defects.",
+     "columns": [
+      {
+       "name": "event_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "work_order_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "work_center_id",
+       "type": "VARCHAR",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "detected_at",
+       "type": "TIMESTAMP",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "defect_code",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "quantity",
+       "type": "INTEGER",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "disposition",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": "scrap|rework|use_as_is|return_to_vendor"
+      },
+      {
+       "name": "cost_estimate",
+       "type": "DECIMAL(12,2)",
+       "nullable": true,
+       "description": ""
+      }
+     ],
+     "primary_key": [
+      "event_id"
+     ],
+     "foreign_keys": [
+      [
+       "work_order_id",
+       "work_orders",
+       "work_order_id"
+      ]
+     ],
+     "typical_rows_per_month": 150
+    },
+    {
+     "name": "inventory",
+     "description": "On-hand balances snapshot per period end.",
+     "columns": [
+      {
+       "name": "snapshot_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "period",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "item_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": "product_id or component_id"
+      },
+      {
+       "name": "item_type",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": "raw|wip|finished"
+      },
+      {
+       "name": "quantity_on_hand",
+       "type": "DECIMAL(14,3)",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "unit_cost",
+       "type": "DECIMAL(12,4)",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "cycle_count_variance_qty",
+       "type": "DECIMAL(14,3)",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "counted_at",
+       "type": "DATE",
+       "nullable": true,
+       "description": ""
+      }
+     ],
+     "primary_key": [
+      "snapshot_id"
+     ],
+     "foreign_keys": [],
+     "typical_rows_per_month": 400
+    },
+    {
+     "name": "purchase_orders",
+     "description": "Raw material POs.",
+     "columns": [
+      {
+       "name": "po_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "supplier",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "component_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "ordered_at",
+       "type": "DATE",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "promised_at",
+       "type": "DATE",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "received_at",
+       "type": "DATE",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "quantity",
+       "type": "DECIMAL(14,3)",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "unit_cost",
+       "type": "DECIMAL(12,4)",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "surcharge",
+       "type": "DECIMAL(12,2)",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "status",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      }
+     ],
+     "primary_key": [
+      "po_id"
+     ],
+     "foreign_keys": [],
+     "typical_rows_per_month": 200
+    },
+    {
+     "name": "sales_orders",
+     "description": "Customer orders / shipments.",
+     "columns": [
+      {
+       "name": "sales_order_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "customer",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "product_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "quantity",
+       "type": "INTEGER",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "unit_price",
+       "type": "DECIMAL(12,2)",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "ordered_at",
+       "type": "DATE",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "promised_at",
+       "type": "DATE",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "shipped_at",
+       "type": "DATE",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "invoiced_at",
+       "type": "DATE",
+       "nullable": true,
+       "description": ""
+      }
+     ],
+     "primary_key": [
+      "sales_order_id"
+     ],
+     "foreign_keys": [
+      [
+       "product_id",
+       "products",
+       "product_id"
+      ]
+     ],
+     "typical_rows_per_month": 300
+    },
+    {
+     "name": "gl_accounts",
+     "description": "Chart of accounts (NetSuite/SAP style: code, name, type, parent).",
+     "columns": [
+      {
+       "name": "account_code",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "account_name",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "account_type",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": "asset|liability|equity|revenue|expense|contra_asset|contra_revenue"
+      },
+      {
+       "name": "normal_balance",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "statement",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": "BS|IS"
+      },
+      {
+       "name": "section",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "parent_code",
+       "type": "VARCHAR",
+       "nullable": true,
+       "description": ""
+      }
+     ],
+     "primary_key": [
+      "account_code"
+     ],
+     "foreign_keys": [],
+     "typical_rows_per_month": 0
+    },
+    {
+     "name": "gl_journal",
+     "description": "Journal entry headers (one row per entry).",
+     "columns": [
+      {
+       "name": "entry_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "entry_date",
+       "type": "DATE",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "period",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": "e.g. 2024Q3 or 2024-09"
+      },
+      {
+       "name": "source",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": "sales|purchasing|payroll|inventory|adjustment|..."
+      },
+      {
+       "name": "memo",
+       "type": "VARCHAR",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "posted_at",
+       "type": "TIMESTAMP",
+       "nullable": true,
+       "description": "may be after entry_date (late postings)"
+      },
+      {
+       "name": "created_by",
+       "type": "VARCHAR",
+       "nullable": true,
+       "description": ""
+      }
+     ],
+     "primary_key": [
+      "entry_id"
+     ],
+     "foreign_keys": [],
+     "typical_rows_per_month": 400
+    },
+    {
+     "name": "gl_lines",
+     "description": "Journal entry lines; sum(debit)=sum(credit) per entry_id.",
+     "columns": [
+      {
+       "name": "line_id",
+       "type": "BIGINT",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "entry_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "account_code",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "debit",
+       "type": "DECIMAL(18,2)",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "credit",
+       "type": "DECIMAL(18,2)",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "dimension_customer_id",
+       "type": "VARCHAR",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "dimension_product_id",
+       "type": "VARCHAR",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "dimension_department",
+       "type": "VARCHAR",
+       "nullable": true,
+       "description": ""
+      }
+     ],
+     "primary_key": [
+      "line_id"
+     ],
+     "foreign_keys": [
+      [
+       "entry_id",
+       "gl_journal",
+       "entry_id"
+      ],
+      [
+       "account_code",
+       "gl_accounts",
+       "account_code"
+      ]
+     ],
+     "typical_rows_per_month": 1200
+    }
+   ]
+  },
+  "logistics_tms": {
+   "description": "Transportation management + freight audit + GL. Modeled on MercuryGate/Oracle OTM shipment objects, carrier rate cards, EDI 214 tracking events, and freight invoice/claims workflows.",
+   "tables": [
+    {
+     "name": "carriers",
+     "description": "Carrier master.",
+     "columns": [
+      {
+       "name": "carrier_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "name",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "scac",
+       "type": "VARCHAR",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "mode",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": "parcel|ltl|ftl|ocean|air"
+      },
+      {
+       "name": "payment_terms_days",
+       "type": "INTEGER",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "on_time_pct_trailing",
+       "type": "DECIMAL(5,4)",
+       "nullable": true,
+       "description": ""
+      }
+     ],
+     "primary_key": [
+      "carrier_id"
+     ],
+     "foreign_keys": [],
+     "typical_rows_per_month": 0
+    },
+    {
+     "name": "lanes",
+     "description": "Origin-destination pairs.",
+     "columns": [
+      {
+       "name": "lane_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "origin_region",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "dest_region",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "distance_miles",
+       "type": "INTEGER",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "mode",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      }
+     ],
+     "primary_key": [
+      "lane_id"
+     ],
+     "foreign_keys": [],
+     "typical_rows_per_month": 0
+    },
+    {
+     "name": "rate_cards",
+     "description": "Contracted and spot rates.",
+     "columns": [
+      {
+       "name": "rate_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "carrier_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "lane_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "effective_from",
+       "type": "DATE",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "effective_to",
+       "type": "DATE",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "rate_type",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": "contract|spot"
+      },
+      {
+       "name": "linehaul_rate",
+       "type": "DECIMAL(12,2)",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "fuel_surcharge_pct",
+       "type": "DECIMAL(6,4)",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "accessorial_schedule",
+       "type": "VARCHAR",
+       "nullable": true,
+       "description": ""
+      }
+     ],
+     "primary_key": [
+      "rate_id"
+     ],
+     "foreign_keys": [
+      [
+       "carrier_id",
+       "carriers",
+       "carrier_id"
+      ],
+      [
+       "lane_id",
+       "lanes",
+       "lane_id"
+      ]
+     ],
+     "typical_rows_per_month": 50
+    },
+    {
+     "name": "customers",
+     "description": "Shippers.",
+     "columns": [
+      {
+       "name": "customer_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "name",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "vertical",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "payment_terms_days",
+       "type": "INTEGER",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "credit_limit",
+       "type": "DECIMAL(14,2)",
+       "nullable": true,
+       "description": ""
+      }
+     ],
+     "primary_key": [
+      "customer_id"
+     ],
+     "foreign_keys": [],
+     "typical_rows_per_month": 10
+    },
+    {
+     "name": "shipments",
+     "description": "Loads.",
+     "columns": [
+      {
+       "name": "shipment_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "customer_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "carrier_id",
+       "type": "VARCHAR",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "lane_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "mode",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "tendered_at",
+       "type": "TIMESTAMP",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "pickup_scheduled",
+       "type": "TIMESTAMP",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "pickup_actual",
+       "type": "TIMESTAMP",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "delivery_scheduled",
+       "type": "TIMESTAMP",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "delivery_actual",
+       "type": "TIMESTAMP",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "weight_lbs",
+       "type": "DECIMAL(10,1)",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "customer_rate",
+       "type": "DECIMAL(12,2)",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "carrier_cost",
+       "type": "DECIMAL(12,2)",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "accessorials_billed",
+       "type": "DECIMAL(12,2)",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "accessorials_cost",
+       "type": "DECIMAL(12,2)",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "status",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      }
+     ],
+     "primary_key": [
+      "shipment_id"
+     ],
+     "foreign_keys": [
+      [
+       "customer_id",
+       "customers",
+       "customer_id"
+      ],
+      [
+       "carrier_id",
+       "carriers",
+       "carrier_id"
+      ],
+      [
+       "lane_id",
+       "lanes",
+       "lane_id"
+      ]
+     ],
+     "typical_rows_per_month": 4000
+    },
+    {
+     "name": "tracking_events",
+     "description": "EDI 214 style status events.",
+     "columns": [
+      {
+       "name": "event_id",
+       "type": "BIGINT",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "shipment_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "event_code",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": "AF|X3|X1|D1|..."
+      },
+      {
+       "name": "event_ts",
+       "type": "TIMESTAMP",
+       "nullable": false,
+       "description": "carrier-supplied; timezone inconsistent"
+      },
+      {
+       "name": "event_tz",
+       "type": "VARCHAR",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "location",
+       "type": "VARCHAR",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "received_at",
+       "type": "TIMESTAMP",
+       "nullable": false,
+       "description": ""
+      }
+     ],
+     "primary_key": [
+      "event_id"
+     ],
+     "foreign_keys": [
+      [
+       "shipment_id",
+       "shipments",
+       "shipment_id"
+      ]
+     ],
+     "typical_rows_per_month": 20000
+    },
+    {
+     "name": "carrier_invoices",
+     "description": "Payables from carriers (freight audit).",
+     "columns": [
+      {
+       "name": "carrier_invoice_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "carrier_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "shipment_id",
+       "type": "VARCHAR",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "invoice_date",
+       "type": "DATE",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "amount",
+       "type": "DECIMAL(12,2)",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "approved_amount",
+       "type": "DECIMAL(12,2)",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "paid_at",
+       "type": "DATE",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "duplicate_of",
+       "type": "VARCHAR",
+       "nullable": true,
+       "description": ""
+      }
+     ],
+     "primary_key": [
+      "carrier_invoice_id"
+     ],
+     "foreign_keys": [
+      [
+       "carrier_id",
+       "carriers",
+       "carrier_id"
+      ],
+      [
+       "shipment_id",
+       "shipments",
+       "shipment_id"
+      ]
+     ],
+     "typical_rows_per_month": 4200
+    },
+    {
+     "name": "customer_invoices",
+     "description": "Receivables to shippers.",
+     "columns": [
+      {
+       "name": "invoice_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "customer_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "shipment_id",
+       "type": "VARCHAR",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "invoice_date",
+       "type": "DATE",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "due_date",
+       "type": "DATE",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "amount",
+       "type": "DECIMAL(12,2)",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "paid_at",
+       "type": "DATE",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "status",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      }
+     ],
+     "primary_key": [
+      "invoice_id"
+     ],
+     "foreign_keys": [
+      [
+       "customer_id",
+       "customers",
+       "customer_id"
+      ],
+      [
+       "shipment_id",
+       "shipments",
+       "shipment_id"
+      ]
+     ],
+     "typical_rows_per_month": 4000
+    },
+    {
+     "name": "claims",
+     "description": "Loss/damage claims.",
+     "columns": [
+      {
+       "name": "claim_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "shipment_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "filed_at",
+       "type": "DATE",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "resolved_at",
+       "type": "DATE",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "claimed_amount",
+       "type": "DECIMAL(12,2)",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "paid_amount",
+       "type": "DECIMAL(12,2)",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "status",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      }
+     ],
+     "primary_key": [
+      "claim_id"
+     ],
+     "foreign_keys": [
+      [
+       "shipment_id",
+       "shipments",
+       "shipment_id"
+      ]
+     ],
+     "typical_rows_per_month": 40
+    },
+    {
+     "name": "gl_accounts",
+     "description": "Chart of accounts (NetSuite/SAP style: code, name, type, parent).",
+     "columns": [
+      {
+       "name": "account_code",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "account_name",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "account_type",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": "asset|liability|equity|revenue|expense|contra_asset|contra_revenue"
+      },
+      {
+       "name": "normal_balance",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "statement",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": "BS|IS"
+      },
+      {
+       "name": "section",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "parent_code",
+       "type": "VARCHAR",
+       "nullable": true,
+       "description": ""
+      }
+     ],
+     "primary_key": [
+      "account_code"
+     ],
+     "foreign_keys": [],
+     "typical_rows_per_month": 0
+    },
+    {
+     "name": "gl_journal",
+     "description": "Journal entry headers (one row per entry).",
+     "columns": [
+      {
+       "name": "entry_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "entry_date",
+       "type": "DATE",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "period",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": "e.g. 2024Q3 or 2024-09"
+      },
+      {
+       "name": "source",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": "sales|purchasing|payroll|inventory|adjustment|..."
+      },
+      {
+       "name": "memo",
+       "type": "VARCHAR",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "posted_at",
+       "type": "TIMESTAMP",
+       "nullable": true,
+       "description": "may be after entry_date (late postings)"
+      },
+      {
+       "name": "created_by",
+       "type": "VARCHAR",
+       "nullable": true,
+       "description": ""
+      }
+     ],
+     "primary_key": [
+      "entry_id"
+     ],
+     "foreign_keys": [],
+     "typical_rows_per_month": 400
+    },
+    {
+     "name": "gl_lines",
+     "description": "Journal entry lines; sum(debit)=sum(credit) per entry_id.",
+     "columns": [
+      {
+       "name": "line_id",
+       "type": "BIGINT",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "entry_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "account_code",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "debit",
+       "type": "DECIMAL(18,2)",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "credit",
+       "type": "DECIMAL(18,2)",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "dimension_customer_id",
+       "type": "VARCHAR",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "dimension_product_id",
+       "type": "VARCHAR",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "dimension_department",
+       "type": "VARCHAR",
+       "nullable": true,
+       "description": ""
+      }
+     ],
+     "primary_key": [
+      "line_id"
+     ],
+     "foreign_keys": [
+      [
+       "entry_id",
+       "gl_journal",
+       "entry_id"
+      ],
+      [
+       "account_code",
+       "gl_accounts",
+       "account_code"
+      ]
+     ],
+     "typical_rows_per_month": 1200
+    }
+   ]
+  },
+  "fintech_ledger": {
+   "description": "Payments ledger + settlements + disputes + outbox. Modeled on Stripe Connect/Treasury (Account, BalanceTransaction, Transfer, Payout, Dispute), Square/Adyen settlement reports, and the transactional-outbox pattern (Debezium-style).",
+   "tables": [
+    {
+     "name": "merchants",
+     "description": "Connected accounts / sellers.",
+     "columns": [
+      {
+       "name": "merchant_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "name",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "mcc",
+       "type": "VARCHAR",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "onboarded_at",
+       "type": "DATE",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "payout_schedule",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": "daily|weekly|instant"
+      },
+      {
+       "name": "risk_tier",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "country",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "status",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      }
+     ],
+     "primary_key": [
+      "merchant_id"
+     ],
+     "foreign_keys": [],
+     "typical_rows_per_month": 200
+    },
+    {
+     "name": "accounts",
+     "description": "Internal ledger accounts (double-entry sub-ledger).",
+     "columns": [
+      {
+       "name": "account_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "owner_type",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": "merchant|platform|network|reserve"
+      },
+      {
+       "name": "owner_id",
+       "type": "VARCHAR",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "currency",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "account_kind",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": "available|pending|reserve|fees|clearing"
+      }
+     ],
+     "primary_key": [
+      "account_id"
+     ],
+     "foreign_keys": [],
+     "typical_rows_per_month": 0
+    },
+    {
+     "name": "transactions",
+     "description": "Payment intents / charges.",
+     "columns": [
+      {
+       "name": "transaction_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "merchant_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "amount",
+       "type": "DECIMAL(14,2)",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "currency",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "fee",
+       "type": "DECIMAL(14,2)",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "net",
+       "type": "DECIMAL(14,2)",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "status",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": "succeeded|failed|refunded|disputed"
+      },
+      {
+       "name": "created_at",
+       "type": "TIMESTAMP",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "captured_at",
+       "type": "TIMESTAMP",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "card_brand",
+       "type": "VARCHAR",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "idempotency_key",
+       "type": "VARCHAR",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "source_event_id",
+       "type": "VARCHAR",
+       "nullable": true,
+       "description": ""
+      }
+     ],
+     "primary_key": [
+      "transaction_id"
+     ],
+     "foreign_keys": [
+      [
+       "merchant_id",
+       "merchants",
+       "merchant_id"
+      ]
+     ],
+     "typical_rows_per_month": 25000
+    },
+    {
+     "name": "ledger_entries",
+     "description": "Double-entry postings against accounts; balanced per transaction.",
+     "columns": [
+      {
+       "name": "entry_id",
+       "type": "BIGINT",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "transaction_id",
+       "type": "VARCHAR",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "account_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "direction",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": "debit|credit"
+      },
+      {
+       "name": "amount",
+       "type": "DECIMAL(14,2)",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "posted_at",
+       "type": "TIMESTAMP",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "entry_type",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": "capture|fee|refund|dispute|payout|adjustment"
+      }
+     ],
+     "primary_key": [
+      "entry_id"
+     ],
+     "foreign_keys": [
+      [
+       "transaction_id",
+       "transactions",
+       "transaction_id"
+      ],
+      [
+       "account_id",
+       "accounts",
+       "account_id"
+      ]
+     ],
+     "typical_rows_per_month": 60000
+    },
+    {
+     "name": "settlements",
+     "description": "Network settlement batches.",
+     "columns": [
+      {
+       "name": "settlement_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "network",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "settlement_date",
+       "type": "DATE",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "gross_amount",
+       "type": "DECIMAL(16,2)",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "interchange",
+       "type": "DECIMAL(16,2)",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "net_amount",
+       "type": "DECIMAL(16,2)",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "received_at",
+       "type": "TIMESTAMP",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "reconciled",
+       "type": "BOOLEAN",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "variance",
+       "type": "DECIMAL(14,2)",
+       "nullable": true,
+       "description": ""
+      }
+     ],
+     "primary_key": [
+      "settlement_id"
+     ],
+     "foreign_keys": [],
+     "typical_rows_per_month": 60
+    },
+    {
+     "name": "payouts",
+     "description": "Transfers to merchants.",
+     "columns": [
+      {
+       "name": "payout_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "merchant_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "amount",
+       "type": "DECIMAL(14,2)",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "currency",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "initiated_at",
+       "type": "TIMESTAMP",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "arrived_at",
+       "type": "TIMESTAMP",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "status",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "method",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      }
+     ],
+     "primary_key": [
+      "payout_id"
+     ],
+     "foreign_keys": [
+      [
+       "merchant_id",
+       "merchants",
+       "merchant_id"
+      ]
+     ],
+     "typical_rows_per_month": 2500
+    },
+    {
+     "name": "disputes",
+     "description": "Chargebacks.",
+     "columns": [
+      {
+       "name": "dispute_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "transaction_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "opened_at",
+       "type": "DATE",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "reason_code",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "amount",
+       "type": "DECIMAL(14,2)",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "status",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": "needs_response|under_review|won|lost"
+      },
+      {
+       "name": "resolved_at",
+       "type": "DATE",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "evidence_submitted",
+       "type": "BOOLEAN",
+       "nullable": true,
+       "description": ""
+      }
+     ],
+     "primary_key": [
+      "dispute_id"
+     ],
+     "foreign_keys": [
+      [
+       "transaction_id",
+       "transactions",
+       "transaction_id"
+      ]
+     ],
+     "typical_rows_per_month": 90
+    },
+    {
+     "name": "webhook_events",
+     "description": "Inbound processor events (at-least-once).",
+     "columns": [
+      {
+       "name": "event_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "event_type",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "object_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "event_ts",
+       "type": "TIMESTAMP",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "received_at",
+       "type": "TIMESTAMP",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "delivery_attempt",
+       "type": "INTEGER",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "payload_hash",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "processed_at",
+       "type": "TIMESTAMP",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "processing_result",
+       "type": "VARCHAR",
+       "nullable": true,
+       "description": ""
+      }
+     ],
+     "primary_key": [
+      "event_id",
+      "delivery_attempt"
+     ],
+     "foreign_keys": [],
+     "typical_rows_per_month": 30000
+    },
+    {
+     "name": "outbox",
+     "description": "Transactional outbox for downstream events.",
+     "columns": [
+      {
+       "name": "outbox_id",
+       "type": "BIGINT",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "aggregate_type",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "aggregate_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "event_type",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "payload",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "created_at",
+       "type": "TIMESTAMP",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "published_at",
+       "type": "TIMESTAMP",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "publish_attempts",
+       "type": "INTEGER",
+       "nullable": false,
+       "description": ""
+      }
+     ],
+     "primary_key": [
+      "outbox_id"
+     ],
+     "foreign_keys": [],
+     "typical_rows_per_month": 30000
+    },
+    {
+     "name": "gl_accounts",
+     "description": "Chart of accounts (NetSuite/SAP style: code, name, type, parent).",
+     "columns": [
+      {
+       "name": "account_code",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "account_name",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "account_type",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": "asset|liability|equity|revenue|expense|contra_asset|contra_revenue"
+      },
+      {
+       "name": "normal_balance",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "statement",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": "BS|IS"
+      },
+      {
+       "name": "section",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "parent_code",
+       "type": "VARCHAR",
+       "nullable": true,
+       "description": ""
+      }
+     ],
+     "primary_key": [
+      "account_code"
+     ],
+     "foreign_keys": [],
+     "typical_rows_per_month": 0
+    },
+    {
+     "name": "gl_journal",
+     "description": "Journal entry headers (one row per entry).",
+     "columns": [
+      {
+       "name": "entry_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "entry_date",
+       "type": "DATE",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "period",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": "e.g. 2024Q3 or 2024-09"
+      },
+      {
+       "name": "source",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": "sales|purchasing|payroll|inventory|adjustment|..."
+      },
+      {
+       "name": "memo",
+       "type": "VARCHAR",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "posted_at",
+       "type": "TIMESTAMP",
+       "nullable": true,
+       "description": "may be after entry_date (late postings)"
+      },
+      {
+       "name": "created_by",
+       "type": "VARCHAR",
+       "nullable": true,
+       "description": ""
+      }
+     ],
+     "primary_key": [
+      "entry_id"
+     ],
+     "foreign_keys": [],
+     "typical_rows_per_month": 400
+    },
+    {
+     "name": "gl_lines",
+     "description": "Journal entry lines; sum(debit)=sum(credit) per entry_id.",
+     "columns": [
+      {
+       "name": "line_id",
+       "type": "BIGINT",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "entry_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "account_code",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "debit",
+       "type": "DECIMAL(18,2)",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "credit",
+       "type": "DECIMAL(18,2)",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "dimension_customer_id",
+       "type": "VARCHAR",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "dimension_product_id",
+       "type": "VARCHAR",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "dimension_department",
+       "type": "VARCHAR",
+       "nullable": true,
+       "description": ""
+      }
+     ],
+     "primary_key": [
+      "line_id"
+     ],
+     "foreign_keys": [
+      [
+       "entry_id",
+       "gl_journal",
+       "entry_id"
+      ],
+      [
+       "account_code",
+       "gl_accounts",
+       "account_code"
+      ]
+     ],
+     "typical_rows_per_month": 1200
+    }
+   ]
+  },
+  "event_platform": {
+   "description": "Pure engineering template for system-design archetypes: event ingestion, webhook fan-out, consumers, idempotency and replica-lag telemetry. Modeled on Stripe/GitHub webhook delivery logs, Debezium outbox, and Postgres pg_stat_replication sampling.",
+   "tables": [
+    {
+     "name": "consumers",
+     "description": "Webhook endpoints / subscribers.",
+     "columns": [
+      {
+       "name": "consumer_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "name",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "endpoint_url",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "timeout_ms",
+       "type": "INTEGER",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "max_retries",
+       "type": "INTEGER",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "created_at",
+       "type": "TIMESTAMP",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "active",
+       "type": "BOOLEAN",
+       "nullable": false,
+       "description": ""
+      }
+     ],
+     "primary_key": [
+      "consumer_id"
+     ],
+     "foreign_keys": [],
+     "typical_rows_per_month": 0
+    },
+    {
+     "name": "events",
+     "description": "Domain events produced.",
+     "columns": [
+      {
+       "name": "event_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "aggregate_type",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "aggregate_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "event_type",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "occurred_at",
+       "type": "TIMESTAMP",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "recorded_at",
+       "type": "TIMESTAMP",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "payload_bytes",
+       "type": "INTEGER",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "producer_region",
+       "type": "VARCHAR",
+       "nullable": true,
+       "description": ""
+      }
+     ],
+     "primary_key": [
+      "event_id"
+     ],
+     "foreign_keys": [],
+     "typical_rows_per_month": 40000
+    },
+    {
+     "name": "outbox",
+     "description": "Outbox rows mirroring events for relay.",
+     "columns": [
+      {
+       "name": "outbox_id",
+       "type": "BIGINT",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "event_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "created_at",
+       "type": "TIMESTAMP",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "published_at",
+       "type": "TIMESTAMP",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "publish_attempts",
+       "type": "INTEGER",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "relay_worker",
+       "type": "VARCHAR",
+       "nullable": true,
+       "description": ""
+      }
+     ],
+     "primary_key": [
+      "outbox_id"
+     ],
+     "foreign_keys": [
+      [
+       "event_id",
+       "events",
+       "event_id"
+      ]
+     ],
+     "typical_rows_per_month": 40000
+    },
+    {
+     "name": "webhook_deliveries",
+     "description": "Delivery attempts per event per consumer.",
+     "columns": [
+      {
+       "name": "delivery_id",
+       "type": "BIGINT",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "event_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "consumer_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "attempt",
+       "type": "INTEGER",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "sent_at",
+       "type": "TIMESTAMP",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "response_code",
+       "type": "INTEGER",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "latency_ms",
+       "type": "INTEGER",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "outcome",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": "ok|timeout|5xx|4xx|dns_fail"
+      },
+      {
+       "name": "idempotency_key",
+       "type": "VARCHAR",
+       "nullable": true,
+       "description": ""
+      }
+     ],
+     "primary_key": [
+      "delivery_id"
+     ],
+     "foreign_keys": [
+      [
+       "event_id",
+       "events",
+       "event_id"
+      ],
+      [
+       "consumer_id",
+       "consumers",
+       "consumer_id"
+      ]
+     ],
+     "typical_rows_per_month": 90000
+    },
+    {
+     "name": "idempotency_keys",
+     "description": "Consumer-side dedup store.",
+     "columns": [
+      {
+       "name": "idempotency_key",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "consumer_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "first_seen_at",
+       "type": "TIMESTAMP",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "last_seen_at",
+       "type": "TIMESTAMP",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "seen_count",
+       "type": "INTEGER",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "result_hash",
+       "type": "VARCHAR",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "expires_at",
+       "type": "TIMESTAMP",
+       "nullable": true,
+       "description": ""
+      }
+     ],
+     "primary_key": [
+      "idempotency_key",
+      "consumer_id"
+     ],
+     "foreign_keys": [
+      [
+       "consumer_id",
+       "consumers",
+       "consumer_id"
+      ]
+     ],
+     "typical_rows_per_month": 35000
+    },
+    {
+     "name": "replica_lag_samples",
+     "description": "Replication lag telemetry.",
+     "columns": [
+      {
+       "name": "sample_id",
+       "type": "BIGINT",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "sampled_at",
+       "type": "TIMESTAMP",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "replica",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "lag_ms",
+       "type": "INTEGER",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "primary_write_qps",
+       "type": "INTEGER",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "replay_bytes_behind",
+       "type": "BIGINT",
+       "nullable": true,
+       "description": ""
+      }
+     ],
+     "primary_key": [
+      "sample_id"
+     ],
+     "foreign_keys": [],
+     "typical_rows_per_month": 43200
+    },
+    {
+     "name": "read_requests",
+     "description": "Sampled reads routed to replicas, with staleness outcome.",
+     "columns": [
+      {
+       "name": "request_id",
+       "type": "BIGINT",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "requested_at",
+       "type": "TIMESTAMP",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "replica",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "aggregate_id",
+       "type": "VARCHAR",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "last_write_at",
+       "type": "TIMESTAMP",
+       "nullable": true,
+       "description": ""
+      },
+      {
+       "name": "stale",
+       "type": "BOOLEAN",
+       "nullable": false,
+       "description": ""
+      },
+      {
+       "name": "latency_ms",
+       "type": "INTEGER",
+       "nullable": false,
+       "description": ""
+      }
+     ],
+     "primary_key": [
+      "request_id"
+     ],
+     "foreign_keys": [],
+     "typical_rows_per_month": 50000
+    }
+   ]
+  }
+ }
+}

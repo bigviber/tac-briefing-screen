@@ -1,0 +1,1040 @@
+{
+ "meta": {
+  "generated": "2026-11-05",
+  "notes": "Typical magnitudes for 10-K captions by industry. basis is pct_of_revenue, pct_of_assets, or share_of_inventory; p25/p50/p75 are cross-sectional. Income-statement captions must be scaled so that gross and operating margins land inside fin.<industry>.* benchmarks; balance-sheet captions must be rescaled to sum to 100% of assets on each side (they are typical magnitudes, not a closed system)."
+ },
+ "by_industry": {
+  "saas": {
+   "income_statement": [
+    {
+     "caption": "Subscription revenue",
+     "basis": "pct_of_revenue",
+     "p25": 0.85,
+     "p50": 0.92,
+     "p75": 0.98,
+     "source": "Bessemer Scaling to $100M / KeyBanc 2024 SaaS survey"
+    },
+    {
+     "caption": "Professional services and other revenue",
+     "basis": "pct_of_revenue",
+     "p25": 0.02,
+     "p50": 0.08,
+     "p75": 0.15,
+     "source": "Bessemer Scaling to $100M / KeyBanc 2024 SaaS survey"
+    },
+    {
+     "caption": "Cost of subscription revenue",
+     "basis": "pct_of_revenue",
+     "p25": 0.15,
+     "p50": 0.2,
+     "p75": 0.27,
+     "source": "Damodaran NYU Stern Jan 2026 sector tables (margins, working capital, capex) with ranges widened for private-company dispersion"
+    },
+    {
+     "caption": "Cost of professional services",
+     "basis": "pct_of_revenue",
+     "p25": 0.03,
+     "p50": 0.08,
+     "p75": 0.14,
+     "source": "estimate consistent with the ratio benchmarks in financial_ratios.json"
+    },
+    {
+     "caption": "Research and development",
+     "basis": "pct_of_revenue",
+     "p25": 0.18,
+     "p50": 0.24,
+     "p75": 0.32,
+     "source": "Bessemer Scaling to $100M / KeyBanc 2024 SaaS survey"
+    },
+    {
+     "caption": "Sales and marketing",
+     "basis": "pct_of_revenue",
+     "p25": 0.32,
+     "p50": 0.45,
+     "p75": 0.6,
+     "source": "Bessemer Scaling to $100M / KeyBanc 2024 SaaS survey"
+    },
+    {
+     "caption": "General and administrative",
+     "basis": "pct_of_revenue",
+     "p25": 0.12,
+     "p50": 0.16,
+     "p75": 0.21,
+     "source": "Bessemer Scaling to $100M / KeyBanc 2024 SaaS survey"
+    },
+    {
+     "caption": "Interest income (expense), net",
+     "basis": "pct_of_revenue",
+     "p25": -0.02,
+     "p50": 0.0,
+     "p75": 0.01,
+     "source": "estimate consistent with the ratio benchmarks in financial_ratios.json"
+    },
+    {
+     "caption": "Provision for income taxes",
+     "basis": "pct_of_revenue",
+     "p25": 0.0,
+     "p50": 0.01,
+     "p75": 0.02,
+     "source": "Damodaran NYU Stern Jan 2026 sector tables (margins, working capital, capex) with ranges widened for private-company dispersion"
+    }
+   ],
+   "balance_sheet": [
+    {
+     "caption": "Cash and cash equivalents",
+     "basis": "pct_of_assets",
+     "p25": 0.25,
+     "p50": 0.4,
+     "p75": 0.55,
+     "source": "estimate consistent with the ratio benchmarks in financial_ratios.json"
+    },
+    {
+     "caption": "Accounts receivable, net of allowance",
+     "basis": "pct_of_assets",
+     "p25": 0.1,
+     "p50": 0.15,
+     "p75": 0.22,
+     "source": "Damodaran NYU Stern Jan 2026 sector tables (margins, working capital, capex) with ranges widened for private-company dispersion"
+    },
+    {
+     "caption": "Deferred commissions (current + non-current)",
+     "basis": "pct_of_assets",
+     "p25": 0.03,
+     "p50": 0.06,
+     "p75": 0.1,
+     "source": "estimate consistent with the ratio benchmarks in financial_ratios.json"
+    },
+    {
+     "caption": "Prepaid expenses and other current assets",
+     "basis": "pct_of_assets",
+     "p25": 0.02,
+     "p50": 0.04,
+     "p75": 0.06,
+     "source": "estimate consistent with the ratio benchmarks in financial_ratios.json"
+    },
+    {
+     "caption": "Property and equipment, net",
+     "basis": "pct_of_assets",
+     "p25": 0.02,
+     "p50": 0.04,
+     "p75": 0.08,
+     "source": "Damodaran NYU Stern Jan 2026 sector tables (margins, working capital, capex) with ranges widened for private-company dispersion"
+    },
+    {
+     "caption": "Capitalized internal-use software, net",
+     "basis": "pct_of_assets",
+     "p25": 0.01,
+     "p50": 0.03,
+     "p75": 0.06,
+     "source": "estimate consistent with the ratio benchmarks in financial_ratios.json"
+    },
+    {
+     "caption": "Operating lease right-of-use assets",
+     "basis": "pct_of_assets",
+     "p25": 0.02,
+     "p50": 0.05,
+     "p75": 0.09,
+     "source": "estimate consistent with the ratio benchmarks in financial_ratios.json"
+    },
+    {
+     "caption": "Goodwill and intangibles",
+     "basis": "pct_of_assets",
+     "p25": 0.0,
+     "p50": 0.08,
+     "p75": 0.25,
+     "source": "estimate consistent with the ratio benchmarks in financial_ratios.json"
+    },
+    {
+     "caption": "Accounts payable",
+     "basis": "pct_of_assets",
+     "p25": 0.02,
+     "p50": 0.04,
+     "p75": 0.06,
+     "source": "Damodaran NYU Stern Jan 2026 sector tables (margins, working capital, capex) with ranges widened for private-company dispersion"
+    },
+    {
+     "caption": "Accrued expenses and compensation",
+     "basis": "pct_of_assets",
+     "p25": 0.04,
+     "p50": 0.07,
+     "p75": 0.1,
+     "source": "estimate consistent with the ratio benchmarks in financial_ratios.json"
+    },
+    {
+     "caption": "Deferred revenue (current + non-current)",
+     "basis": "pct_of_assets",
+     "p25": 0.12,
+     "p50": 0.22,
+     "p75": 0.35,
+     "source": "estimate consistent with the ratio benchmarks in financial_ratios.json"
+    },
+    {
+     "caption": "Long-term debt",
+     "basis": "pct_of_assets",
+     "p25": 0.0,
+     "p50": 0.05,
+     "p75": 0.2,
+     "source": "Damodaran NYU Stern Jan 2026 sector tables (margins, working capital, capex) with ranges widened for private-company dispersion"
+    },
+    {
+     "caption": "Total stockholders' equity (deficit)",
+     "basis": "pct_of_assets",
+     "p25": 0.2,
+     "p50": 0.45,
+     "p75": 0.65,
+     "source": "estimate consistent with the ratio benchmarks in financial_ratios.json"
+    }
+   ],
+   "cash_flow": [
+    {
+     "caption": "Depreciation and amortization",
+     "basis": "pct_of_revenue",
+     "p25": 0.02,
+     "p50": 0.04,
+     "p75": 0.06,
+     "source": "Damodaran NYU Stern Jan 2026 sector tables (margins, working capital, capex) with ranges widened for private-company dispersion"
+    },
+    {
+     "caption": "Stock-based compensation",
+     "basis": "pct_of_revenue",
+     "p25": 0.05,
+     "p50": 0.1,
+     "p75": 0.18,
+     "source": "estimate consistent with the ratio benchmarks in financial_ratios.json"
+    },
+    {
+     "caption": "Changes in deferred revenue",
+     "basis": "pct_of_revenue",
+     "p25": 0.02,
+     "p50": 0.05,
+     "p75": 0.1,
+     "source": "estimate consistent with the ratio benchmarks in financial_ratios.json"
+    },
+    {
+     "caption": "Purchases of property and equipment + capitalized software",
+     "basis": "pct_of_revenue",
+     "p25": 0.02,
+     "p50": 0.03,
+     "p75": 0.05,
+     "source": "Damodaran NYU Stern Jan 2026 sector tables (margins, working capital, capex) with ranges widened for private-company dispersion"
+    }
+   ]
+  },
+  "ecommerce": {
+   "income_statement": [
+    {
+     "caption": "Cost of goods sold",
+     "basis": "pct_of_revenue",
+     "p25": 0.42,
+     "p50": 0.52,
+     "p75": 0.6,
+     "source": "Damodaran NYU Stern Jan 2026 sector tables (margins, working capital, capex) with ranges widened for private-company dispersion"
+    },
+    {
+     "caption": "Selling and marketing",
+     "basis": "pct_of_revenue",
+     "p25": 0.15,
+     "p50": 0.22,
+     "p75": 0.3,
+     "source": "estimate consistent with the ratio benchmarks in financial_ratios.json"
+    },
+    {
+     "caption": "Fulfillment and shipping",
+     "basis": "pct_of_revenue",
+     "p25": 0.11,
+     "p50": 0.15,
+     "p75": 0.19,
+     "source": "estimate consistent with the ratio benchmarks in financial_ratios.json"
+    },
+    {
+     "caption": "General and administrative",
+     "basis": "pct_of_revenue",
+     "p25": 0.08,
+     "p50": 0.11,
+     "p75": 0.15,
+     "source": "estimate consistent with the ratio benchmarks in financial_ratios.json"
+    },
+    {
+     "caption": "Interest expense, net",
+     "basis": "pct_of_revenue",
+     "p25": 0.0,
+     "p50": 0.01,
+     "p75": 0.02,
+     "source": "estimate consistent with the ratio benchmarks in financial_ratios.json"
+    },
+    {
+     "caption": "Income tax expense (benefit)",
+     "basis": "pct_of_revenue",
+     "p25": 0.0,
+     "p50": 0.01,
+     "p75": 0.02,
+     "source": "Damodaran NYU Stern Jan 2026 sector tables (margins, working capital, capex) with ranges widened for private-company dispersion"
+    }
+   ],
+   "balance_sheet": [
+    {
+     "caption": "Cash and cash equivalents",
+     "basis": "pct_of_assets",
+     "p25": 0.08,
+     "p50": 0.15,
+     "p75": 0.25,
+     "source": "estimate consistent with the ratio benchmarks in financial_ratios.json"
+    },
+    {
+     "caption": "Accounts receivable (marketplace and wholesale)",
+     "basis": "pct_of_assets",
+     "p25": 0.02,
+     "p50": 0.05,
+     "p75": 0.1,
+     "source": "estimate consistent with the ratio benchmarks in financial_ratios.json"
+    },
+    {
+     "caption": "Inventory",
+     "basis": "pct_of_assets",
+     "p25": 0.3,
+     "p50": 0.42,
+     "p75": 0.55,
+     "source": "Damodaran NYU Stern Jan 2026 sector tables (margins, working capital, capex) with ranges widened for private-company dispersion"
+    },
+    {
+     "caption": "Prepaid expenses and other current assets",
+     "basis": "pct_of_assets",
+     "p25": 0.03,
+     "p50": 0.05,
+     "p75": 0.08,
+     "source": "estimate consistent with the ratio benchmarks in financial_ratios.json"
+    },
+    {
+     "caption": "Property and equipment, net",
+     "basis": "pct_of_assets",
+     "p25": 0.04,
+     "p50": 0.08,
+     "p75": 0.14,
+     "source": "Damodaran NYU Stern Jan 2026 sector tables (margins, working capital, capex) with ranges widened for private-company dispersion"
+    },
+    {
+     "caption": "Operating lease right-of-use assets",
+     "basis": "pct_of_assets",
+     "p25": 0.04,
+     "p50": 0.08,
+     "p75": 0.12,
+     "source": "estimate consistent with the ratio benchmarks in financial_ratios.json"
+    },
+    {
+     "caption": "Accounts payable",
+     "basis": "pct_of_assets",
+     "p25": 0.12,
+     "p50": 0.18,
+     "p75": 0.26,
+     "source": "Damodaran NYU Stern Jan 2026 sector tables (margins, working capital, capex) with ranges widened for private-company dispersion"
+    },
+    {
+     "caption": "Accrued liabilities",
+     "basis": "pct_of_assets",
+     "p25": 0.04,
+     "p50": 0.06,
+     "p75": 0.09,
+     "source": "estimate consistent with the ratio benchmarks in financial_ratios.json"
+    },
+    {
+     "caption": "Sales returns reserve",
+     "basis": "pct_of_assets",
+     "p25": 0.01,
+     "p50": 0.02,
+     "p75": 0.04,
+     "source": "estimate consistent with the ratio benchmarks in financial_ratios.json"
+    },
+    {
+     "caption": "Gift card and customer deposits liability",
+     "basis": "pct_of_assets",
+     "p25": 0.01,
+     "p50": 0.02,
+     "p75": 0.03,
+     "source": "estimate consistent with the ratio benchmarks in financial_ratios.json"
+    },
+    {
+     "caption": "Long-term debt (incl. revolver)",
+     "basis": "pct_of_assets",
+     "p25": 0.05,
+     "p50": 0.15,
+     "p75": 0.3,
+     "source": "Damodaran NYU Stern Jan 2026 sector tables (margins, working capital, capex) with ranges widened for private-company dispersion"
+    },
+    {
+     "caption": "Total stockholders' equity",
+     "basis": "pct_of_assets",
+     "p25": 0.2,
+     "p50": 0.35,
+     "p75": 0.5,
+     "source": "estimate consistent with the ratio benchmarks in financial_ratios.json"
+    }
+   ],
+   "cash_flow": [
+    {
+     "caption": "Depreciation and amortization",
+     "basis": "pct_of_revenue",
+     "p25": 0.01,
+     "p50": 0.02,
+     "p75": 0.03,
+     "source": "Damodaran NYU Stern Jan 2026 sector tables (margins, working capital, capex) with ranges widened for private-company dispersion"
+    },
+    {
+     "caption": "Inventory write-downs",
+     "basis": "pct_of_revenue",
+     "p25": 0.005,
+     "p50": 0.01,
+     "p75": 0.02,
+     "source": "estimate consistent with the ratio benchmarks in financial_ratios.json"
+    },
+    {
+     "caption": "Changes in inventory",
+     "basis": "pct_of_revenue",
+     "p25": -0.08,
+     "p50": -0.03,
+     "p75": 0.01,
+     "source": "estimate consistent with the ratio benchmarks in financial_ratios.json"
+    },
+    {
+     "caption": "Purchases of property and equipment",
+     "basis": "pct_of_revenue",
+     "p25": 0.02,
+     "p50": 0.03,
+     "p75": 0.05,
+     "source": "Damodaran NYU Stern Jan 2026 sector tables (margins, working capital, capex) with ranges widened for private-company dispersion"
+    }
+   ]
+  },
+  "manufacturing": {
+   "income_statement": [
+    {
+     "caption": "Cost of sales",
+     "basis": "pct_of_revenue",
+     "p25": 0.6,
+     "p50": 0.66,
+     "p75": 0.72,
+     "source": "Damodaran NYU Stern Jan 2026 sector tables (margins, working capital, capex) with ranges widened for private-company dispersion"
+    },
+    {
+     "caption": "Selling, general and administrative expenses",
+     "basis": "pct_of_revenue",
+     "p25": 0.14,
+     "p50": 0.18,
+     "p75": 0.23,
+     "source": "estimate consistent with the ratio benchmarks in financial_ratios.json"
+    },
+    {
+     "caption": "Research and development",
+     "basis": "pct_of_revenue",
+     "p25": 0.02,
+     "p50": 0.03,
+     "p75": 0.05,
+     "source": "estimate consistent with the ratio benchmarks in financial_ratios.json"
+    },
+    {
+     "caption": "Interest expense",
+     "basis": "pct_of_revenue",
+     "p25": 0.01,
+     "p50": 0.015,
+     "p75": 0.03,
+     "source": "Damodaran NYU Stern Jan 2026 sector tables (margins, working capital, capex) with ranges widened for private-company dispersion"
+    },
+    {
+     "caption": "Provision for income taxes",
+     "basis": "pct_of_revenue",
+     "p25": 0.015,
+     "p50": 0.025,
+     "p75": 0.04,
+     "source": "Damodaran NYU Stern Jan 2026 sector tables (margins, working capital, capex) with ranges widened for private-company dispersion"
+    }
+   ],
+   "balance_sheet": [
+    {
+     "caption": "Cash and cash equivalents",
+     "basis": "pct_of_assets",
+     "p25": 0.04,
+     "p50": 0.08,
+     "p75": 0.14,
+     "source": "estimate consistent with the ratio benchmarks in financial_ratios.json"
+    },
+    {
+     "caption": "Accounts receivable, less allowance",
+     "basis": "pct_of_assets",
+     "p25": 0.14,
+     "p50": 0.18,
+     "p75": 0.24,
+     "source": "Damodaran NYU Stern Jan 2026 sector tables (margins, working capital, capex) with ranges widened for private-company dispersion"
+    },
+    {
+     "caption": "Total inventories",
+     "basis": "pct_of_assets",
+     "p25": 0.15,
+     "p50": 0.22,
+     "p75": 0.3,
+     "source": "Damodaran NYU Stern Jan 2026 sector tables (margins, working capital, capex) with ranges widened for private-company dispersion"
+    },
+    {
+     "caption": "Inventories: raw materials (share of total inventory)",
+     "basis": "share_of_inventory",
+     "p25": 0.3,
+     "p50": 0.4,
+     "p75": 0.5,
+     "source": "estimate consistent with the ratio benchmarks in financial_ratios.json"
+    },
+    {
+     "caption": "Inventories: work in process (share of total inventory)",
+     "basis": "share_of_inventory",
+     "p25": 0.15,
+     "p50": 0.25,
+     "p75": 0.35,
+     "source": "estimate consistent with the ratio benchmarks in financial_ratios.json"
+    },
+    {
+     "caption": "Inventories: finished goods (share of total inventory)",
+     "basis": "share_of_inventory",
+     "p25": 0.25,
+     "p50": 0.35,
+     "p75": 0.45,
+     "source": "estimate consistent with the ratio benchmarks in financial_ratios.json"
+    },
+    {
+     "caption": "Property, plant and equipment, net",
+     "basis": "pct_of_assets",
+     "p25": 0.25,
+     "p50": 0.35,
+     "p75": 0.45,
+     "source": "Damodaran NYU Stern Jan 2026 sector tables (margins, working capital, capex) with ranges widened for private-company dispersion"
+    },
+    {
+     "caption": "Goodwill and other intangibles",
+     "basis": "pct_of_assets",
+     "p25": 0.05,
+     "p50": 0.12,
+     "p75": 0.25,
+     "source": "estimate consistent with the ratio benchmarks in financial_ratios.json"
+    },
+    {
+     "caption": "Accounts payable",
+     "basis": "pct_of_assets",
+     "p25": 0.08,
+     "p50": 0.12,
+     "p75": 0.16,
+     "source": "Damodaran NYU Stern Jan 2026 sector tables (margins, working capital, capex) with ranges widened for private-company dispersion"
+    },
+    {
+     "caption": "Accrued compensation, warranty and other",
+     "basis": "pct_of_assets",
+     "p25": 0.05,
+     "p50": 0.08,
+     "p75": 0.11,
+     "source": "estimate consistent with the ratio benchmarks in financial_ratios.json"
+    },
+    {
+     "caption": "Customer deposits",
+     "basis": "pct_of_assets",
+     "p25": 0.01,
+     "p50": 0.03,
+     "p75": 0.06,
+     "source": "estimate consistent with the ratio benchmarks in financial_ratios.json"
+    },
+    {
+     "caption": "Long-term debt",
+     "basis": "pct_of_assets",
+     "p25": 0.1,
+     "p50": 0.2,
+     "p75": 0.32,
+     "source": "Damodaran NYU Stern Jan 2026 sector tables (margins, working capital, capex) with ranges widened for private-company dispersion"
+    },
+    {
+     "caption": "Total shareholders' equity",
+     "basis": "pct_of_assets",
+     "p25": 0.35,
+     "p50": 0.45,
+     "p75": 0.55,
+     "source": "estimate consistent with the ratio benchmarks in financial_ratios.json"
+    }
+   ],
+   "cash_flow": [
+    {
+     "caption": "Depreciation",
+     "basis": "pct_of_revenue",
+     "p25": 0.03,
+     "p50": 0.04,
+     "p75": 0.05,
+     "source": "Damodaran NYU Stern Jan 2026 sector tables (margins, working capital, capex) with ranges widened for private-company dispersion"
+    },
+    {
+     "caption": "Capital expenditures",
+     "basis": "pct_of_revenue",
+     "p25": 0.03,
+     "p50": 0.04,
+     "p75": 0.06,
+     "source": "Damodaran NYU Stern Jan 2026 sector tables (margins, working capital, capex) with ranges widened for private-company dispersion"
+    },
+    {
+     "caption": "Dividends paid",
+     "basis": "pct_of_revenue",
+     "p25": 0.0,
+     "p50": 0.01,
+     "p75": 0.03,
+     "source": "estimate consistent with the ratio benchmarks in financial_ratios.json"
+    }
+   ]
+  },
+  "3pl": {
+   "income_statement": [
+    {
+     "caption": "Purchased transportation and related services",
+     "basis": "pct_of_revenue",
+     "p25": 0.82,
+     "p50": 0.845,
+     "p75": 0.87,
+     "source": "Armstrong & Associates 3PL financial results"
+    },
+    {
+     "caption": "Personnel expenses",
+     "basis": "pct_of_revenue",
+     "p25": 0.06,
+     "p50": 0.08,
+     "p75": 0.1,
+     "source": "estimate consistent with the ratio benchmarks in financial_ratios.json"
+    },
+    {
+     "caption": "Warehouse and facility expenses",
+     "basis": "pct_of_revenue",
+     "p25": 0.01,
+     "p50": 0.025,
+     "p75": 0.05,
+     "source": "estimate consistent with the ratio benchmarks in financial_ratios.json"
+    },
+    {
+     "caption": "Selling, general and administrative",
+     "basis": "pct_of_revenue",
+     "p25": 0.02,
+     "p50": 0.03,
+     "p75": 0.04,
+     "source": "estimate consistent with the ratio benchmarks in financial_ratios.json"
+    },
+    {
+     "caption": "Depreciation and amortization",
+     "basis": "pct_of_revenue",
+     "p25": 0.005,
+     "p50": 0.01,
+     "p75": 0.02,
+     "source": "Damodaran NYU Stern Jan 2026 sector tables (margins, working capital, capex) with ranges widened for private-company dispersion"
+    },
+    {
+     "caption": "Interest expense",
+     "basis": "pct_of_revenue",
+     "p25": 0.002,
+     "p50": 0.005,
+     "p75": 0.01,
+     "source": "Damodaran NYU Stern Jan 2026 sector tables (margins, working capital, capex) with ranges widened for private-company dispersion"
+    }
+   ],
+   "balance_sheet": [
+    {
+     "caption": "Cash and cash equivalents",
+     "basis": "pct_of_assets",
+     "p25": 0.04,
+     "p50": 0.08,
+     "p75": 0.14,
+     "source": "estimate consistent with the ratio benchmarks in financial_ratios.json"
+    },
+    {
+     "caption": "Receivables, net of allowance",
+     "basis": "pct_of_assets",
+     "p25": 0.4,
+     "p50": 0.5,
+     "p75": 0.6,
+     "source": "estimate consistent with the ratio benchmarks in financial_ratios.json"
+    },
+    {
+     "caption": "Contract assets (unbilled)",
+     "basis": "pct_of_assets",
+     "p25": 0.02,
+     "p50": 0.04,
+     "p75": 0.07,
+     "source": "estimate consistent with the ratio benchmarks in financial_ratios.json"
+    },
+    {
+     "caption": "Property and equipment, net",
+     "basis": "pct_of_assets",
+     "p25": 0.05,
+     "p50": 0.1,
+     "p75": 0.25,
+     "source": "Damodaran NYU Stern Jan 2026 sector tables (margins, working capital, capex) with ranges widened for private-company dispersion"
+    },
+    {
+     "caption": "Operating lease right-of-use assets (warehouses)",
+     "basis": "pct_of_assets",
+     "p25": 0.05,
+     "p50": 0.1,
+     "p75": 0.18,
+     "source": "estimate consistent with the ratio benchmarks in financial_ratios.json"
+    },
+    {
+     "caption": "Goodwill and customer relationships",
+     "basis": "pct_of_assets",
+     "p25": 0.05,
+     "p50": 0.15,
+     "p75": 0.3,
+     "source": "estimate consistent with the ratio benchmarks in financial_ratios.json"
+    },
+    {
+     "caption": "Accounts payable (carriers)",
+     "basis": "pct_of_assets",
+     "p25": 0.3,
+     "p50": 0.38,
+     "p75": 0.46,
+     "source": "estimate consistent with the ratio benchmarks in financial_ratios.json"
+    },
+    {
+     "caption": "Accrued transportation expense",
+     "basis": "pct_of_assets",
+     "p25": 0.03,
+     "p50": 0.05,
+     "p75": 0.08,
+     "source": "estimate consistent with the ratio benchmarks in financial_ratios.json"
+    },
+    {
+     "caption": "Long-term debt and finance leases",
+     "basis": "pct_of_assets",
+     "p25": 0.05,
+     "p50": 0.12,
+     "p75": 0.25,
+     "source": "Damodaran NYU Stern Jan 2026 sector tables (margins, working capital, capex) with ranges widened for private-company dispersion"
+    },
+    {
+     "caption": "Total stockholders' equity",
+     "basis": "pct_of_assets",
+     "p25": 0.2,
+     "p50": 0.3,
+     "p75": 0.42,
+     "source": "estimate consistent with the ratio benchmarks in financial_ratios.json"
+    }
+   ],
+   "cash_flow": [
+    {
+     "caption": "Depreciation and amortization",
+     "basis": "pct_of_revenue",
+     "p25": 0.005,
+     "p50": 0.01,
+     "p75": 0.02,
+     "source": "Damodaran NYU Stern Jan 2026 sector tables (margins, working capital, capex) with ranges widened for private-company dispersion"
+    },
+    {
+     "caption": "Purchases of property and equipment",
+     "basis": "pct_of_revenue",
+     "p25": 0.01,
+     "p50": 0.02,
+     "p75": 0.04,
+     "source": "Damodaran NYU Stern Jan 2026 sector tables (margins, working capital, capex) with ranges widened for private-company dispersion"
+    }
+   ]
+  },
+  "retail": {
+   "income_statement": [
+    {
+     "caption": "Cost of sales (including occupancy)",
+     "basis": "pct_of_revenue",
+     "p25": 0.62,
+     "p50": 0.67,
+     "p75": 0.72,
+     "source": "Damodaran NYU Stern Jan 2026 sector tables (margins, working capital, capex) with ranges widened for private-company dispersion"
+    },
+    {
+     "caption": "Selling, general and administrative expenses",
+     "basis": "pct_of_revenue",
+     "p25": 0.2,
+     "p50": 0.24,
+     "p75": 0.28,
+     "source": "Damodaran NYU Stern Jan 2026 sector tables (margins, working capital, capex) with ranges widened for private-company dispersion"
+    },
+    {
+     "caption": "Depreciation and amortization",
+     "basis": "pct_of_revenue",
+     "p25": 0.02,
+     "p50": 0.03,
+     "p75": 0.04,
+     "source": "Damodaran NYU Stern Jan 2026 sector tables (margins, working capital, capex) with ranges widened for private-company dispersion"
+    },
+    {
+     "caption": "Interest expense, net",
+     "basis": "pct_of_revenue",
+     "p25": 0.005,
+     "p50": 0.01,
+     "p75": 0.02,
+     "source": "Damodaran NYU Stern Jan 2026 sector tables (margins, working capital, capex) with ranges widened for private-company dispersion"
+    },
+    {
+     "caption": "Income tax expense",
+     "basis": "pct_of_revenue",
+     "p25": 0.005,
+     "p50": 0.015,
+     "p75": 0.025,
+     "source": "Damodaran NYU Stern Jan 2026 sector tables (margins, working capital, capex) with ranges widened for private-company dispersion"
+    }
+   ],
+   "balance_sheet": [
+    {
+     "caption": "Cash and cash equivalents",
+     "basis": "pct_of_assets",
+     "p25": 0.04,
+     "p50": 0.08,
+     "p75": 0.14,
+     "source": "estimate consistent with the ratio benchmarks in financial_ratios.json"
+    },
+    {
+     "caption": "Receivables (credit card and vendor allowances)",
+     "basis": "pct_of_assets",
+     "p25": 0.01,
+     "p50": 0.02,
+     "p75": 0.04,
+     "source": "estimate consistent with the ratio benchmarks in financial_ratios.json"
+    },
+    {
+     "caption": "Merchandise inventories",
+     "basis": "pct_of_assets",
+     "p25": 0.2,
+     "p50": 0.28,
+     "p75": 0.38,
+     "source": "Damodaran NYU Stern Jan 2026 sector tables (margins, working capital, capex) with ranges widened for private-company dispersion"
+    },
+    {
+     "caption": "Property and equipment, net",
+     "basis": "pct_of_assets",
+     "p25": 0.18,
+     "p50": 0.25,
+     "p75": 0.32,
+     "source": "Damodaran NYU Stern Jan 2026 sector tables (margins, working capital, capex) with ranges widened for private-company dispersion"
+    },
+    {
+     "caption": "Operating lease right-of-use assets",
+     "basis": "pct_of_assets",
+     "p25": 0.2,
+     "p50": 0.3,
+     "p75": 0.4,
+     "source": "estimate consistent with the ratio benchmarks in financial_ratios.json"
+    },
+    {
+     "caption": "Accounts payable (merchandise)",
+     "basis": "pct_of_assets",
+     "p25": 0.08,
+     "p50": 0.12,
+     "p75": 0.16,
+     "source": "Damodaran NYU Stern Jan 2026 sector tables (margins, working capital, capex) with ranges widened for private-company dispersion"
+    },
+    {
+     "caption": "Accrued expenses and gift card liability",
+     "basis": "pct_of_assets",
+     "p25": 0.04,
+     "p50": 0.06,
+     "p75": 0.09,
+     "source": "estimate consistent with the ratio benchmarks in financial_ratios.json"
+    },
+    {
+     "caption": "Operating lease liabilities (current + non-current)",
+     "basis": "pct_of_assets",
+     "p25": 0.2,
+     "p50": 0.3,
+     "p75": 0.4,
+     "source": "estimate consistent with the ratio benchmarks in financial_ratios.json"
+    },
+    {
+     "caption": "Long-term debt",
+     "basis": "pct_of_assets",
+     "p25": 0.05,
+     "p50": 0.12,
+     "p75": 0.22,
+     "source": "Damodaran NYU Stern Jan 2026 sector tables (margins, working capital, capex) with ranges widened for private-company dispersion"
+    },
+    {
+     "caption": "Total stockholders' equity",
+     "basis": "pct_of_assets",
+     "p25": 0.2,
+     "p50": 0.3,
+     "p75": 0.4,
+     "source": "estimate consistent with the ratio benchmarks in financial_ratios.json"
+    }
+   ],
+   "cash_flow": [
+    {
+     "caption": "Depreciation and amortization",
+     "basis": "pct_of_revenue",
+     "p25": 0.02,
+     "p50": 0.03,
+     "p75": 0.04,
+     "source": "Damodaran NYU Stern Jan 2026 sector tables (margins, working capital, capex) with ranges widened for private-company dispersion"
+    },
+    {
+     "caption": "Capital expenditures (new stores, remodels)",
+     "basis": "pct_of_revenue",
+     "p25": 0.025,
+     "p50": 0.035,
+     "p75": 0.045,
+     "source": "Damodaran NYU Stern Jan 2026 sector tables (margins, working capital, capex) with ranges widened for private-company dispersion"
+    },
+    {
+     "caption": "Dividends paid",
+     "basis": "pct_of_revenue",
+     "p25": 0.0,
+     "p50": 0.01,
+     "p75": 0.02,
+     "source": "estimate consistent with the ratio benchmarks in financial_ratios.json"
+    }
+   ]
+  },
+  "fintech_marketplace": {
+   "income_statement": [
+    {
+     "caption": "Transaction revenue (take rate)",
+     "basis": "pct_of_revenue",
+     "p25": 0.55,
+     "p50": 0.75,
+     "p75": 0.9,
+     "source": "estimate consistent with the ratio benchmarks in financial_ratios.json"
+    },
+    {
+     "caption": "Interest income on loans",
+     "basis": "pct_of_revenue",
+     "p25": 0.0,
+     "p50": 0.1,
+     "p75": 0.35,
+     "source": "estimate consistent with the ratio benchmarks in financial_ratios.json"
+    },
+    {
+     "caption": "Transaction and processing costs (interchange, network fees)",
+     "basis": "pct_of_revenue",
+     "p25": 0.2,
+     "p50": 0.3,
+     "p75": 0.42,
+     "source": "estimate consistent with the ratio benchmarks in financial_ratios.json"
+    },
+    {
+     "caption": "Provision for credit losses",
+     "basis": "pct_of_revenue",
+     "p25": 0.0,
+     "p50": 0.04,
+     "p75": 0.12,
+     "source": "estimate consistent with the ratio benchmarks in financial_ratios.json"
+    },
+    {
+     "caption": "Technology and development",
+     "basis": "pct_of_revenue",
+     "p25": 0.15,
+     "p50": 0.2,
+     "p75": 0.28,
+     "source": "estimate consistent with the ratio benchmarks in financial_ratios.json"
+    },
+    {
+     "caption": "Sales and marketing",
+     "basis": "pct_of_revenue",
+     "p25": 0.12,
+     "p50": 0.2,
+     "p75": 0.3,
+     "source": "estimate consistent with the ratio benchmarks in financial_ratios.json"
+    },
+    {
+     "caption": "General and administrative",
+     "basis": "pct_of_revenue",
+     "p25": 0.12,
+     "p50": 0.18,
+     "p75": 0.25,
+     "source": "estimate consistent with the ratio benchmarks in financial_ratios.json"
+    }
+   ],
+   "balance_sheet": [
+    {
+     "caption": "Cash and cash equivalents",
+     "basis": "pct_of_assets",
+     "p25": 0.1,
+     "p50": 0.2,
+     "p75": 0.3,
+     "source": "estimate consistent with the ratio benchmarks in financial_ratios.json"
+    },
+    {
+     "caption": "Restricted cash and customer funds",
+     "basis": "pct_of_assets",
+     "p25": 0.2,
+     "p50": 0.35,
+     "p75": 0.5,
+     "source": "estimate consistent with the ratio benchmarks in financial_ratios.json"
+    },
+    {
+     "caption": "Settlement receivables from card networks",
+     "basis": "pct_of_assets",
+     "p25": 0.05,
+     "p50": 0.1,
+     "p75": 0.18,
+     "source": "estimate consistent with the ratio benchmarks in financial_ratios.json"
+    },
+    {
+     "caption": "Loans held for investment, net",
+     "basis": "pct_of_assets",
+     "p25": 0.0,
+     "p50": 0.1,
+     "p75": 0.35,
+     "source": "estimate consistent with the ratio benchmarks in financial_ratios.json"
+    },
+    {
+     "caption": "Property, equipment and capitalized software, net",
+     "basis": "pct_of_assets",
+     "p25": 0.02,
+     "p50": 0.04,
+     "p75": 0.07,
+     "source": "Damodaran NYU Stern Jan 2026 sector tables (margins, working capital, capex) with ranges widened for private-company dispersion"
+    },
+    {
+     "caption": "Funds payable and amounts due to customers",
+     "basis": "pct_of_assets",
+     "p25": 0.25,
+     "p50": 0.4,
+     "p75": 0.55,
+     "source": "estimate consistent with the ratio benchmarks in financial_ratios.json"
+    },
+    {
+     "caption": "Warehouse credit facility",
+     "basis": "pct_of_assets",
+     "p25": 0.0,
+     "p50": 0.08,
+     "p75": 0.25,
+     "source": "estimate consistent with the ratio benchmarks in financial_ratios.json"
+    },
+    {
+     "caption": "Total stockholders' equity",
+     "basis": "pct_of_assets",
+     "p25": 0.15,
+     "p50": 0.3,
+     "p75": 0.5,
+     "source": "estimate consistent with the ratio benchmarks in financial_ratios.json"
+    }
+   ],
+   "cash_flow": [
+    {
+     "caption": "Provision for credit losses",
+     "basis": "pct_of_revenue",
+     "p25": 0.0,
+     "p50": 0.04,
+     "p75": 0.12,
+     "source": "estimate consistent with the ratio benchmarks in financial_ratios.json"
+    },
+    {
+     "caption": "Capitalized software",
+     "basis": "pct_of_revenue",
+     "p25": 0.02,
+     "p50": 0.03,
+     "p75": 0.05,
+     "source": "Damodaran NYU Stern Jan 2026 sector tables (margins, working capital, capex) with ranges widened for private-company dispersion"
+    },
+    {
+     "caption": "Changes in funds payable to customers",
+     "basis": "pct_of_revenue",
+     "p25": -0.05,
+     "p50": 0.05,
+     "p75": 0.2,
+     "source": "estimate consistent with the ratio benchmarks in financial_ratios.json"
+    }
+   ]
+  }
+ }
+}
