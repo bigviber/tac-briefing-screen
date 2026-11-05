@@ -409,7 +409,11 @@ class Anomaly(_World):
 
 
 class ExpectedMetric(_World):
-    """A metric the learner is expected to compute, with tolerance."""
+    """A metric the learner is expected to compute, with tolerance.
+
+    ``pillar`` tags the metric for per-pillar mastery updates (None = untagged); ``label`` and
+    ``hint`` feed ``CasePublic.asks`` (the value is never exposed before grading).
+    """
 
     key: str
     value: float
@@ -417,6 +421,9 @@ class ExpectedMetric(_World):
     tolerance_abs: float | None = None
     tolerance_rel: float | None = None
     derivation: str = ""
+    pillar: Pillar | None = None
+    label: str = ""
+    hint: str = ""
 
 
 class ReferenceSolution(_World):
