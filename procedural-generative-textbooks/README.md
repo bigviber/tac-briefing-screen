@@ -104,21 +104,34 @@ python -m axiom.engine.market_research report                     # benchmark co
 ## Tests
 
 ```bash
-cd procedural-generative-textbooks/backend && python -m pytest -q
+cd procedural-generative-textbooks/backend && python -m pytest -q          # ~7 min, 760+ tests
+cd procedural-generative-textbooks/backend && python -m pytest -q -m slow  # seed sweep: 14 archetypes x 30 seeds
 cd procedural-generative-textbooks/frontend && npm run build && npm run lint
 ```
 
-The backend suite covers ledger invariants across seeds, every archetype at every difficulty,
-determinism (byte-identical regeneration), the sandboxes (allowlist, timeouts, memory, network),
-the LLM client for both wire formats with a fake transport, BKT updates against hand-computed
-values, and the API end to end with a fake LLM. Nothing in the tests touches the network.
+The backend suite covers ledger invariants across seeds, every archetype at every difficulty
+and seed (invariants, ground truth, reference SQL execution, Mermaid syntax, public-view leak
+scan, simulation contract), determinism (byte-identical regeneration), the sandboxes
+(allowlist, timeouts, memory, network, process spawning), the LLM client for both wire formats
+with a fake transport, BKT updates against hand-computed values, and the API end to end with a
+fake LLM. Nothing in the tests touches the network. `AXIOM_TEST_ARCHETYPES=a,b` restricts the
+archetype suites while iterating.
+
+## Quality record
+
+- [`docs/research/review.md`](docs/research/review.md): the principal review of 28 generated
+  worlds (scorecard, P0/P1/P2 punch list, cross-cutting engine issues, prompt edits). Every P0
+  and P1 item has since been fixed; the remaining P2 items are listed there.
+- [`docs/QA_REPORT.md`](docs/QA_REPORT.md): live verification of all 42 archetype x difficulty
+  combinations through the real API and browser, with screenshots.
 
 ## Layout
 
 ```
 procedural-generative-textbooks/
   docs/ARCHITECTURE.md        the binding contract between modules
-  docs/research/              benchmarks, archetype designs, forensic patterns, pedagogy
+  docs/research/              benchmarks, archetype designs, forensic patterns, pedagogy, review
+  docs/QA_REPORT.md           live QA across all archetypes and difficulties
   backend/                    FastAPI + DuckDB/SQLite; engine, pedagogy, sandboxes, API, tests
   frontend/                   React + Vite + Tailwind + Monaco + Mermaid workbench (mock mode included)
 ```
