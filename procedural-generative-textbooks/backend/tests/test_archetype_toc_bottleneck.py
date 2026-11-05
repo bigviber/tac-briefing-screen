@@ -105,8 +105,15 @@ def test_littles_law_on_generated_data(worlds: dict, difficulty: str) -> None:
     queueing block in OperationsState satisfies L = lambda * W exactly."""
     world, folder = worlds[(difficulty, 2024)]
     q = world.operations.queueing
-    assert q["L"] == pytest.approx(q["lambda"] * q["W"], rel=1e-9)
-    assert q["Lq"] == pytest.approx(q["lambda"] * q["Wq"], rel=1e-9)
+    # review P2 #23: unit-bearing keys (units of WIP, units/day, days)
+    assert {"L_wip_units", "W_days", "lambda_units_per_day", "Lq_wip_units", "Wq_days"} <= set(q) and "L" not in q and "W" not in q
+    assert q["L_wip_units"] == pytest.approx(q["lambda_units_per_day"] * q["W_days"], rel=1e-9)
+    assert q["Lq_wip_units"] == pytest.approx(q["lambda_units_per_day"] * q["Wq_days"], rel=1e-9)
+    assert q["L_wip_units"] > 0 and q["W_days"] > 0 and 0 < q["rho"] < 1.5  # the constraint station in the latest quarter
+    for st in world.operations.stations:  # stations stay fully populated
+        assert st.capacity_per_hour > 0 and 0 < st.utilization < 1.5 and st.wip > 0 and st.cycle_time > 0, st
+    m = {x.key: x for x in world.ground_truth.expected_metrics}
+    assert "units of WIP" in m["cycle_time_days_p8"].derivation and "units of WIP" in m["cycle_time_days_p8"].hint
     con = _con(world, folder)
     try:
         wo = con.execute("SELECT work_order_id, quantity_planned, released_at, closed_at FROM work_orders").fetchdf()

@@ -8,6 +8,8 @@ import duckdb
 import numpy as np
 import pytest
 
+from axiom.engine.archetypes.base import condition_holds, satisfying_decisions
+from axiom.engine.finance import quarter_bounds
 from axiom.engine.market_research import get_default_pool
 from axiom.engine.operations import sbg_survival
 from axiom.engine.pedagogy import simulate_transition
@@ -144,8 +146,62 @@ def test_simulation_only_cause_lever_resolves(worlds: dict) -> None:
     lv = {x.key: x for x in levers}
     q_spend, info = simulate_transition(world.simulation, levers, {"marketing_spend_change_pct": -50})
     assert not info["resolved"] and q_spend.kpis["new_logos"] < model["kpis"]["new_logos"]
-    q1, info = simulate_transition(world.simulation, levers, {cause_lever: lv[cause_lever].max, "commission_life_reduction_months": 12})
+    fix = satisfying_decisions(model, levers)
+    assert fix[cause_lever] != lv[cause_lever].default and fix["commission_amortization_months"] < lv["commission_amortization_months"].default
+    q1, info = simulate_transition(world.simulation, levers, fix)
     assert info["resolved"]
     sim2 = world.simulation.model_copy(update={"history": [q1]})
-    q2, _ = simulate_transition(sim2, levers, {cause_lever: lv[cause_lever].max, "commission_life_reduction_months": 12})
+    q2, _ = simulate_transition(sim2, levers, fix)
     assert q2.kpis["new_cohort_churn_monthly"] < model["kpis"]["new_cohort_churn_monthly"]
+
+
+def test_funding_explains_the_cash(worlds: dict) -> None:
+    """Review P1 #9: the cash pile is a preferred round closed in the warm-up quarter; venture debt drawn at P5 moves
+    CFF and the debt line inside the case window, with interest expense from then on."""
+    for (d, s), (world, _) in worlds.items():
+        P = world.periods
+        journal = world.finance.journal
+        raises = [e for e in journal if e.source == "equity" and "preferred equity" in e.memo.lower()]
+        assert raises and min(e.date for e in raises) < quarter_bounds(P[0])[0], (d, s)  # closed in the warm-up quarter
+        draws = [e for e in journal if e.source == "financing" and "venture debt" in e.memo.lower()]
+        assert len(draws) == 1 and world.finance.statements.cash_flow[4].financing_cents > 0
+        tb = world.finance.trial_balance
+        assert -tb[P[3]]["2610"] == 0 and -tb[P[4]]["2610"] > 0
+        inc = {i.period: i for i in world.finance.statements.income}
+        assert sum(world.finance.trial_balance[P[-1]].get(c, 0) for c in ("7000",)) > 0  # interest expense booked
+        assert any("closed" in e.headline and e.period == P[0] for e in world.dossier_seed.timeline)
+        assert inc[P[-1]].revenue_cents > 0
+
+
+def test_reduction_levers_resolve_with_at_most(worlds: dict) -> None:
+    """Paid-social share / promo depth / commission life are cut to fix the case (``<=``); the status quo never resolves."""
+    for (d, s), (world, _) in worlds.items():
+        model = world.simulation.model
+        lv = {x.key: x for x in world.ground_truth.decision_levers}
+        cond = model["resolved_if"]
+        assert cond["commission_amortization_months"] == {"op": "<=", "value": 30.0}
+        assert lv["commission_amortization_months"].default == 36
+        cause = model["cause_lever"]
+        if cause in ("paid_social_share_pct", "promo_depth_pct"):
+            assert cond[cause]["op"] == "<=" and cond[cause]["value"] < lv[cause].default
+        else:
+            assert cause == "onboarding_investment_cents" and isinstance(cond[cause], float)
+        assert not all(condition_holds(float(lv[k].default), v) for k, v in cond.items())
+        q, info = simulate_transition(world.simulation, world.ground_truth.decision_levers, {})
+        assert not info["resolved"]
+
+
+def test_operations_cohorts_are_the_real_curves(worlds: dict) -> None:
+    for (d, s), (world, _) in worlds.items():
+        cohorts = world.operations.cohorts
+        assert len(cohorts) == 8 and [c.acquisition_period for c in cohorts] == list(world.periods)
+        early = [c for c in cohorts if len(c.retention) >= 4]
+        assert len(early) >= 5
+        for c in cohorts:
+            assert c.size > 0 and 0 < c.retention[0] <= 1.0
+            assert all(b <= a + 1e-9 for a, b in zip(c.retention, c.retention[1:], strict=False))  # survival is monotone
+        m = _m(world)
+        pre = [c.retention[3] for c in cohorts[:4] if len(c.retention) > 3]
+        post = [c.retention[3] for c in cohorts[4:] if len(c.retention) > 3]
+        assert post and np.mean(post) < np.mean(pre)  # the collapse shows in the operations cohorts too
+        assert m["retention_m3_post_cohorts"] < m["retention_m3_pre_cohorts"]

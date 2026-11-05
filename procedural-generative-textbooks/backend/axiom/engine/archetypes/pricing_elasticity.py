@@ -1064,18 +1064,27 @@ GROUP BY 1 ORDER BY 1"""
         names = rng.pick_names(4)
         units_now = sum(f["units_by_period"][P[7]].values())
         units_before = sum(f["units_by_period"][P[4]].values())
+        d_units = units_now / units_before - 1
+        d_rev = k[P[7]]["revenue_cents"] / k[P[4]]["revenue_cents"] - 1
+        # review P1 #15: the wording follows the number ("roughly flat" only within +-3%)
+        rev_phrase = "roughly flat" if abs(d_rev) < 0.03 else ("down" if d_rev < 0 else "up")
+        foundation = p["difficulty"] == "foundation"
         reveal = [
             f"List prices were raised {p['price_change_pct']:.0%} across the board in {P[5]}.",
             "The CEO describes the increase as proof of 'pricing power'.",
-            f"Revenue is roughly flat ({k[P[7]]['revenue_cents'] / k[P[4]]['revenue_cents'] - 1:+.1%} {P[7]} vs {P[4]}) while gross margin % rose "
+            f"Revenue is {rev_phrase} ({d_rev:+.1%} {P[7]} vs {P[4]}) while gross margin % rose "
             f"({k[P[4]]['gross_margin']:.1%} -> {k[P[7]]['gross_margin']:.1%}).",
-            "The sales team complains that customers are walking and asks for more discount authority.",
-            f"Units are down {units_now / units_before - 1:.0%} ({P[7]} vs {P[4]}).",
         ]
+        if foundation:  # from practitioner the unit decline and the reps' discount requests are for the learner to find
+            reveal += ["The sales team complains that customers are walking and asks for more discount authority.",
+                       f"Units are down {abs(d_units):.0%} ({P[7]} vs {P[4]})." if d_units < 0 else f"Units are up {d_units:.0%} ({P[7]} vs {P[4]})."]
         if p["competitor_response"]:
             reveal.append(f"The main competitor cut prices ~5% in {P[6]}.")
         conceal = ["segment elasticities", "discount leakage magnitude (leakage magnitude by segment)", "optimal prices by segment (Lerner)",
                    "the segmented-pricing counterfactual", "A1", "A2", "A3", "A4"]
+        if not foundation:
+            conceal += [f"the unit decline ({d_units:+.0%} {P[7]} vs {P[4]}, concentrated in price shoppers)",
+                        "reps discounting harder and asking for more discount authority (the discount leakage)"]
         stakeholders = [
             Stakeholder(name=names[0], role="CEO", agenda="Defend the 'pricing power' narrative.", disposition="confident", knows=["margin % is up"], hides=[]),
             Stakeholder(name=names[1], role="VP Sales", agenda="Roll the increase back.", disposition="combative",
@@ -1090,16 +1099,29 @@ GROUP BY 1 ORDER BY 1"""
             TimelineEvent(period=P[4], headline=f"Board approves +{p['price_change_pct']:.0%}", detail="Uniform list increase approved."),
             TimelineEvent(period=P[5], headline="Increase live", detail="New price list published."),
             TimelineEvent(period=P[5], headline="Macro headlines: 'consumer slowdown'", detail="Industry press warns of softer demand.", is_red_herring=True),
-            TimelineEvent(period=P[6], headline="Sales asks for discount authority", detail="VP Sales requests a higher rep discount ceiling."),
-            TimelineEvent(period=P[7], headline=f"Revenue flat, units {units_now / units_before - 1:.0%}", detail="Board pack shows GM% up."),
         ]
+        if foundation:
+            tl += [TimelineEvent(period=P[6], headline="Sales asks for discount authority", detail="VP Sales requests a higher rep discount ceiling."),
+                   TimelineEvent(period=P[7], headline=f"Revenue {rev_phrase} ({d_rev:+.0%}), units {d_units:+.0%}", detail="Board pack shows GM% up.")]
+        else:
+            tl.append(TimelineEvent(period=P[7], headline=f"Revenue {rev_phrase} ({d_rev:+.0%}), GM% up", detail="Board pack leads with the margin improvement."))
+        if p["difficulty"] == "principal":
+            # review P1 #15: the unit decline and the discount request surface only inside misleading explanations
+            tl += [TimelineEvent(period=P[6], headline="VP Sales: 'the competition is taking our shoppers'",
+                                 detail="Asks for a higher rep discount ceiling to fight back.", is_red_herring=True),
+                   (TimelineEvent(period=P[7], headline=f"Ops review: units {d_units:+.0%}, put down to the consumer slowdown",
+                                  detail="Volume decline attributed to softer demand across the market.", is_red_herring=True) if d_units < -0.02 else
+                    TimelineEvent(period=P[7], headline="Ops review: shopper units soft, put down to the consumer slowdown",
+                                  detail=f"Total units {d_units:+.0%} (loyal accounts held up); the shopper decline is attributed to softer demand.",
+                                  is_red_herring=True))]
         if p["competitor_response"]:
             tl.append(TimelineEvent(period=P[6], headline="Competitor -5%", detail="Main competitor cuts the shoppers' favourite category."))
         if p["n_red_herrings"] >= 2:
             tl.append(TimelineEvent(period=P[6], headline="Marketing review: 'did we cut too much?'", detail="Question raised in the ops review.", is_red_herring=True))
         tl.sort(key=lambda e: e.period)
         return DossierSeed(reveal=reveal, conceal=conceal, stakeholders=stakeholders, timeline=tl,
-                           artifacts=["pricing_business_case", "weekly_revenue_chart", "discount_authority_memo", "competitor_price_scrape"],
+                           artifacts=["pricing_business_case", "weekly_revenue_chart",
+                                      *(["discount_authority_memo"] if p["difficulty"] != "practitioner" else []), "competitor_price_scrape"],
                            architecture_mermaid=None)
 
     # ------------------------------------------------------------------ simulation

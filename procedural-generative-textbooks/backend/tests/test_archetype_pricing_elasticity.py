@@ -116,3 +116,27 @@ def test_simulation_segment_response(worlds: dict) -> None:
     assert ql.kpis["contribution_cents"] > k0["contribution_cents"] + world.simulation.model["anomaly_drag"]["contribution_cents"]
     assert ql.kpis["units_loyal_account"] < k0["units_loyal_account"]
     assert np.isfinite(list(q2.kpis.values())).all()
+
+
+def test_dossier_reveal_is_consistent_and_leaves_work(worlds: dict) -> None:
+    """Review P1 #15: the revenue wording follows the number; from practitioner the unit decline and the reps' discount
+    requests are not handed over (principal shows them only inside red-herring timeline events)."""
+    for (d, s), (world, _) in worlds.items():
+        ds = world.dossier_seed
+        rev_line = next(r for r in ds.reveal if r.startswith("Revenue is"))
+        pct = float(rev_line.split("(")[1].split("%")[0]) / 100
+        assert ("roughly flat" in rev_line) == (abs(pct) < 0.03), rev_line
+        units_revealed = any(r.startswith("Units are") for r in ds.reveal)
+        authority_revealed = any("discount authority" in r for r in ds.reveal)
+        tl_text = " ".join(e.headline + " " + e.detail for e in ds.timeline if not e.is_red_herring)
+        if d == "foundation":
+            assert units_revealed and authority_revealed
+        else:
+            assert not units_revealed and not authority_revealed
+            assert "units" not in tl_text.lower() and "discount" not in tl_text.lower()
+            assert any("unit decline" in c for c in ds.conceal) and any("discount authority" in c for c in ds.conceal)
+        if d == "principal":
+            rh = [e for e in ds.timeline if e.is_red_herring]
+            assert any("discount ceiling" in e.detail for e in rh) and any("units" in e.headline for e in rh)
+        if d == "practitioner":
+            assert "discount_authority_memo" not in ds.artifacts

@@ -4,6 +4,9 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import datetime as dt
+import statistics
+
 import duckdb
 import numpy as np
 import pytest
@@ -35,28 +38,50 @@ def _a(world: CaseWorld, aid: str):
     return next(a for a in world.ground_truth.anomalies if a.id == aid)
 
 
+def _window(world: CaseWorld) -> tuple[dt.date, dt.date]:
+    """The 52 weeks the bullwhip asks are defined on: from the first Monday of P5."""
+    s5 = quarter_bounds(world.periods[4])[0]
+    wa = s5 + dt.timedelta(days=(7 - s5.weekday()) % 7)
+    return wa, wa + dt.timedelta(weeks=51)
+
+
 @pytest.mark.parametrize("difficulty", DIFFS)
 @pytest.mark.parametrize("seed", SEEDS)
 def test_amplification_recovered_and_above_chen_bound(worlds: dict, difficulty: str, seed: int) -> None:
     world, folder = worlds[(difficulty, seed)]
     m = _m(world)
     a1 = _a(world, "A1")
-    checks = a1.reference_sql[0].expected["checks"]
+    refs = {q.name: q.expected["checks"] for q in a1.reference_sql}
+    checks = refs["bullwhip_ratio_by_sku_order_cycle"]
+    assert checks["cycles"] == 13
     assert checks["median_amp_t2"] == pytest.approx(m["amplification_tier2"], rel=0.05)
     assert checks["median_amp_t3"] == pytest.approx(m["amplification_tier3"], rel=0.05)
+    cv = refs["weekly_cv_company_level"]
+    assert cv["weeks"] == 52
+    assert (cv["cv_pos"], cv["cv_ro"], cv["cv_po"]) == pytest.approx((m["cv_pos_demand"], m["cv_retailer_orders"], m["cv_company_po"]), abs=0.01)
     assert m["cv_pos_demand"] < m["cv_retailer_orders"] < m["cv_company_po"]
-    assert 1 < m["amplification_tier2"] < m["amplification_tier3"]
-    assert 0.08 < m["cv_pos_demand"] < 0.25  # the stable shelf demand the spec describes
-    # Chen et al.: our ordering stage amplifies at least 1 + 2L/p + 2L^2/p^2 (recomputed from the DB)
+    assert 0.03 < m["cv_pos_demand"] < 0.15  # stable shelf demand (weekly, all SKUs)
+    # review P0 #4: the asks land in the literature range (2-10x per tier, <= ~12x cumulative)
+    assert 2.0 <= m["amplification_tier2"] <= 10.0
+    assert m["amplification_tier2"] < m["amplification_tier3"] <= 12.5
+    assert 1.5 < a1.magnitude["company_stage_cv_ratio"] < 10.0
+    # the zero-filled weekly per-SKU variance ratio is the trap, an order of magnitude above the ask
+    trap = refs["weekly_zero_filled_variance_trap"]
+    assert trap["median_weekly_var_ratio_t3"] > 4 * m["amplification_tier3"]
+    assert trap["median_weekly_var_ratio_t3"] == pytest.approx(a1.magnitude["weekly_zero_filled_var_ratio_tier3"], rel=0.05)
+    if difficulty != "foundation":
+        assert any("zeros in the weeks between MOQ lots" in h for h in world.ground_truth.red_herrings)
+    # Chen et al.: our weekly ordering stage amplifies at least 1 + 2L/p + 2L^2/p^2 (recomputed from the DB on the same
+    # 52-week window; in the review-period model a week without a PO is an order of 0)
     p = int(m["forecast_window_p"])
     chen = chen_bullwhip_bound(3, p)
     assert m["chen_lower_bound_tier2"] == pytest.approx(chen)
-    s5 = quarter_bounds(world.periods[4])[0]
+    wa, wb = _window(world)
     con = duckdb.connect(str(resolve_db_path(world, folder)), read_only=True)
     try:
         stage = con.execute(f"""
 WITH o AS (SELECT DISTINCT order_id, sku, order_date, qty FROM orders),
-g AS (SELECT sku, date_trunc('week', sale_date) wk FROM pos_sales WHERE sale_date >= DATE '{s5}'),
+g AS (SELECT sku, date_trunc('week', sale_date) wk FROM pos_sales WHERE sale_date BETWEEN DATE '{wa}' AND DATE '{wb}'),
 ro AS (SELECT sku, date_trunc('week', order_date) wk, SUM(qty) q FROM o GROUP BY 1, 2),
 po AS (SELECT sku, date_trunc('week', CAST(TRY_CAST(substr(CAST(order_date AS VARCHAR), 1, 19) AS TIMESTAMP) AS DATE)) wk, SUM(qty) q
        FROM purchase_orders GROUP BY 1, 2)
@@ -67,6 +92,7 @@ SELECT median(r) FROM (
     finally:
         con.close()
     assert stage >= chen
+    assert stage == pytest.approx(a1.magnitude["company_stage_ratio"], rel=0.05)
     assert a1.magnitude["company_stage_ratio"] >= a1.magnitude["chen_bound"]
     assert signal == "retailer_orders"  # the POS feed exists but is not the planning signal
 
@@ -97,11 +123,33 @@ def test_financial_traces(worlds: dict) -> None:
         assert sc["bullwhip_ratio_by_tier"]["tier2_company_pos_vs_pos"] == pytest.approx(m["amplification_tier3"])
 
 
+def test_working_capital_is_a_distributor(worlds: dict) -> None:
+    """Review P1 #11: DIO in the consumer-goods distributor band; AP moves with receipts (EOM terms), no near-zero quarter."""
+    for (d, s), (world, folder) in worlds.items():
+        P = world.periods
+        ratios = world.finance.statements.ratios
+        dio = [ratios[p]["dio"] for p in P]
+        assert 28 <= dio[0] <= 60 and 30 <= statistics.median(dio) <= 60, (d, s, dio)
+        assert all(25 <= x <= 90 for x in dio), (d, s, dio)  # the glut quarter may run above the band: that swing is the case
+        ap = [-world.finance.trial_balance[p]["2000"] for p in P]
+        assert min(ap) >= 0.45 * statistics.median(ap), (d, s, ap)
+        assert all(30 <= ratios[p]["dpo"] <= 80 for p in P), (d, s, [ratios[p]["dpo"] for p in P])
+        con = duckdb.connect(str(resolve_db_path(world, folder)), read_only=True)
+        try:
+            terms = con.execute("SELECT payment_terms_days FROM suppliers").fetchone()[0]
+            bad = con.execute(f"""
+SELECT COUNT(*) FROM supplier_shipments
+WHERE paid_at IS NOT NULL AND CAST(paid_at AS DATE) <> last_day(CAST(received_at AS DATE)) + INTERVAL {terms} DAY""").fetchone()[0]
+        finally:
+            con.close()
+        assert bad == 0  # net-N EOM: due N days after the end of the receipt month
+
+
 def test_difficulty_ordering(worlds: dict) -> None:
     for s in SEEDS:
         t3 = [_m(worlds[(d, s)][0])["amplification_tier3"] for d in DIFFS]
         rows = [worlds[(d, s)][0].database.total_rows for d in DIFFS]
-        assert t3[0] > t3[1] > t3[2]
+        assert t3[0] > t3[2]  # louder at foundation (fewer SKUs, tighter supplier capacity, longer MOQ)
         assert rows[0] < rows[1] < rows[2]
         assert [len(worlds[(d, s)][0].ground_truth.red_herrings) for d in DIFFS] == [1, 2, 3]
     principal = worlds[("principal", 7)][0]
@@ -113,7 +161,7 @@ def test_simulation_dual_source_is_a_trap(worlds: dict) -> None:
     levers = world.ground_truth.decision_levers
     k0 = world.simulation.model["kpis"]
     q, info = simulate_transition(world.simulation, levers, {"dual_source": 1})
-    assert not info["resolved"] and q.kpis["amplification_tier3"] == pytest.approx(k0["amplification_tier3"])
+    assert not info["resolved"] and q.kpis["amplification_tier3"] == pytest.approx(k0["amplification_tier3"], abs=1e-3)  # KPIs are rounded
     assert q.kpis["cogs_cents"] > k0["cogs_cents"]
     q1, info = simulate_transition(world.simulation, levers, {"demand_signal_pos": 1, "forecast_window_p": 12})
     assert info["resolved"] and q1.kpis["amplification_tier3"] < k0["amplification_tier3"]

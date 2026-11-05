@@ -17,20 +17,27 @@ Mechanics: the amplification is generated endogenously by the ordering policies 
   is below 90%.
 * Tier 2 - the company: weekly review, moving average of *retailer orders* over ``p`` weeks
   (8 before P2, then the "responsive" ``p`` in {2,3,4}: 2 at foundation, 2-3 practitioner, 3-4
-  principal), order-up-to ``(L+1) D_hat + z sigma_hat sqrt(L+1)`` against on-hand + on-order, rounded
+  principal), order-up-to ``(L+1) D_hat + z sigma_hat sqrt(L+1) + B mu`` against on-hand + on-order (``B`` =
+  ``buffer_weeks`` in U(3, 4.5) of plan mean demand ``mu``: a constant, so it leaves the orders unchanged and puts DIO
+  in the 30-60 day band of a consumer-goods distributor), rounded
   up to the MOQ (0.5 week of demand before P4, then ``moq_weeks`` in U(2,4): 3.25-4 / 2.5-3.5 / 2-2.5). Retailer orders are filled from stock (proportional allocation),
   the shortfall is lost (stockout revenue loss).
 * Tier 3 - the supplier: lead time ``L`` weeks (stable distribution), weekly capacity
   ``cap_mult x`` mean demand per SKU; FIFO backlog; quantities that miss the first shipment are
   shipped later by air (expedited, 4x freight). Principal adds tier 4: the supplier's own
   production orders (MA(4) on our POs).
-* The generator **verifies** the realized median SKU variance ratios over P5-P8 (tier 2 =
-  Var(retailer orders)/Var(POS), tier 3 = Var(POs)/Var(POS)) against the difficulty band and re-draws
-  ``p`` / ``moq_weeks`` up to 5 times (closest attempt kept); the realized values are the ground truth,
-  and the company stage is checked against the Chen et al. bound ``1 + 2L/p + 2L^2/p^2``.
+* The generator **verifies** the realized bullwhip ratios over the 52 weeks from the first Monday of P5 (review
+  P0 #4: per SKU, units summed into 4-week order cycles, CV(series) / CV(POS), median SKU; tier 2 = retailer orders,
+  tier 3 = our POs; literature range 2-10x per tier, <= ~12x cumulative) against the difficulty band and the weekly
+  company stage var(POs)/var(retailer orders) against the Chen et al. bound ``1 + 2L/p + 2L^2/p^2``, re-drawing
+  ``p`` / ``moq_weeks`` / the forward-buy multiple (within U(1.5, 2.5)) up to 6 times (closest attempt kept); the
+  realized values are the ground truth. The per-SKU weekly variance ratio with zeros between MOQ lots (~100x) is kept
+  as a trap (red herring and secondary reference query), not as the ask.
 * GL: receipts Dr 1220/Cr 2000; shipments Dr 1100/Cr 4000 with promo allowances Dr 4110; COGS Dr
   5000/Cr 1220; inbound freight 5030 (air freight on backorders, source ``expedite``); warehousing
   2%/month of inventory value into 6400; P8 write-down Dr 5040/Cr 1230 on slow movers.
+  Supplier invoices are payable net 40/45 days after the end of the receipt month (EOM terms, DPO ~55-60), so AP
+  holds the last ~2 months of receipts and moves with them.
   Ties: AR (open invoices), AP (unpaid receipts), inventory (receipts - shipments at cost), revenue.
 
 Documented simplifications
@@ -107,10 +114,15 @@ from axiom.models import (
 logger = logging.getLogger("axiom.archetypes.bullwhip")
 
 CATEGORIES = ("Snacks", "Beverages", "Household", "Personal care", "Pet", "Paper goods")
-# Verification bands on the median SKU-level weekly variance ratios over P5-P8 (tier 2 = retailer orders / POS,
-# tier 3 = company POs / POS). The spec's [2, 6] / [4, 15] assume continuous order quantities; with its own MOQ of
-# 2-4 weeks of demand, PO clumping alone gives ~(m - 1) / CV_pos^2, so tier-3 bands are re-derived from the mechanism.
-BANDS = {"foundation": ((2.0, 20.0), (40.0, 170.0)), "practitioner": ((2.0, 16.0), (20.0, 110.0)), "principal": ((2.0, 14.0), (8.0, 70.0))}
+# Verification bands on the bullwhip ratios the case asks for (review P0 #4): per SKU, units summed into 4-week order
+# cycles (a cycle covers at least one MOQ lot, so the PO cadence does not count as variance), CV(series) / CV(POS)
+# (Fransoo & Wouters 2000), median over SKUs, over the 52 weeks from the first Monday of P5. Literature range: 2-10x per
+# tier, <= ~12x cumulative. Tier 2 = retailer orders vs POS, tier 3 = our POs vs POS. The per-SKU weekly variance ratio
+# with weeks without a PO counted as 0 (100x+ under a 2-4 week MOQ) is kept only as the "zeros inflate variance" trap.
+BANDS = {"foundation": ((2.0, 8.0), (6.0, 12.5)), "practitioner": ((2.0, 8.0), (4.5, 12.0)), "principal": ((2.0, 8.0), (4.0, 11.5))}
+CYCLE_WEEKS = 4  # order-cycle bucket (>= the largest MOQ, 4 weeks of demand)
+N_CYCLES = 13  # 52 weeks from the first Monday of P5
+FB_RANGE = (1.5, 2.5)  # spec range of the promo forward-buy multiple
 P_RANGE = {"foundation": (2, 2), "practitioner": (2, 3), "principal": (3, 4)}
 MOQ_RANGE = {"foundation": (3.25, 4.0), "practitioner": (2.5, 3.5), "principal": (2.0, 2.5)}
 P_OLD = 8
@@ -121,6 +133,21 @@ def _var_ratio(num: np.ndarray, den: np.ndarray) -> np.ndarray:
     """Per-row sample-variance ratio ``Var(num)/Var(den)`` (rows = SKUs)."""
     v = np.var(den, axis=1, ddof=1)
     return np.var(num, axis=1, ddof=1) / np.where(v > 0, v, np.nan)
+
+
+def _cv_rows(x: np.ndarray) -> np.ndarray:
+    """Per-row coefficient of variation (sample std / mean; NaN for a zero mean)."""
+    m = x.mean(axis=1)
+    return np.std(x, axis=1, ddof=1) / np.where(m > 0, m, np.nan)
+
+
+def _cycles(x: np.ndarray) -> np.ndarray:
+    """Sum a ``(SKU, week)`` block of ``N_CYCLES * CYCLE_WEEKS`` weeks into 4-week order cycles."""
+    return x[:, : N_CYCLES * CYCLE_WEEKS].reshape(x.shape[0], N_CYCLES, CYCLE_WEEKS).sum(axis=2)
+
+
+def _cv(x: np.ndarray) -> float:
+    return float(np.std(x, ddof=1) / x.mean()) if x.mean() > 0 else float("nan")
 
 
 @register
@@ -178,10 +205,14 @@ class Bullwhip(Archetype):
             "air_freight_mult": 4.0,
             "freight_pct": float(rng.uniform(0.012, 0.02)),
             "terms_days": int(rng.choice((30, 45))),
-            "supplier_terms_days": int(rng.choice((30, 45))),
+            "supplier_terms_days": int(rng.choice((40, 45))),  # net days after the end of the receipt month (EOM terms: DPO ~55-60)
             "op_margin": float(rng.uniform(0.03, 0.06)),
             "tax_rate": 0.23,
             "interest_rate": float(rng.uniform(0.07, 0.10)),
+            # review P1 #11: a consumer-goods distributor holds 30-60 days of stock. Planners keep a fixed buffer of
+            # ``buffer_weeks`` x plan mean weekly demand on top of the order-up-to level; a constant shift of S leaves
+            # the orders (and every amplification ratio / the Chen bound) unchanged.
+            "buffer_weeks": float(rng.uniform(3.0, 4.5)),
             "factory_tier": difficulty == "principal",
             "n_red_herrings": difficulty_pick(difficulty, 1, 2, 3),
             "band_t2": BANDS[difficulty][0],
@@ -250,7 +281,8 @@ class Bullwhip(Archetype):
         r_cover = (1 + k_r)[:, None]
         r_inv = np.round(mu_rs * (r_cover + zr * 0.3)).astype(float)
         r_pipe = np.zeros((R, S))
-        c_inv = np.round(mu_s * (L + 1 + p["z"] * 0.5)).astype(float)
+        buffer = p["buffer_weeks"] * mu_s  # fixed planned buffer (plan mean demand, not the forecast)
+        c_inv = np.round(mu_s * (L + 1 + p["z"] * 0.5) + buffer).astype(float)
         c_inv0 = c_inv.copy()
         arrivals = np.zeros((S, n_w + L + 30))
         backlog = np.zeros(S)
@@ -308,7 +340,7 @@ class Bullwhip(Archetype):
             sh_ = sig_hist[:, lo: t + 1]
             dc = sh_.mean(axis=1) if t >= 1 else mu_s
             sdc = sh_.std(axis=1, ddof=1) if t - lo >= 1 else 0.2 * mu_s
-            s_c = (L + 1) * dc + p["z"] * sdc * math.sqrt(L + 1)
+            s_c = (L + 1) * dc + p["z"] * sdc * math.sqrt(L + 1) + buffer
             q = s_c - (c_inv + on_order)
             moq = np.maximum(1.0, mw * mu_s)
             q = np.where(q > 0, np.ceil(q / moq) * moq, 0.0)
@@ -329,21 +361,33 @@ class Bullwhip(Archetype):
         return {"orders": orders, "shipped": shipped, "po": po, "ontime": sup_ship_ontime, "back": sup_ship_back, "receipts": receipts,
                 "inv_end": inv_end, "onord_end": onord_end, "fill": fill_hist, "c_inv0": c_inv0, "arrivals": arrivals, "backlog_end": backlog}
 
-    def _ratios(self, state: WorldState, sim: dict[str, Any], w0: int) -> dict[str, float]:
+    def _ratios(self, state: WorldState, sim: dict[str, Any], w5: int) -> dict[str, Any]:
+        """Bullwhip ratios over the 52 weeks from the first Monday of P5.
+
+        ``t2`` / ``t3`` (the asks): per SKU, units summed into 4-week order cycles, CV(retailer orders or POs) / CV(POS),
+        median over SKUs. ``stage``: per-SKU weekly var(POs) / var(retailer orders), a week without a PO being an order of
+        0 (Chen et al.'s review-period model, compared with their lower bound). ``t2w`` / ``t3w``: per-SKU weekly variance
+        ratios vs POS with zero-PO weeks - the "zeros inflate variance" trap (MOQ cadence, not amplification).
+        """
         E = state.extras
-        pos_s = E["pos"].sum(axis=0)[:, w0:].astype(float)
-        ro = sim["orders"].sum(axis=0)[:, w0:]
-        po = sim["po"][:, w0:]
-        t2 = _var_ratio(ro, pos_s)
-        t3 = _var_ratio(po, pos_s)
+        wN = w5 + N_CYCLES * CYCLE_WEEKS
+        pos_s = E["pos"].sum(axis=0)[:, w5:wN].astype(float)
+        ro = sim["orders"].sum(axis=0)[:, w5:wN]
+        po = sim["po"][:, w5:wN]
+        cv_pos, cv_ro, cv_po = _cv_rows(_cycles(pos_s)), _cv_rows(_cycles(ro)), _cv_rows(_cycles(po))
+        t2, t3 = cv_ro / cv_pos, cv_po / cv_pos
         stage = _var_ratio(po, ro)
         return {"t2": float(np.nanmedian(t2)), "t3": float(np.nanmedian(t3)), "stage": float(np.nanmedian(stage)),
-                "t2_by_sku": t2, "t3_by_sku": t3}
+                "stage_cv": float(np.nanmedian(cv_po / cv_ro)), "t2w": float(np.nanmedian(_var_ratio(ro, pos_s))),
+                "t3w": float(np.nanmedian(_var_ratio(po, pos_s))), "t2_by_sku": t2, "t3_by_sku": t3,
+                "cv_cycle_pos": float(np.nanmedian(cv_pos)), "cv_cycle_ro": float(np.nanmedian(cv_ro)), "cv_cycle_po": float(np.nanmedian(cv_po)),
+                "cv_week_pos": _cv(pos_s.sum(axis=0)), "cv_week_ro": _cv(ro.sum(axis=0)), "cv_week_po": _cv(po.sum(axis=0))}
 
     # ------------------------------------------------------------------ anomalies
 
     def inject_anomalies(self, ctx: BuildContext, state: WorldState) -> list[Anomaly]:
-        """Run the chain with the company policy; verify the amplification band (re-draw p / MOQ up to 5 times)."""
+        """Run the chain with the company policy; verify the amplification bands and the Chen bound (re-draw p / MOQ /
+        the forward-buy multiple up to 6 times, closest attempt kept)."""
         p, E = state.params, state.extras
         rng = ctx.rng.spawn("anomaly")
         P = state.periods
@@ -353,30 +397,35 @@ class Bullwhip(Archetype):
         lo3, hi3 = p["band_t3"]
         best = None
         attempts = []
-        pw, moq = p["forecast_window_p"], p["moq_weeks"]
-        for k in range(5):
+        pw, moq, fb = p["forecast_window_p"], p["moq_weeks"], p["forward_buy_mult"]
+        for k in range(6):
             g = rng.spawn(f"sim:{k}").generator
+            p["forward_buy_mult"] = fb
             sim = self._simulate(state, g, p_window=pw, moq_weeks=moq)
             r = self._ratios(state, sim, w5)
             chen = chen_bullwhip_bound(p["lead_weeks"] + 1, pw)
             miss = (max(0.0, lo3 - r["t3"]) / lo3 + max(0.0, r["t3"] - hi3) / hi3 + max(0.0, lo2 - r["t2"]) / lo2 + max(0.0, r["t2"] - hi2) / hi2
                     + max(0.0, chen - r["stage"]) / chen)  # the company stage must respect the Chen et al. lower bound
-            attempts.append({"p": pw, "moq_weeks": round(moq, 3), "t2": round(r["t2"], 3), "t3": round(r["t3"], 3), "miss": round(miss, 4)})
+            attempts.append({"p": pw, "moq_weeks": round(moq, 3), "forward_buy_mult": round(fb, 3), "t2": round(r["t2"], 3), "t3": round(r["t3"], 3),
+                             "stage": round(r["stage"], 3), "miss": round(miss, 4)})
             if best is None or miss < best[0]:
-                best = (miss, pw, moq, sim, r)
+                best = (miss, pw, moq, fb, sim, r)
             if miss == 0:
                 break
-            # re-draw within the difficulty's range, nudged towards the band
+            # re-draw within the difficulty's range: p / MOQ steer the company stage (Chen), the forward-buy multiple the
+            # cycle-level amplification (the promotion is the largest common shock in the window)
             plo, phi = P_RANGE[p["difficulty"]]
             mlo, mhi = MOQ_RANGE[p["difficulty"]]
             step = float(rng.spawn(f"redraw:{k}").uniform(0.15, 0.4))
-            if r["t3"] < lo3 or r["stage"] < chen:
+            if r["stage"] < chen:
                 pw, moq = int(max(plo, pw - 1)), float(min(mhi, moq + step))
-            else:
-                pw, moq = int(min(phi, pw + 1)), float(max(mlo, moq - step))
+            if r["t3"] > hi3 or r["t2"] > hi2:
+                fb = float(max(FB_RANGE[0], fb * (1 - step / 2)))
+            elif r["t3"] < lo3 or r["t2"] < lo2:
+                fb = float(min(FB_RANGE[1], fb * (1 + step / 2)))
         assert best is not None
-        _, pw, moq, sim, r = best
-        p["forecast_window_p"], p["moq_weeks"] = pw, moq
+        _, pw, moq, fb, sim, r = best
+        p["forecast_window_p"], p["moq_weeks"], p["forward_buy_mult"] = pw, moq, fb
         E["sim"], E["ratios"], E["attempts"] = sim, r, attempts
         L = p["lead_weeks"]
         chen = chen_bullwhip_bound(L + 1, pw)
@@ -384,12 +433,14 @@ class Bullwhip(Archetype):
         return [
             Anomaly(id="A1", kind="bullwhip_amplification", pillar="operations_strategy", title="Order variance amplified up the chain",
                     mechanism=(f"From {P[1]} the company forecasts retailer orders (not POS) with a {pw}-week moving average and orders up to "
-                               f"(L+1) x forecast + z x sigma (L = {L} weeks); from {P[3]} POs are rounded to a {moq:.1f}-week MOQ. Realized median "
-                               f"variance ratios over {P[4]}-{P[7]}: retailer orders / POS {r['t2']:.2f}, POs / POS {r['t3']:.2f} "
-                               f"(company stage {r['stage']:.2f} vs Chen bound {chen:.2f})."),
+                               f"(L+1) x forecast + z x sigma (L = {L} weeks); from {P[3]} POs are rounded to a {moq:.1f}-week MOQ. Bullwhip ratios "
+                               f"(per SKU, 4-week order cycles, CV vs POS CV, median SKU) over {P[4]}-{P[7]}: retailer orders {r['t2']:.2f}x, our POs "
+                               f"{r['t3']:.2f}x; our weekly ordering stage amplifies variance {r['stage']:.2f}x vs the Chen bound {chen:.2f}."),
                     periods=list(P[1:]), affected_accounts=["1220", "2000"], affected_tables=["purchase_orders", "orders", "pos_sales", "forecast_config"],
                     magnitude={"amplification_tier2": round(r["t2"], 6), "amplification_tier3": round(r["t3"], 6), "forecast_window_p": float(pw),
-                               "moq_weeks": round(moq, 6), "chen_bound": round(chen, 6), "company_stage_ratio": round(r["stage"], 6)}, severity="high"),
+                               "moq_weeks": round(moq, 6), "chen_bound": round(chen, 6), "company_stage_ratio": round(r["stage"], 6),
+                               "company_stage_cv_ratio": round(r["stage_cv"], 6),
+                               "weekly_zero_filled_var_ratio_tier3": round(r["t3w"], 6)}, severity="high"),
             Anomaly(id="A2", kind="promo_forward_buy", pillar="operations_strategy", title="Promotion forward-buy and trough",
                     mechanism=(f"The {P[5]} promotion (-15% for 4 weeks) made retailers forward-buy x{p['forward_buy_mult']:.2f}; POS moved only "
                                "+10% and gave it back over the next 8 weeks; the company chased the spike with its short forecast window."),
@@ -498,7 +549,10 @@ class Bullwhip(Archetype):
         ss["freight_cents"] = np.round(value * p["freight_pct"] * np.where(ss["expedited"] == 1, p["air_freight_mult"], 1.0)).astype(np.int64)
         lead_days = (ss["received_at"] - pd.to_datetime(pos_df.set_index("po_id")["order_date"].reindex(ss["po_id"]).to_numpy())).dt.total_seconds() / 86400
         ss["lead_time_days"] = np.round(lead_days.to_numpy(), 2)
-        ss["paid_at"] = (ss["received_at"].dt.normalize() + pd.Timedelta(days=p["supplier_terms_days"]) + pd.Timedelta(hours=10))
+        # EOM terms (review P1 #11): the supplier invoices on receipt, payable net ``supplier_terms_days`` after the end of the
+        # receipt month, so quarter-end AP holds the last ~1-2 months of receipts and moves with them (DPO ~45-60 days)
+        rec_month_end = ss["received_at"].dt.to_period("M").dt.end_time.dt.normalize()
+        ss["paid_at"] = rec_month_end + pd.Timedelta(days=p["supplier_terms_days"]) + pd.Timedelta(hours=10)
         ss.loc[ss["paid_at"] > end_ts, "paid_at"] = pd.NaT
         ss = ss[ss["ship_date"] <= end_ts].reset_index(drop=True)
         # POS feed (aggregated per SKU-week) and inventory snapshots
@@ -574,7 +628,7 @@ class Bullwhip(Archetype):
         uc = E["unit_cost"]
         inv0 = int((E["sim"]["c_inv0"] * uc).sum())
         ar0 = cents(R / 12 * p["terms_days"] / 30.4)
-        ap0 = cents(R * (1 - p["gm"]) / 12 * p["supplier_terms_days"] / 30.4)
+        ap0 = cents(R * (1 - p["gm"]) / 12 * (p["supplier_terms_days"] + 15) / 30.4)  # EOM terms: ~15 days + net days
         ppe = cents(R * 0.04)
         cash0 = cents(R * 0.05)
         debt = cents(R * 0.08 / 100_000) * 100_000
@@ -589,8 +643,9 @@ class Bullwhip(Archetype):
 
         for k, a in enumerate(split_cents(ar0, [0.5, 0.35, 0.15])):
             add(cal.start + dt.timedelta(days=12 + 14 * k), 4, lambda d, a=a: L.collect_cash(d, a, memo="Collection of opening receivables"))
-        for k, a in enumerate(split_cents(ap0, [0.6, 0.4])):
-            add(cal.start + dt.timedelta(days=10 + 15 * k), 5, lambda d, a=a: L.pay_ap(d, a, memo="Opening payables paid"))
+        for k, a in enumerate(split_cents(ap0, [0.4, 0.35, 0.25])):
+            day = int(round(10 + k * p["supplier_terms_days"] / 2))
+            add(cal.start + dt.timedelta(days=day), 5, lambda d, a=a: L.pay_ap(d, a, memo="Opening payables paid"))
         ss = state.frames["supplier_shipments"]
         rec = ss[ss["received_at"].notna()]
         rb = rec.assign(b=batch_end_dates(rec["received_at"], gran)).groupby("b", sort=True).agg(v=("value_cents", "sum"), n=("shipment_id", "size"))
@@ -623,7 +678,9 @@ class Bullwhip(Archetype):
         # warehousing (2%/month of month-end inventory value), opex, payroll, depreciation, interest, tax
         snaps = state.frames["inventory_snapshots"]
         sv = snaps.assign(v=snaps["on_hand_units"] * snaps["unit_cost_cents"], mo=snaps["snapshot_date"].dt.strftime("%Y-%m")).groupby("mo")["v"].mean()
-        opex_base = cents(R / 12 * max(0.05, p["gm"] - p["op_margin"] - 0.03))
+        # 3% of revenue for freight / baseline warehousing, plus the carrying cost (24%/yr) of the planned buffer stock
+        hold_buffer = 12 * p["holding_pct_month"] * (1 - p["gm"]) * 7 * p["buffer_weeks"] / 365
+        opex_base = cents(R / 12 * max(0.05, p["gm"] - p["op_margin"] - 0.03 - hold_buffer))
         nz = self.period_noise(ctx, state)  # review C2: seasonal + idiosyncratic quarter noise
         P8 = state.periods[-1]
         p8_end = cal.bounds(P8)[1]
@@ -715,7 +772,9 @@ class Bullwhip(Archetype):
                           description="Retail chains (tier 1) we supply.")
         builder.add_frame("suppliers", pd.DataFrame([{"supplier_id": "V001", "name": ctx.rng.spawn("supplier").company_name("manufacturing"),
                                                        "country": "US", "lead_time_days_quoted": 7 * p["lead_weeks"],
-                                                       "payment_terms_days": p["supplier_terms_days"], "deposit_pct": 0.0}]), primary_key=["supplier_id"])
+                                                       "payment_terms_days": p["supplier_terms_days"],
+                                                       "payment_terms": f"net {p['supplier_terms_days']} EOM", "deposit_pct": 0.0}]),
+                          primary_key=["supplier_id"], descriptions={"payment_terms_days": "days after the end of the receipt month"})
         builder.add_frame("pos_sales", F["pos_sales"], primary_key=["pos_id"], foreign_keys=[("product_id", "products", "product_id")],
                           column_types={**ints, "pos_id": "BIGINT", "sale_date": "DATE"},
                           descriptions={"sale_date": "week (Monday) of consumer sell-through", "qty": "units sold to consumers across all reporting stores"},
@@ -786,16 +845,15 @@ class Bullwhip(Archetype):
         weeks = E["weeks"]
         pos_s = E["pos"].sum(axis=0).astype(float)
         ro = sim["orders"].sum(axis=0)
-        po = sim["po"]
-
-        def cv(x: np.ndarray) -> float:
-            m = x.mean(axis=1)
-            return float(np.nanmedian(x.std(axis=1, ddof=1) / np.where(m > 0, m, np.nan)))
-
-        f: dict[str, Any] = {"cv_pos": cv(pos_s[:, w5:]), "cv_ro": cv(ro[:, w5:]), "cv_po": cv(po[:, w5:])}
-        f.update({"t2": E["ratios"]["t2"], "t3": E["ratios"]["t3"], "stage": E["ratios"]["stage"], "chen": E["chen"]})
+        rr = E["ratios"]
+        # company-level weekly totals (the natural first query) and the per-SKU order-cycle bullwhip ratios (the asks)
+        f: dict[str, Any] = {"cv_pos": rr["cv_week_pos"], "cv_ro": rr["cv_week_ro"], "cv_po": rr["cv_week_po"]}
+        f.update({k: rr[k] for k in ("t2", "t3", "stage", "stage_cv", "t2w", "t3w", "cv_cycle_pos", "cv_cycle_ro", "cv_cycle_po")})
+        f["chen"] = E["chen"]
+        wN = w5 + N_CYCLES * CYCLE_WEEKS
+        f["window"] = (weeks[w5].date(), (weeks[w5] + pd.Timedelta(weeks=N_CYCLES * CYCLE_WEEKS - 1)).date())
         if p["factory_tier"]:
-            f["t4"] = float(np.nanmedian(_var_ratio(E["factory"][:, w5:], pos_s[:, w5:])))
+            f["t4"] = float(np.nanmedian(_cv_rows(_cycles(E["factory"][:, w5:wN])) / _cv_rows(_cycles(pos_s[:, w5:wN]))))
         pw0 = E["promo_w0"]
         base = ro[:, pw0 - 8: pw0].sum(axis=0).mean()
         f["forward_buy_multiple"] = float(ro[:, pw0: pw0 + 4].sum(axis=0).mean() / base) if base else 0.0
@@ -851,14 +909,20 @@ class Bullwhip(Archetype):
             "lead_time_dist": {"supplier_mean_days": float(ont.mean()), "supplier_sd_days": float(ont.std(ddof=1)),
                                "p10_days": float(ont.quantile(0.1)), "p90_days": float(ont.quantile(0.9)), "by_quarter_mean_days": f["lead_by_quarter"],
                                "retailer_lead_weeks": 1, "air_freight_weeks": 1},
-            "order_up_to": {"formula": "S = (L+1) * MA_p(retailer orders) + z * sigma * sqrt(L+1)", "L_weeks": L, "p_weeks": p["forecast_window_p"],
-                            "z": p["z"], "moq_weeks": p["moq_weeks"], "top_sku_S_units": float((L + 1) * mu_s[top] + p["z"] * sd_top * math.sqrt(L + 1))},
+            "order_up_to": {"formula": "S = (L+1) * MA_p(retailer orders) + z * sigma * sqrt(L+1) + buffer_weeks * plan weekly demand",
+                            "L_weeks": L, "p_weeks": p["forecast_window_p"], "z": p["z"], "moq_weeks": p["moq_weeks"], "buffer_weeks": p["buffer_weeks"],
+                            "top_sku_S_units": float((L + 1 + p["buffer_weeks"]) * mu_s[top] + p["z"] * sd_top * math.sqrt(L + 1))},
             "safety_stock_top_sku_units": safety_stock(p["z"], sd_top, L + 1),
             "eoq_top_sku_units": eoq(float(mu_s[top]) * 52, 25_000, max(1.0, float(E["unit_cost"][top]) * 0.24)),
-            "bullwhip_ratio_by_tier": {"tier1_retailer_orders_vs_pos": f["t2"], "tier2_company_pos_vs_pos": f["t3"], "company_stage_pos_vs_orders": f["stage"],
+            "bullwhip_ratio_by_tier": {"tier1_retailer_orders_vs_pos": f["t2"], "tier2_company_pos_vs_pos": f["t3"], "company_stage_pos_vs_orders": f["stage_cv"],
                                        **({"tier3_supplier_production_vs_pos": f["t4"]} if "t4" in f else {})},
+            "bullwhip_ratio_definition": (f"per SKU, units summed into {CYCLE_WEEKS}-week order cycles over the {N_CYCLES * CYCLE_WEEKS} weeks "
+                                          f"{f['window'][0]}..{f['window'][1]}; CV(series) / CV(POS); median over SKUs"),
+            "company_stage_weekly_variance_ratio": f["stage"],
             "chen_lower_bound_company_stage": f["chen"],
+            "per_sku_weekly_variance_ratio_zero_filled": {"retailer_orders_vs_pos": f["t2w"], "purchase_orders_vs_pos": f["t3w"]},
             "cv_weekly": {"pos": f["cv_pos"], "retailer_orders": f["cv_ro"], "purchase_orders": f["cv_po"]},
+            "cv_order_cycle_median_sku": {"pos": f["cv_cycle_pos"], "retailer_orders": f["cv_cycle_ro"], "purchase_orders": f["cv_cycle_po"]},
             "fill_rate_by_quarter": f["fill_by_quarter"], "supplier_on_time_fill_by_quarter": f["supplier_fill_by_quarter"],
         }
         od = state.frames["orders"]
@@ -897,27 +961,41 @@ class Bullwhip(Archetype):
 
     def build_ground_truth(self, ctx: BuildContext, state: WorldState, con: duckdb.DuckDBPyConnection) -> GroundTruth:
         """Section 7 key table from the simulated chain and the books; reference SQL on the dirty DuckDB."""
-        p, cal = state.params, state.calendar
+        p = state.params
         f = self._facts(state)
         P = state.periods
         P5, P6, P7, P8 = P[4], P[5], P[6], P[7]
-        s5 = cal.bounds(P5)[0]
         L = p["lead_weeks"]
         pw = p["forecast_window_p"]
+        wa, wb = f["window"]
+        span = f"the {N_CYCLES * CYCLE_WEEKS} weeks starting {wa} (the first Monday of {P5}) through the week of {wb}"
+        cyc = (f"per SKU, sum units into {CYCLE_WEEKS}-week order cycles counted from {wa} ({N_CYCLES} cycles; a cycle covers at least one "
+               f"MOQ lot, so the weekly PO cadence is not counted as variance), take CV = std/mean of the cycle totals")
         metrics = [
-            metric("cv_pos_demand", f["cv_pos"], "ratio", f"Median over SKUs of std/mean of weekly POS units, {P5}-{P8}.", pillar="operations_strategy",
-                   tol_abs=0.05, label="CV of weekly POS demand", hint="Consumer demand at the shelf (pos_sales)."),
-            metric("cv_retailer_orders", f["cv_ro"], "ratio", f"Median over SKUs of std/mean of weekly retailer order units, {P5}-{P8}.",
-                   pillar="operations_strategy", tol_abs=0.05, label="CV of weekly retailer orders", hint="orders.qty by SKU-week."),
-            metric("cv_company_po", f["cv_po"], "ratio", f"Median over SKUs of std/mean of weekly purchase-order units (0 in weeks without a PO), {P5}-{P8}.",
-                   pillar="operations_strategy", tol_abs=0.05, label="CV of weekly purchase orders", hint="Fill weeks without a PO with zero."),
-            metric("amplification_tier2", f["t2"], "x", f"Median over SKUs of var(weekly retailer orders) / var(weekly POS), {P5}-{P8}.",
-                   pillar="operations_strategy", tol_rel=0.15, label="Variance amplification: retailer orders vs POS", hint="Bullwhip ratio, tier 1."),
-            metric("amplification_tier3", f["t3"], "x", f"Median over SKUs of var(weekly POs) / var(weekly POS), {P5}-{P8} (weeks without POs = 0).",
-                   pillar="operations_strategy", tol_rel=0.15, label="Variance amplification: our POs vs POS", hint="Bullwhip ratio, up to our supplier."),
+            metric("cv_pos_demand", f["cv_pos"], "ratio", f"std/mean of company-level weekly POS units (pos_sales summed over SKUs) over {span}.",
+                   pillar="operations_strategy", tol_abs=0.02, label="CV of weekly POS demand (all SKUs)",
+                   hint="Sum pos_sales.qty by week across all SKUs; consumer demand at the shelf."),
+            metric("cv_retailer_orders", f["cv_ro"], "ratio", f"std/mean of company-level weekly retailer order units (orders.qty summed over SKUs) over {span}.",
+                   pillar="operations_strategy", tol_abs=0.04, label="CV of weekly retailer orders (all SKUs)", hint="Sum orders.qty by order week."),
+            metric("cv_company_po", f["cv_po"], "ratio",
+                   f"std/mean of company-level weekly purchase-order units (purchase_orders.qty summed over SKUs by order week) over {span}; "
+                   "a week with no PO at all counts as 0.", pillar="operations_strategy", tol_abs=0.06, label="CV of weekly purchase orders (all SKUs)",
+                   hint="Sum purchase_orders.qty by order week across all SKUs."),
+            metric("amplification_tier2", f["t2"], "x",
+                   f"Bullwhip ratio, retailer orders vs POS: {cyc} of retailer orders and of POS, ratio CV(orders) / CV(POS), median over SKUs "
+                   f"(median SKU cycle CVs: POS {f['cv_cycle_pos']:.3f}, retailer orders {f['cv_cycle_ro']:.3f}).",
+                   pillar="operations_strategy", tol_rel=0.15, label="Bullwhip ratio: retailer orders vs POS",
+                   hint=f"Per SKU, {CYCLE_WEEKS}-week order-cycle totals; CV(retailer orders) / CV(POS); median SKU."),
+            metric("amplification_tier3", f["t3"], "x",
+                   f"Bullwhip ratio, our POs vs POS: {cyc} of purchase orders (0 for a cycle without a PO) and of POS, ratio CV(POs) / CV(POS), median "
+                   f"over SKUs (median SKU cycle CV of POs {f['cv_cycle_po']:.3f}). Weekly per-SKU PO series with zeros in the weeks between MOQ lots "
+                   f"give a variance ratio of ~{f['t3w']:.0f}x: that measures the ordering cadence, not amplification.",
+                   pillar="operations_strategy", tol_rel=0.15, label="Bullwhip ratio: our POs vs POS",
+                   hint=f"Per SKU, {CYCLE_WEEKS}-week order-cycle totals (not weeks with zeros between MOQ lots); CV(POs) / CV(POS); median SKU."),
             metric("chen_lower_bound_tier2", f["chen"], "x",
                    f"Chen et al. (2000) bound for our ordering stage: 1 + 2L/p + 2L^2/p^2 with L = lead time + review = {L + 1} weeks, p = {pw} weeks. "
-                   f"Realized var(POs)/var(retailer orders) = {f['stage']:.2f} (MOQ and capacity push it above the bound).",
+                   f"It bounds the review-period (weekly) order variance, where a week without a PO is an order of 0: realized median SKU "
+                   f"var(weekly POs) / var(weekly retailer orders) = {f['stage']:.2f} over {span} (MOQ and capacity push it above the bound).",
                    pillar="python", tol_rel=0.05, label="Chen lower bound for our ordering stage", hint="Moving-average forecast + order-up-to."),
             metric("forecast_window_p", float(pw), "weeks", f"forecast_config.forecast_window_weeks in force since {P[1]}.", pillar="sql", tol_abs=0.0,
                    label="Forecast window (weeks)", hint="Planning parameters table."),
@@ -945,19 +1023,59 @@ class Bullwhip(Archetype):
                    else "CAST(order_date AS DATE)")
         sql_amp = f"""
 WITH o AS ({dedupe}),
-grid AS (SELECT sku, date_trunc('week', sale_date) AS wk, SUM(qty) AS pos FROM pos_sales WHERE sale_date >= DATE '{s5}' GROUP BY 1, 2),
+pos AS (SELECT sku, date_trunc('week', sale_date) AS wk, SUM(qty) AS q FROM pos_sales GROUP BY 1, 2),
+ro AS (SELECT sku, date_trunc('week', order_date) AS wk, SUM(qty) AS q FROM o GROUP BY 1, 2),
+po AS (SELECT sku, date_trunc('week', {po_date}) AS wk, SUM(qty) AS q FROM purchase_orders GROUP BY 1, 2),
+w AS (
+  SELECT sku, CAST(floor(date_diff('day', DATE '{wa}', CAST(wk AS DATE)) / {7 * CYCLE_WEEKS}) AS INTEGER) AS order_cycle,
+         pos.q AS pos, COALESCE(ro.q, 0) AS ro, COALESCE(po.q, 0) AS po
+  FROM pos LEFT JOIN ro USING (sku, wk) LEFT JOIN po USING (sku, wk)
+  WHERE wk BETWEEN DATE '{wa}' AND DATE '{wb}'),
+c AS (SELECT sku, order_cycle, SUM(pos) AS pos, SUM(ro) AS ro, SUM(po) AS po FROM w GROUP BY 1, 2)
+SELECT sku, COUNT(*) AS cycles, stddev_samp(pos) / AVG(pos) AS cv_pos, stddev_samp(ro) / AVG(ro) AS cv_ro, stddev_samp(po) / AVG(po) AS cv_po,
+       (stddev_samp(ro) / AVG(ro)) / (stddev_samp(pos) / AVG(pos)) AS bullwhip_t2,
+       (stddev_samp(po) / AVG(po)) / (stddev_samp(pos) / AVG(pos)) AS bullwhip_t3
+FROM c GROUP BY 1 ORDER BY bullwhip_t3 DESC, sku"""
+        q_amp = run_reference_query(con, "bullwhip_ratio_by_sku_order_cycle", sql_amp,
+                                    signature=["with", "left join", "group by", "date_diff(", "coalesce("],
+                                    metric_keys=["amplification_tier2", "amplification_tier3"],
+                                    checks=lambda df: {"median_amp_t2": float(df["bullwhip_t2"].median()), "median_amp_t3": float(df["bullwhip_t3"].median()),
+                                                       "median_cv_pos": float(df["cv_pos"].median()), "cycles": int(df["cycles"].max())})
+        sql_cv = f"""
+WITH o AS ({dedupe}),
+s AS (SELECT date_trunc('week', sale_date) AS wk, SUM(qty) AS pos FROM pos_sales GROUP BY 1),
+r AS (SELECT date_trunc('week', order_date) AS wk, SUM(qty) AS ro FROM o GROUP BY 1),
+b AS (SELECT date_trunc('week', {po_date}) AS wk, SUM(qty) AS po FROM purchase_orders GROUP BY 1),
+w AS (
+  SELECT wk, s.pos, COALESCE(r.ro, 0) AS ro, COALESCE(b.po, 0) AS po
+  FROM s LEFT JOIN r USING (wk) LEFT JOIN b USING (wk)
+  WHERE wk BETWEEN DATE '{wa}' AND DATE '{wb}')
+SELECT COUNT(*) AS weeks, AVG(pos) AS avg_pos, AVG(ro) AS avg_ro, AVG(po) AS avg_po,
+       stddev_samp(pos) / AVG(pos) AS cv_pos, stddev_samp(ro) / AVG(ro) AS cv_ro, stddev_samp(po) / AVG(po) AS cv_po
+FROM w"""
+        q_cv = run_reference_query(con, "weekly_cv_company_level", sql_cv, signature=["with", "left join", "group by", "coalesce(", "avg("],
+                                   metric_keys=["cv_pos_demand", "cv_retailer_orders", "cv_company_po"],
+                                   checks=lambda df: {"cv_pos": float(df["cv_pos"].iloc[0]), "cv_ro": float(df["cv_ro"].iloc[0]),
+                                                      "cv_po": float(df["cv_po"].iloc[0]), "weeks": int(df["weeks"].iloc[0])})
+        # secondary reference (the trap, not an ask): per-SKU weekly series with zeros between MOQ lots
+        sql_trap = f"""
+WITH o AS ({dedupe}),
+grid AS (SELECT sku, date_trunc('week', sale_date) AS wk, SUM(qty) AS pos FROM pos_sales GROUP BY 1, 2),
 ro AS (SELECT sku, date_trunc('week', order_date) AS wk, SUM(qty) AS ro FROM o GROUP BY 1, 2),
 po AS (SELECT sku, date_trunc('week', {po_date}) AS wk, SUM(qty) AS po FROM purchase_orders GROUP BY 1, 2),
 w AS (
-  SELECT g.sku, g.wk, g.pos, COALESCE(ro.ro, 0) AS ro, COALESCE(po.po, 0) AS po
-  FROM grid g LEFT JOIN ro USING (sku, wk) LEFT JOIN po USING (sku, wk))
-SELECT sku, var_samp(ro) / var_samp(pos) AS amp_t2, var_samp(po) / var_samp(pos) AS amp_t3,
-       stddev_samp(pos) / AVG(pos) AS cv_pos, stddev_samp(ro) / AVG(ro) AS cv_ro, stddev_samp(po) / AVG(po) AS cv_po
-FROM w GROUP BY 1 HAVING COUNT(*) > 40 ORDER BY amp_t3 DESC, sku"""
-        q_amp = run_reference_query(con, "variance_amplification_by_sku", sql_amp, signature=["with", "left join", "group by", "having", "coalesce("],
-                                    metric_keys=["amplification_tier2", "amplification_tier3", "cv_pos_demand", "cv_retailer_orders", "cv_company_po"],
-                                    checks=lambda df: {"median_amp_t2": float(df["amp_t2"].median()), "median_amp_t3": float(df["amp_t3"].median()),
-                                                       "median_cv_pos": float(df["cv_pos"].median())})
+  SELECT sku, wk, grid.pos, COALESCE(ro.ro, 0) AS ro, COALESCE(po.po, 0) AS po
+  FROM grid LEFT JOIN ro USING (sku, wk) LEFT JOIN po USING (sku, wk)
+  WHERE wk BETWEEN DATE '{wa}' AND DATE '{wb}')
+SELECT sku, AVG(CASE WHEN po = 0 THEN 1.0 ELSE 0.0 END) AS share_weeks_without_po,
+       var_samp(ro) / var_samp(pos) AS weekly_var_ratio_t2, var_samp(po) / var_samp(pos) AS weekly_var_ratio_t3,
+       var_samp(po) / var_samp(ro) AS weekly_var_ratio_stage
+FROM w GROUP BY 1 ORDER BY weekly_var_ratio_t3 DESC, sku"""
+        q_trap = run_reference_query(con, "weekly_zero_filled_variance_trap", sql_trap, signature=["with", "left join", "group by", "case when", "coalesce("],
+                                     metric_keys=["chen_lower_bound_tier2"],
+                                     checks=lambda df: {"median_weekly_var_ratio_t3": float(df["weekly_var_ratio_t3"].median()),
+                                                        "median_weekly_var_ratio_stage": float(df["weekly_var_ratio_stage"].median()),
+                                                        "median_share_weeks_without_po": float(df["share_weeks_without_po"].median())})
         sql_cfg = f"""
 SELECT c.effective_from, c.demand_signal, c.forecast_window_weeks, c.moq_weeks_of_demand, c.safety_z,
        COUNT(p.po_id) AS purchase_orders, AVG(p.qty) AS avg_po_qty
@@ -1026,9 +1144,11 @@ FROM inventory_snapshots GROUP BY 1 ORDER BY 1"""
                                       metric_keys=["inventory_value_at_pos_based_policy_cents", "dio_p8_vs_p1_ratio"],
                                       checks=lambda df: {"max_cover": float(df["max_cover"].max())})
         an = {x.id: x for x in state.anomalies}
-        an["A1"] = an["A1"].model_copy(update={"reference_sql": [q_amp, q_cfg], "evidence_trail": [
-            f"POS CV {f['cv_pos']:.2f} vs retailer orders {f['cv_ro']:.2f} vs our POs {f['cv_po']:.2f} (weekly, median SKU).",
-            f"forecast_config: {pw}-week window since {P[1]}, MOQ {p['moq_weeks']:.1f} weeks since {P[3]}."]})
+        an["A1"] = an["A1"].model_copy(update={"reference_sql": [q_amp, q_cv, q_cfg, q_trap], "evidence_trail": [
+            f"Weekly CV, all SKUs: POS {f['cv_pos']:.2f} vs retailer orders {f['cv_ro']:.2f} vs our POs {f['cv_po']:.2f}.",
+            f"Bullwhip ratio per SKU over {CYCLE_WEEKS}-week order cycles (median SKU): retailer orders {f['t2']:.1f}x POS, our POs {f['t3']:.1f}x POS.",
+            f"forecast_config: {pw}-week window since {P[1]}, MOQ {p['moq_weeks']:.1f} weeks since {P[3]}.",
+            f"Per-SKU weekly PO series are mostly zeros between MOQ lots (variance ratio ~{f['t3w']:.0f}x): that is the order cadence, not the amplification."]})
         an["A2"] = an["A2"].model_copy(update={"reference_sql": [q_promo, q_fill],
                                                "magnitude": {**an["A2"].magnitude, "promo_forward_buy_multiple": round(f["forward_buy_multiple"], 6),
                                                              "pos_12wk_change": round(f["pos_promo_window_change"], 6)},
@@ -1044,14 +1164,20 @@ FROM inventory_snapshots GROUP BY 1 ORDER BY 1"""
                                                                   f"in {P7}-{P8}; write-down {f['writedown_p8'] / 100:,.0f} USD."]})
         herrings_all = [
             "The supplier is unreliable - its on-time lead time distribution is unchanged; it misses deliveries because our orders became spiky.",
+            (f"'Our POs vary {f['t3w']:.0f}x more than demand' - that is the per-SKU weekly variance with zeros in the weeks between MOQ lots; it "
+             f"measures the ordering cadence. Aggregated to the order cycle the bullwhip ratio is {f['t3']:.1f}x: large, but within the range "
+             "the literature reports, and the fix is the signal and the window, not the arithmetic."),
             f"Consumer demand is volatile - POS CV is {f['cv_pos']:.2f}; the volatility is manufactured by ordering policies.",
             f"The promo generated demand - POS over the 12 promo weeks is {f['pos_promo_window_change']:+.1%} vs the surrounding weeks; retailers forward-bought and then stopped ordering.",
         ]
         herrings = herrings_all[: p["n_red_herrings"]]
-        root = (f"Shelf demand is stable (POS CV {f['cv_pos']:.2f}) but every tier amplifies it: retailers' orders vary {f['t2']:.1f}x more than POS and "
-                f"our purchase orders {f['t3']:.0f}x more. Our planning tool forecasts retailer orders (not the POS feed we receive) with a {pw}-week moving "
-                f"average and rounds orders up to a {p['moq_weeks']:.1f}-week MOQ, so our ordering stage alone amplifies variance {f['stage']:.1f}x "
-                f"(Chen bound for L={L + 1}, p={pw}: {f['chen']:.1f}). The {P6} promotion added a forward-buy spike and trough, and shortages triggered "
+        root = (f"Shelf demand is stable (weekly POS CV {f['cv_pos']:.2f} across SKUs) but every tier amplifies it: per SKU over 4-week order cycles "
+                f"the CV of retailers' orders is {f['t2']:.1f}x that of POS and the CV of our purchase orders {f['t3']:.1f}x (weekly, all SKUs: POS "
+                f"{f['cv_pos']:.2f}, orders {f['cv_ro']:.2f}, POs {f['cv_po']:.2f}). Our planning tool forecasts retailer orders (not the POS feed we "
+                f"receive) with a {pw}-week moving average and rounds orders up to a {p['moq_weeks']:.1f}-week MOQ: over order cycles our stage alone "
+                f"multiplies the CV {f['stage_cv']:.1f}x, and week by week its order variance is {f['stage']:.1f}x that of the retailer orders it sees "
+                f"(Chen lower bound for L={L + 1}, p={pw}: {f['chen']:.1f}; the MOQ cadence adds the rest). The {P6} promotion added a forward-buy spike "
+                f"and trough, and shortages triggered "
                 f"order inflation. The supplier's lead time never changed; its capacity cannot absorb the spikes, so backorders are flown in "
                 f"({f['expedite_p7_p8'] / 100:,.0f} USD air freight in {P7}-{P8}), inventory swings (DIO x{f['dio_ratio']:.2f}) and {P8} ends with a "
                 f"{f['writedown_p8'] / 100:,.0f} USD write-down. A POS-driven policy with p=12 and no MOQ would hold ~"
@@ -1064,9 +1190,10 @@ FROM inventory_snapshots GROUP BY 1 ORDER BY 1"""
         return GroundTruth(
             root_cause=root, anomalies=[an[k] for k in ("A1", "A2", "A3", "A4")], red_herrings=herrings, expected_metrics=metrics,
             reference_solution=ReferenceSolution(
-                sql=[q.sql for q in (q_amp, q_cfg, q_promo, q_fill, q_sup, q_gaming, q_cost, q_cover)], python=[py],
+                sql=[q.sql for q in (q_amp, q_cv, q_cfg, q_trap, q_promo, q_fill, q_sup, q_gaming, q_cost, q_cover)], python=[py],
                 memo_bullets=[
-                    "Demand is not volatile; orders are. Quantify amplification by tier (POS -> retailer orders -> our POs).",
+                    "Demand is not volatile; orders are. Quantify amplification by tier (POS -> retailer orders -> our POs) on order-cycle totals.",
+                    "Weekly per-SKU PO series with zeros between MOQ lots exaggerate the problem; aggregate to the order cycle before comparing CVs.",
                     f"Use the POS feed as the demand signal and lengthen the forecast window (Chen: ratio ~ 1 + 2L/p + 2L^2/p^2; p={pw} -> {f['chen']:.1f}).",
                     "Shrink lot sizes / MOQ: the unit-price saving is dwarfed by air freight and write-downs.",
                     "Move to everyday-low-price or cap forward-buy; allocate on past sales to stop the rationing game.",
@@ -1163,7 +1290,7 @@ FROM inventory_snapshots GROUP BY 1 ORDER BY 1"""
                 "writedown_risk_cents": float(f["writedown_p8"])}
         chen_now, chen_12 = chen_bullwhip_bound(L + 1, pw), chen_bullwhip_bound(L + 1, 12)
         per_week = (chen_12 - chen_now) / (12 - pw)  # Chen bound slope, linearised from p to 12
-        rel = per_week / chen_now  # relative change of the company-stage amplification per week of window
+        rel = 0.5 * per_week / chen_now  # relative change of the company-stage CV ratio per week of window (CV ~ sqrt(variance))
         inv_gap = max(0.0, k["inventory_cents"] - f["inv_value_pos_policy"])
         effects = [
             {"lever": "forecast_window_p", "kpi": "amplification_tier3", "delta_per_unit": f["t3"] * rel, "lag_periods": 0},
@@ -1174,7 +1301,8 @@ FROM inventory_snapshots GROUP BY 1 ORDER BY 1"""
             {"lever": "demand_signal_pos", "kpi": "amplification_tier3", "delta_per_unit": -0.5 * f["t3"], "lag_periods": 1},
             {"lever": "demand_signal_pos", "kpi": "inventory_cents", "delta_per_unit": -0.5 * inv_gap, "lag_periods": 1},
             {"lever": "demand_signal_pos", "kpi": "fill_rate", "delta_per_unit": 0.5 * (f["fill_pos_policy"] - f["fill_p8"]), "lag_periods": 1},
-            {"lever": "moq_weeks", "kpi": "amplification_tier3", "delta_per_unit": 0.25 * f["t3"], "lag_periods": 0},
+            # order-cycle ratios aggregate over the MOQ lot, so MOQ moves them only a little (it drives the weekly lumpiness)
+            {"lever": "moq_weeks", "kpi": "amplification_tier3", "delta_per_unit": 0.05 * f["t3"], "lag_periods": 0},
             {"lever": "moq_weeks", "kpi": "inventory_cents", "delta_per_unit": 0.5 * cogs8 / 13, "lag_periods": 1},
             {"lever": "moq_weeks", "kpi": "cogs_cents", "delta_per_unit": -0.02 * cogs8, "lag_periods": 0},
             {"lever": "promo_policy_edlp", "kpi": "amplification_tier2", "delta_per_unit": -0.4 * (f["t2"] - 1.0), "lag_periods": 0},

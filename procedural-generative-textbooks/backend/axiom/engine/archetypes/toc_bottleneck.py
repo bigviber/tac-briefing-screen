@@ -1022,8 +1022,10 @@ class TocBottleneck(Archetype):
         mu = float(p["c_b"]) * (1 - f["setup_share8"]) * float(rb.avail_min) / 60 / hours8
         ll = littles_law(lam=lam, W=W)
         theo = mm1(lam, mu)
-        queueing = {"lambda": lam, "mu": mu, "rho": lam / mu if mu else 0.0, "L": ll["L"], "W": W, "Lq": lam * Wq, "Wq": Wq,
-                    "kingman_wq_theoretical": kingman_wq(lam, mu, p["cv_arrival"], p["cv_service"]), "mm1_unstable": theo["unstable"],
+        # review P2 #23: unit-bearing keys (L / Lq in units of WIP at the constraint, rates per day, times in days; L = lambda x W)
+        queueing = {"lambda_units_per_day": lam * 24, "mu_units_per_day": mu * 24, "rho": lam / mu if mu else 0.0,
+                    "L_wip_units": ll["L"], "W_days": W / 24, "Lq_wip_units": lam * Wq, "Wq_days": Wq / 24,
+                    "kingman_wq_theoretical_days": kingman_wq(lam, mu, p["cv_arrival"], p["cv_service"]) / 24, "mm1_unstable": theo["unstable"],
                     "throughput_units_month": f["thr_month"], "wip_units_total_p8": f["wip_total"], "cycle_time_days_p8": f["cycle_days"]}
         prices = state.frames["products"].groupby("family")[["list_price_cents", "rm_cost_cents", "standard_cost_cents"]].mean()
         inc = {i.period: i for i in state.statements.income}  # type: ignore[union-attr]
@@ -1091,10 +1093,12 @@ class TocBottleneck(Archetype):
                    hint="Rated capacity net of setup time and scrapped constraint output."),
             metric("wip_units_before_bottleneck_p8", f["wip_before_b"], "units",
                    f"Units on work orders released by {e8} that had not finished at {nm[b_id]} by then.", pillar="operations_strategy", tol_rel=0.05,
-                   label="WIP in front of the constraint", hint="Released but not yet through the constraint."),
+                   label="WIP in front of the constraint (units)", hint="Units of WIP released but not yet through the constraint."),
             metric("cycle_time_days_p8", f["cycle_days"], "days",
-                   f"Little's Law: open WIP units at {e8} ({f['wip_total']:,.0f}) / daily completion rate in {P8} ({f['thr_day']:,.1f} units/day).",
-                   pillar="operations_strategy", tol_abs=1.5, label="Cycle time (Little's Law)", hint="WIP / throughput."),
+                   f"Little's Law W = L / lambda: L = open WIP at {e8} ({f['wip_total']:,.0f} units of WIP, all stations) / lambda = daily "
+                   f"completion rate in {P8} ({f['thr_day']:,.1f} units/day) = W in days.",
+                   pillar="operations_strategy", tol_abs=1.5, label="Cycle time (Little's Law)",
+                   hint="L in units of WIP (open work-order units) / lambda in units per day = W in days."),
             metric("constraint_minutes_wasted_scrap_month", f["scrap_min_month"], "minutes",
                    f"Units scrapped at final inspection in {P8} x standard run minutes per unit at {nm[b_id]} (by family) / 3.",
                    pillar="operations_strategy", tol_rel=0.08, label="Constraint minutes wasted on scrap (per month)",
@@ -1245,7 +1249,7 @@ GROUP BY 1 ORDER BY 1"""
               "busy = log.assign(m=log.setup_minutes_actual + log.run_minutes_actual).groupby('work_center_id').m.sum()\n"
               "avail = lab.assign(m=(lab.regular_hours + lab.overtime_hours) * 60).groupby('work_center_id').m.sum()\n"
               "print((busy / avail).sort_values())  # true utilization, incl. setups\n"
-              "# Little's Law: cycle time = WIP / throughput; simulate +x% capacity at b capped at c_b2 (migration)\n")
+              "# Little's Law: cycle time (days) = WIP (units) / throughput (units/day); simulate +x% capacity at b capped at c_b2 (migration)\n")
         return GroundTruth(
             root_cause=root, anomalies=[an[k] for k in ("A1", "A2", "A3", "A4")], red_herrings=herrings, expected_metrics=metrics,
             reference_solution=ReferenceSolution(

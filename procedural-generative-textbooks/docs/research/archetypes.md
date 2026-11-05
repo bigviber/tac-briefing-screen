@@ -738,7 +738,7 @@ Transition: new cohorts generated with lever-driven survival; MRR = Σ cohorts; 
 | `batch_size` / `min_order_qty` | supplier MOQ = U(2, 4) × weekly demand (batching cause) | — |
 | `promo_in_p6` | price promotion −15% for 1 month (price-fluctuation cause); forward-buy by retailers U(1.5, 2.5)× | — |
 | `shortage_gaming` | when fill rate < 90%, downstream orders inflate `×U(1.3, 1.8)` (rationing cause) | — |
-| `target_amplification` | D[p]: Var ratio tier-2 ∈ [2, 6], tier-3 ∈ [4, 15] | `operations.bullwhip_ratio_empirical` |
+| `target_amplification` | D[p]: CV ratio on 4-week order cycles per SKU (median), tier-2 ∈ [2, 6], tier-3 ∈ [5, 12.5] (implementation note: variance ratios on zero-filled weekly series are a Socratic trap, not the ask) | `operations.bullwhip_ratio_empirical` |
 
 Correlations: amplification per Chen et al. given L and p; holding cost ∝ inventory; stockouts and expedites alternate with overstock; inventory write-downs in P8.
 
@@ -765,7 +765,7 @@ Correlations: amplification per Chen et al. given L and p; holding cost ∝ inve
 | key | Derivation | tol |
 |---|---|---|
 | `cv_pos_demand`, `cv_retailer_orders`, `cv_company_pos` | std/mean weekly | abs 0.05 |
-| `amplification_tier2`, `amplification_tier3` | Var ratios | rel 0.15 |
+| `amplification_tier2`, `amplification_tier3` | CV ratios on 4-week order cycles per SKU, median over SKUs; weekly company-level CVs for `cv_*` | rel 0.15 |
 | `chen_lower_bound_tier2` | `1 + 2L/p + 2L²/p²` with realized L, p | rel 0.05 |
 | `forecast_window_p` | | exact |
 | `moq_weeks_of_demand` | | abs 0.3 |

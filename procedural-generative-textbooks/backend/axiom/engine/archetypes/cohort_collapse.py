@@ -41,13 +41,20 @@ Documented simplifications
 * ``fintech_marketplace`` is not offered (SaaS default, e-commerce subscription box variant).
 
 Simulation (reduced form): KPIs are P8 levels. ``marketing_spend_change_pct`` moves new logos by 0.7% per point
-(diminishing returns) and S&M / cash 1:1. The fix levers are coded so that the fix is an *increase* (``resolved_if``
-means >=): ``paid_social_share_reduction_pts``, ``onboarding_investment_cents`` and ``promo_discount_reduction_pts``
-each cost some logos or cash, but only the lever matching the seeded cause removes the excess new-cohort churn (half
-after one quarter, half after two) with a lagged MRR / LTV-CAC effect; ``commission_life_reduction_months`` raises
-amortization and releases the over-capitalized asset. ``anomaly_drag`` = P5-P8 drift of blended churn and the commission
-asset plus the MRR lost to excess churn; ``resolved_if`` = cause lever past ~80% of its span (onboarding: half of the
-budget) and commission life cut by >= 6 months. The ``price_change_pct`` lever of the spec is not modelled (5 levers).
+(diminishing returns) and S&M / cash 1:1. The levers are in their natural units with the status quo as default:
+``paid_social_share_pct`` (share of new logos from paid social) and ``promo_depth_pct`` (maximum promotional discount)
+are fixed by *cutting* them (``resolved_if`` ``<=`` via ``at_most``), ``onboarding_investment_cents`` by spending
+(``>=``). Each costs some logos or cash, but only the lever matching the seeded cause removes the excess new-cohort
+churn (half after one quarter, half after two) with a lagged MRR / LTV-CAC effect; ``commission_amortization_months``
+(default 36) raises amortization and releases the over-capitalized asset when shortened. ``anomaly_drag`` = P5-P8 drift
+of blended churn and the commission asset plus the MRR lost to excess churn; ``resolved_if`` = cause lever ~80% of the
+way back to the pre-P5 level (onboarding: half of the budget) and the commission life <= 30 months; the status quo
+never resolves. The ``price_change_pct`` lever of the spec is not modelled (5 levers).
+
+Funding (review P1 #9): the books open with a thin cash balance and a preferred equity round closes in the warm-up
+quarter P0 (it is the cash pile the case starts with); venture debt is drawn at the start of P5 to fund the acquisition
+ramp (interest accrued monthly, paid quarterly), so CFF and the debt / equity lines move with the burn. A further
+equity round is raised if cash falls below ~1.5 months of revenue.
 """
 
 from __future__ import annotations
@@ -71,6 +78,8 @@ from axiom.engine.archetypes.base import (
     difficulty_pick,
     magnitude,
     metric,
+    at_least,
+    at_most,
     run_reference_query,
 )
 from axiom.engine.datagen import GL_BATCH, ROW_BUDGET, TableBuilder
@@ -562,7 +571,14 @@ class CohortCollapse(Archetype):
         legacy_c = E["keep"][E["a"][E["keep"]] < 0]
         pool = cents(p["commission_pct"] * 12 * float(np.sum(E["mrr_base_cents"][legacy_c])) * 0.45)
         E["legacy_commission_pool"] = pool
-        cash0 = cents(R * 0.45)
+        # review P1 #9: thin opening cash; the cash pile comes from a preferred round closed in the warm-up quarter P0
+        frng = ctx.rng.spawn("funding")
+        cash0 = cents(R * float(frng.uniform(0.08, 0.12)))
+        series = int(round(R * float(frng.uniform(0.35, 0.45)) / 50_000_000)) * 50_000_000  # to the 0.5M USD
+        venture_debt = int(round(R * float(frng.uniform(0.08, 0.12)) / 50_000_000)) * 50_000_000
+        debt_rate = float(frng.uniform(0.10, 0.13))
+        series_label = "Series C" if R > 3_000_000_000 else "Series B"
+        E["funding"] = {"series_label": series_label, "series_cents": series, "venture_debt_cents": venture_debt, "debt_rate": debt_rate}
         ppe = cents(R * 0.03)
         net = cash0 + ppe + pool - deferred0
         cs = cents(0.85 * net) if net > 0 else 1
@@ -572,6 +588,11 @@ class CohortCollapse(Archetype):
         def add(d: Any, prio: int, fn: Any) -> None:
             events.append((d.date() if isinstance(d, pd.Timestamp) else d, prio, fn))
 
+        p0_start = pd.Timestamp(cal.opening_date).date()
+        add(p0_start + dt.timedelta(days=40), 0, lambda d: L.equity_raise(d, series, memo=f"{series_label} preferred equity financing"))
+        p5_start = cal.bounds(state.periods[4])[0]
+        add(p5_start + dt.timedelta(days=9), 0, lambda d: L.borrow(d, venture_debt, debt_account="2610",
+                                                                  memo="Venture debt drawn to fund the acquisition ramp"))
         # billing (deferred revenue) and collections
         bill = inv[valid & ~pre]
         bb = bill.assign(b=batch_end_dates(bill["invoice_date"], gran)).groupby("b", sort=True).agg(a=("total_cents", "sum"), n=("invoice_id", "size"))
@@ -625,7 +646,10 @@ class CohortCollapse(Archetype):
             add(me, 7, lambda d, s=accr: L.accrue_opex(d, s, memo="Hosting, paid acquisition and operating expenses"))
             add(ms + dt.timedelta(days=14), 6, lambda d: L.capex(d, cents(R * 0.002), memo="Equipment"))
             add(me, 8, lambda d: L.depreciate(d, cents(L.closing_balances()["1500"] / 36)))
+            add(me, 9, lambda d: L.accrue_interest(d, cents(-L.closing_balances()["2610"] * debt_rate / 12), memo="Venture debt interest"))
             if ms.month % 3 == 0:
+                add(me, 10, lambda d: L.pay_interest(d, -L.closing_balances()["2150"], memo="Venture debt interest paid"))
+
                 def tax(d: dt.date) -> None:
                     act = L.activity(L.period_of(d))
                     pretax = -sum(v for c, v in act.items() if c[0] in "4567" and c != "8000")
@@ -1229,8 +1253,13 @@ FROM gl_lines l JOIN gl_journal j USING (entry_id) GROUP BY 1 ORDER BY 1"""
         cause_event = {"channel_shift": ("New paid channel launched (paid social)", "Performance agency hired; paid social budget ramps."),
                        "onboarding_regression": ("Onboarding redesign shipped", "Guided setup replaced by a self-serve checklist."),
                        "discount_cohorts": ("Spring promo: 30-40% off for three months", "Promo codes distributed through partners and ads.")}[cause]
+        fund = state.extras["funding"]
         tl = [
+            TimelineEvent(period=P[0], headline=f"{fund['series_label']} closed (${fund['series_cents'] / 1e8:,.1f}M) the quarter before",
+                          detail="Preferred equity round to fund growth; the board expects a paid-acquisition push."),
             TimelineEvent(period=P[3], headline=cause_event[0], detail=cause_event[1]),
+            TimelineEvent(period=P[4], headline=f"Venture debt drawn (${fund['venture_debt_cents'] / 1e8:,.1f}M)",
+                          detail=f"Term facility at {fund['debt_rate']:.1%} to extend runway through the acquisition ramp."),
             TimelineEvent(period=P[5], headline="Record logo quarter", detail="Sales kick-off celebrates new-logo growth."),
             TimelineEvent(period=P[7], headline="NRR dips; board asks about LTV/CAC", detail="Board requests a unit-economics deep dive."),
             TimelineEvent(period=P[7], headline="Commission asset flagged in close", detail="Auditors ask about the amortization period."),
@@ -1255,19 +1284,21 @@ FROM gl_lines l JOIN gl_journal j USING (entry_id) GROUP BY 1 ORDER BY 1"""
                 "onboarding_max_cents": float(round(p["revenue_ttm_cents"] * 0.02))}
 
     def levers(self, ctx: BuildContext, state: WorldState) -> list[Lever]:
-        """Five levers coded so that the fix is an increase (``resolved_if`` means >=); defaults = status quo."""
+        """Five levers in their natural units; defaults = the P8 status quo. Paid-social share, promo depth and the
+        commission life are fixed by *reducing* them (``resolved_if`` uses ``<=``); onboarding is an investment (``>=``)."""
         ls = self._lever_state(state)
+        ps_now, promo_now = round(ls["paid_social_share_pts"], 1), round(ls["max_discount_pct"], 1)
         return [
             Lever(key="marketing_spend_change_pct", label="Marketing spend change", min=-60, max=50, default=0, unit="%",
                   effect="New logos ~ spend^0.7 (diminishing returns); S&M moves 1:1."),
-            Lever(key="paid_social_share_reduction_pts", label="Shift new-logo mix out of paid social", min=0, max=round(ls["paid_social_share_pts"], 1),
-                  default=0, unit="pts", effect="Fewer, more expensive but better-retaining new logos."),
+            Lever(key="paid_social_share_pct", label="Paid-social share of new logos", min=0, max=round(min(100.0, ps_now + 15), 1), default=ps_now,
+                  unit="%", effect="Cutting it buys fewer, more expensive but better-retaining new logos."),
             Lever(key="onboarding_investment_cents", label="Onboarding investment per quarter", min=0, max=ls["onboarding_max_cents"], default=0, unit="cents",
                   effect="New cohorts' early churn returns to base over two quarters (if onboarding is the cause)."),
-            Lever(key="promo_discount_reduction_pts", label="Cut the maximum promotional discount", min=0, max=round(ls["max_discount_pct"], 1), default=0,
-                  unit="pts", effect="Fewer promo-acquired logos; less churn at promo end (if promos are the cause)."),
-            Lever(key="commission_life_reduction_months", label="Shorten commission amortization life", min=0, max=24, default=0, unit="months",
-                  effect="Amortization follows the expected customer life; one-off catch-up on the over-capitalized asset."),
+            Lever(key="promo_depth_pct", label="Maximum promotional discount", min=0, max=max(promo_now, 1.0), default=promo_now, unit="%",
+                  effect="A shallower promo brings fewer promo-acquired logos and less churn at promo end (if promos are the cause)."),
+            Lever(key="commission_amortization_months", label="Commission amortization life", min=12, max=48, default=COMMISSION_LIFE, unit="months",
+                  effect="A life matching the expected customer life raises amortization and releases the over-capitalized asset."),
         ]
 
     def simulation_model(self, ctx: BuildContext, state: WorldState) -> dict[str, Any]:
@@ -1298,33 +1329,37 @@ FROM gl_lines l JOIN gl_journal j USING (entry_id) GROUP BY 1 ORDER BY 1"""
             {"lever": "marketing_spend_change_pct", "kpi": "operating_cash_flow_cents", "delta_per_unit": -0.01 * mkt_q, "lag_periods": 0},
             {"lever": "marketing_spend_change_pct", "kpi": "mrr_cents", "delta_per_unit": 0.007 * nl * arpa * 0.7, "lag_periods": 1},
             {"lever": "onboarding_investment_cents", "kpi": "operating_cash_flow_cents", "delta_per_unit": -1.0, "lag_periods": 0},
-            {"lever": "paid_social_share_reduction_pts", "kpi": "new_logos", "delta_per_unit": -0.003 * nl, "lag_periods": 0},
-            {"lever": "promo_discount_reduction_pts", "kpi": "new_logos", "delta_per_unit": -0.004 * nl, "lag_periods": 0},
-            {"lever": "commission_life_reduction_months", "kpi": "commission_amortization_cents", "delta_per_unit": amort8 / 36, "lag_periods": 0},
-            {"lever": "commission_life_reduction_months", "kpi": "commission_asset_cents", "delta_per_unit": -f["overcap"] / 24, "lag_periods": 0},
+            # per point of paid-social share / promo depth (cutting them costs some new logos)
+            {"lever": "paid_social_share_pct", "kpi": "new_logos", "delta_per_unit": 0.003 * nl, "lag_periods": 0},
+            {"lever": "promo_depth_pct", "kpi": "new_logos", "delta_per_unit": 0.004 * nl, "lag_periods": 0},
+            # per month of amortization life (a shorter life raises amortization and releases the over-capitalized asset)
+            {"lever": "commission_amortization_months", "kpi": "commission_amortization_cents", "delta_per_unit": -amort8 / COMMISSION_LIFE, "lag_periods": 0},
+            {"lever": "commission_amortization_months", "kpi": "commission_asset_cents", "delta_per_unit": f["overcap"] / 24, "lag_periods": 0},
         ]
+        # the cause lever: ``sign`` = -1 for a reduction (paid-social share, promo depth), +1 for the onboarding investment
         if cause == "channel_shift":
-            lever, span = "paid_social_share_reduction_pts", max(1.0, ls["paid_social_share_pts"] - p["paid_social_share_pre"] * 100)
-            threshold = round(0.8 * span, 1)
+            lever, span, sign = "paid_social_share_pct", max(1.0, ls["paid_social_share_pts"] - p["paid_social_share_pre"] * 100), -1.0
+            cond = at_most(round(ls["paid_social_share_pts"] - 0.8 * span, 1))  # back to ~the pre-P5 mix
         elif cause == "onboarding_regression":
-            lever, span = "onboarding_investment_cents", 0.5 * ls["onboarding_max_cents"]
-            threshold = float(round(span))
+            lever, span, sign = "onboarding_investment_cents", 0.5 * ls["onboarding_max_cents"], 1.0
+            cond = at_least(float(round(span)))  # half of the budget
         else:
-            lever, span = "promo_discount_reduction_pts", max(1.0, ls["max_discount_pct"] - 10)
-            threshold = round(0.8 * span, 1)
+            lever, span, sign = "promo_depth_pct", max(1.0, ls["max_discount_pct"] - 10), -1.0
+            cond = at_most(round(ls["max_discount_pct"] - 0.8 * span, 1))  # promos back to ~the routine 10-20% range
+        u = sign / span  # effect per unit of lever value, oriented so that moving towards the fix helps
         effects += [
-            {"lever": lever, "kpi": "new_cohort_churn_monthly", "delta_per_unit": -0.5 * excess / span, "lag_periods": 1},
-            {"lever": lever, "kpi": "new_cohort_churn_monthly", "delta_per_unit": -0.5 * excess / span, "lag_periods": 2},
-            {"lever": lever, "kpi": "blended_mrr_churn_monthly", "delta_per_unit": -0.4 * excess / span, "lag_periods": 2},
-            {"lever": lever, "kpi": "ltv_cac_new", "delta_per_unit": f["ltv_cac_post"] * (excess / max(1e-4, f["hazard_post"])) / span, "lag_periods": 2},
-            {"lever": lever, "kpi": "mrr_cents", "delta_per_unit": mrr_gain / span, "lag_periods": 2},
+            {"lever": lever, "kpi": "new_cohort_churn_monthly", "delta_per_unit": -0.5 * excess * u, "lag_periods": 1},
+            {"lever": lever, "kpi": "new_cohort_churn_monthly", "delta_per_unit": -0.5 * excess * u, "lag_periods": 2},
+            {"lever": lever, "kpi": "blended_mrr_churn_monthly", "delta_per_unit": -0.4 * excess * u, "lag_periods": 2},
+            {"lever": lever, "kpi": "ltv_cac_new", "delta_per_unit": f["ltv_cac_post"] * (excess / max(1e-4, f["hazard_post"])) * u, "lag_periods": 2},
+            {"lever": lever, "kpi": "mrr_cents", "delta_per_unit": mrr_gain * u, "lag_periods": 2},
         ]
         n = 3
         drag = {"blended_mrr_churn_monthly": (f["blended"][P8] - f["blended"][P[4]]) / n,
                 "commission_asset_cents": (kp["commission_asset_cents"] - kq[P[4]]["commission_asset_cents"]) / n,
                 "mrr_cents": -mrr_gain}
         return {"kpis": kpis, "lever_effects": effects, "anomaly_drag": drag,
-                "resolved_if": {lever: float(threshold), "commission_life_reduction_months": 6.0},
+                "resolved_if": {lever: cond, "commission_amortization_months": at_most(COMMISSION_LIFE - 6)},
                 "bounds": {"new_cohort_churn_monthly": [f["hazard_pre"] * 0.9, 0.5], "blended_mrr_churn_monthly": [0.0, 0.5], "new_logos": [0.0, None],
                            "ltv_cac_new": [0.0, None], "commission_asset_cents": [0.0, None]},
                 "max_quarters": 4, "cause_lever": lever}
