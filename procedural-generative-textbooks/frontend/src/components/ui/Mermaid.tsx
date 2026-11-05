@@ -34,12 +34,41 @@ function loadMermaid(): Promise<MermaidApi> {
   return mermaidPromise;
 }
 
+/** Nearest ancestor that scrolls horizontally (the pane body), or null. */
+function scrollParent(el: Element): HTMLElement | null {
+  for (let p = el.parentElement; p; p = p.parentElement) {
+    const ox = getComputedStyle(p).overflowX;
+    if ((ox === "auto" || ox === "scroll") && p.scrollWidth > p.clientWidth) return p;
+  }
+  return null;
+}
+
+/**
+ * Dagre centres each node vertically inside its rank, and wide diagrams put the first rank far to the
+ * right, so the top-left of a natural-size diagram is often empty (the ERD showed a ~400px blank band).
+ * Scroll horizontally so the left-most node of the top row is the first thing in view.
+ */
+function anchorToTopRow(svg: SVGSVGElement) {
+  const nodes = [...svg.querySelectorAll<SVGGElement>('g.node, g[id^="entity-"]')];
+  if (!nodes.length) return;
+  const box = svg.getBoundingClientRect();
+  const rects = nodes.map((n) => n.getBoundingClientRect());
+  const top = Math.min(...rects.map((r) => r.top));
+  const left = Math.min(...rects.filter((r) => r.top - top < 48).map((r) => r.left)) - box.left;
+  const scroller = scrollParent(svg);
+  if (!scroller) return;
+  const visible = scroller.getBoundingClientRect().width;
+  if (left + 160 < visible) return; // the top row is already in view
+  scroller.scrollLeft = Math.max(0, left - 12);
+}
+
 /** Renders a mermaid diagram; shows the parse error inline instead of throwing. */
 export function Mermaid({ code, className = "", natural = false }: { code: string; className?: string; natural?: boolean }) {
   const id = useId().replace(/[^a-zA-Z0-9]/g, "");
   const host = useRef<HTMLDivElement>(null);
   const [error, setError] = useState<string | null>(null);
   const seq = useRef(0);
+  const anchored = useRef(false);
 
   useEffect(() => {
     const mine = ++seq.current;
@@ -55,6 +84,11 @@ export function Mermaid({ code, className = "", natural = false }: { code: strin
           // Render at intrinsic size (scrollable) instead of shrinking wide diagrams to fit.
           el.style.width = el.style.maxWidth;
           el.style.maxWidth = "none";
+          // Only on the first render: re-renders while editing (Design tab) must not move the view.
+          if (!anchored.current && el instanceof SVGSVGElement) {
+            anchored.current = true;
+            anchorToTopRow(el);
+          }
         }
         setError(null);
       } catch (e) {

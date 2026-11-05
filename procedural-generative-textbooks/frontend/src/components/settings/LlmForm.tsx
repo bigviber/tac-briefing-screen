@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from "react";
-import { CheckCircle2, Plug, Save, XCircle } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Plug, Save, Trash2, XCircle } from "lucide-react";
 import { PROVIDERS, type LLMSettings, type Provider } from "../../api/types";
 import { useSettings } from "../../store/settingsStore";
 import { ErrorLine, SkeletonBlock } from "../ui/primitives";
@@ -27,13 +27,17 @@ export function LlmForm() {
   const testing = useSettings((x) => x.testing);
   const result = useSettings((x) => x.testResult);
   const saving = useSettings((x) => x.saving);
+  const clear = useSettings((x) => x.clear);
+  const clearing = useSettings((x) => x.clearing);
   const [form, setForm] = useState<Form | null>(null);
+  const [confirmClear, setConfirmClear] = useState(false);
 
   useEffect(() => {
     if (!s) void load();
   }, [s, load]);
 
   useEffect(() => {
+    setConfirmClear(false);
     if (s) setForm({ provider: s.provider, base_url: s.base_url, api_key: "", fast_model: s.fast_model, deep_model: s.deep_model, temperature_fast: s.temperature_fast, temperature_deep: s.temperature_deep, max_tokens: s.max_tokens });
   }, [s]);
 
@@ -55,6 +59,17 @@ export function LlmForm() {
         void save(form);
       }}
     >
+      <div
+        role="status"
+        className={`flex items-center gap-2 rounded border px-2.5 py-1.5 text-xs ${s.configured ? "border-ok/30 bg-ok/5 text-ok" : "border-warn/40 bg-warn/10 text-warn"}`}
+      >
+        {s.configured ? <CheckCircle2 size={13} aria-hidden /> : <AlertTriangle size={13} aria-hidden />}
+        <span className="min-w-0 truncate">
+          {s.configured
+            ? `Configured · ${s.provider}${s.api_key_set ? ` · key ${s.api_key_masked}` : ""}`
+            : "Not configured. Add an API key (or choose Local) to enable the dossier, textbook, grading and adversary."}
+        </span>
+      </div>
       <div>
         <span className="field-label">Provider</span>
         <div className="grid grid-cols-4 gap-1" role="radiogroup" aria-label="Provider">
@@ -107,7 +122,7 @@ export function LlmForm() {
       {form.provider === "anthropic" && (
         <p className="text-2xs text-muted">Current Claude models reject sampling parameters; the backend should omit temperature for this provider.</p>
       )}
-      <div className="flex items-center gap-2 border-t border-line pt-3">
+      <div className="flex flex-wrap items-center gap-2 border-t border-line pt-3">
         <button type="submit" className="btn btn-primary" disabled={saving}>
           <Save size={13} aria-hidden /> {saving ? "Saving…" : "Save"}
         </button>
@@ -120,6 +135,33 @@ export function LlmForm() {
             <span className="truncate font-mono">{result.ok ? `${result.model} · ${result.latency_ms}ms` : result.error ?? "failed"}</span>
           </span>
         )}
+        <div className="ml-auto flex shrink-0 items-center gap-1.5">
+          {confirmClear ? (
+            <>
+              <span className="text-xs text-muted">Forget the key and models?</span>
+              <button type="button" className="btn btn-sm" onClick={() => setConfirmClear(false)} disabled={clearing}>Cancel</button>
+              <button
+                type="button"
+                className="btn btn-sm border-bad/50 text-bad hover:bg-bad/10"
+                onClick={() => void clear().then(() => setConfirmClear(false))}
+                disabled={clearing}
+                autoFocus
+              >
+                <Trash2 size={12} aria-hidden /> {clearing ? "Clearing…" : "Clear"}
+              </button>
+            </>
+          ) : (
+            <button
+              type="button"
+              className="btn hover:text-bad"
+              onClick={() => setConfirmClear(true)}
+              disabled={!s.api_key_set && !s.configured}
+              title={s.api_key_set || s.configured ? "Delete the stored API key and model settings" : "Nothing stored"}
+            >
+              <Trash2 size={13} aria-hidden /> Clear stored key
+            </button>
+          )}
+        </div>
       </div>
     </form>
   );

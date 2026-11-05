@@ -1,8 +1,22 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Lock, MessageSquareWarning, SendHorizonal } from "lucide-react";
 import { useCase } from "../../store/caseStore";
 import { humanize } from "../../lib/format";
 import { EmptyState } from "../ui/primitives";
+
+const MAX_LINES = 6;
+
+/** Grow the textarea with its content up to MAX_LINES, then scroll inside it. */
+function autosize(el: HTMLTextAreaElement) {
+  const cs = getComputedStyle(el);
+  const line = parseFloat(cs.lineHeight) || parseFloat(cs.fontSize) * 1.25;
+  const chrome = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom) + parseFloat(cs.borderTopWidth) + parseFloat(cs.borderBottomWidth);
+  const max = Math.ceil(line * MAX_LINES + chrome);
+  el.style.height = "auto";
+  const needed = el.scrollHeight + parseFloat(cs.borderTopWidth) + parseFloat(cs.borderBottomWidth);
+  el.style.height = `${Math.min(needed, max)}px`;
+  el.style.overflowY = needed > max ? "auto" : "hidden";
+}
 
 const CHALLENGE_TONE: Record<string, string> = {
   opening: "border-bad/40 text-bad",
@@ -19,6 +33,11 @@ export function Thread() {
   const send = useCase((s) => s.sendAdversary);
   const [msg, setMsg] = useState("");
   const end = useRef<HTMLDivElement>(null);
+  const box = useRef<HTMLTextAreaElement>(null);
+
+  useLayoutEffect(() => {
+    if (box.current) autosize(box.current);
+  }, [msg]);
 
   useEffect(() => {
     end.current?.scrollIntoView({ block: "end" });
@@ -69,10 +88,12 @@ export function Thread() {
       <div className="shrink-0 border-t border-line p-2">
         <div className="flex items-end gap-1.5">
           <textarea
+            ref={box}
             value={msg}
             onChange={(e) => setMsg(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
+              // ↵ sends, ⇧↵ inserts a newline (default). Never send mid IME composition.
+              if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
                 e.preventDefault();
                 submit();
               }
@@ -81,7 +102,7 @@ export function Thread() {
             rows={2}
             placeholder={grade ? "Defend your diagnosis with evidence…  (↵ send, ⇧↵ newline)" : "Locked until you submit a deliverable"}
             aria-label="Reply to adversary"
-            className="input h-auto min-h-[44px] flex-1 resize-none py-1.5 disabled:cursor-not-allowed disabled:opacity-60"
+            className="input h-auto min-h-[44px] flex-1 resize-none overflow-y-hidden py-1.5 disabled:cursor-not-allowed disabled:opacity-60"
           />
           <button className="btn btn-primary h-[44px]" onClick={submit} disabled={!grade || busy || !msg.trim()} aria-label="Send">
             {grade ? <SendHorizonal size={14} /> : <Lock size={14} />}

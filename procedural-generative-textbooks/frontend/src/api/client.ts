@@ -53,7 +53,7 @@ export class ApiError extends Error {
   }
 }
 
-type Method = "GET" | "POST" | "PUT";
+type Method = "GET" | "POST" | "PUT" | "DELETE";
 
 interface MockModule {
   mockRequest: (method: Method, path: string, body: unknown) => Promise<unknown>;
@@ -154,6 +154,8 @@ export const api = {
 
   getLlmSettings: () => request<LLMSettingsPublic>("GET", "/settings/llm"),
   putLlmSettings: (s: LLMSettings) => request<LLMSettingsPublic>("PUT", "/settings/llm", s),
+  /** Forget the stored key and models; returns the default (unconfigured) view. */
+  clearLlmSettings: () => request<LLMSettingsPublic>("DELETE", "/settings/llm"),
   testLlm: () => request<LLMTestResult>("POST", "/settings/llm/test"),
   usage: () => request<LLMUsageSummary>("GET", "/settings/usage"),
   prompts: () => request<PromptTemplate[]>("GET", "/settings/prompts"),

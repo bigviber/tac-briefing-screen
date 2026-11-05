@@ -154,6 +154,10 @@ const routes: [string, RegExp, Handler][] = [
     const c = buildCase({ case_id: `cs_${seed.toString(16)}`, seed, archetype: req.archetype ?? "working_capital_crunch", difficulty: req.difficulty ?? "practitioner", status: "generated", generated_at: new Date().toISOString() });
     cases.set(c.case_id, c);
     summaries.unshift(summarize(c));
+    // Mirrors skill_graph.select_case(): the backend may expose its selection rationale on auto-pick.
+    if (!req.archetype) {
+      return { ...c, rationale: "Working Capital Crunch covers your weakest unlocked nodes (Working Capital & the Cash Cycle, Accrual vs. Cash Dynamics; mean p_known 0.18); practitioner matches your current mastery band." };
+    }
     return c;
   }],
   ["GET", /^\/cases$/, () => summaries],
@@ -218,6 +222,11 @@ const routes: [string, RegExp, Handler][] = [
     const masked = keep ? settings.api_key_masked : maskKey(s.api_key);
     const configured = masked.length > 0 || s.provider === "local";
     settings = { provider: s.provider, base_url: s.base_url, api_key: masked, api_key_masked: masked, api_key_set: masked.length > 0, fast_model: s.fast_model, deep_model: s.deep_model, temperature_fast: s.temperature_fast, temperature_deep: s.temperature_deep, max_tokens: s.max_tokens, configured };
+    return settings;
+  }],
+  ["DELETE", /^\/settings\/llm$/, () => {
+    // Backend clear_llm_settings: drops the stored row, so GET falls back to LLMSettings() defaults.
+    settings = { provider: "openrouter", base_url: "https://openrouter.ai/api/v1", api_key: "", api_key_masked: "", api_key_set: false, fast_model: "anthropic/claude-haiku-4.5", deep_model: "anthropic/claude-sonnet-4.5", temperature_fast: 0.7, temperature_deep: 0.2, max_tokens: 4096, configured: false };
     return settings;
   }],
   ["POST", /^\/settings\/llm\/test$/, () =>

@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { api, errorMessage } from "../api/client";
 import type { LLMSettings, LLMSettingsPublic, LLMTestResult, LLMUsageSummary, PromptTemplate } from "../api/types";
 import { toast } from "./uiStore";
+import { useCatalog } from "./catalogStore";
 
 interface SettingsState {
   settings: LLMSettingsPublic | null;
@@ -9,6 +10,7 @@ interface SettingsState {
   prompts: PromptTemplate[] | null;
   loading: boolean;
   saving: boolean;
+  clearing: boolean;
   testing: boolean;
   testResult: LLMTestResult | null;
   error: string | null;
@@ -16,6 +18,8 @@ interface SettingsState {
   loadUsage: () => Promise<void>;
   loadPrompts: () => Promise<void>;
   save: (s: LLMSettings) => Promise<boolean>;
+  /** DELETE /settings/llm: forget the stored key and models (back to unconfigured). */
+  clear: () => Promise<boolean>;
   test: () => Promise<void>;
 }
 
@@ -25,6 +29,7 @@ export const useSettings = create<SettingsState>((set, get) => ({
   prompts: null,
   loading: false,
   saving: false,
+  clearing: false,
   testing: false,
   testResult: null,
   error: null,
@@ -58,12 +63,27 @@ export const useSettings = create<SettingsState>((set, get) => ({
     try {
       set({ settings: await api.putLlmSettings(s), testResult: null });
       toast("LLM settings saved", "success");
+      void useCatalog.getState().loadHealth();
       return true;
     } catch (e) {
       toast(`Save failed: ${errorMessage(e)}`, "error");
       return false;
     } finally {
       set({ saving: false });
+    }
+  },
+  clear: async () => {
+    set({ clearing: true });
+    try {
+      set({ settings: await api.clearLlmSettings(), testResult: null });
+      toast("Stored API key cleared", "success");
+      void useCatalog.getState().loadHealth();
+      return true;
+    } catch (e) {
+      toast(`Clear failed: ${errorMessage(e)}`, "error");
+      return false;
+    } finally {
+      set({ clearing: false });
     }
   },
   test: async () => {

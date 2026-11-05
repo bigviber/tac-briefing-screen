@@ -93,8 +93,9 @@ export function DataRoomTab() {
   if (!db) return null;
 
   return (
-    <div className="flex flex-col">
-      <div className="flex items-center gap-2 border-b border-line px-3 py-1.5">
+    // The ERD view fills the pane and owns both scroll axes, so its horizontal scrollbar stays on screen.
+    <div className={`flex flex-col ${view === "erd" ? "h-full min-h-0" : ""}`}>
+      <div className="flex shrink-0 items-center gap-2 border-b border-line px-3 py-1.5">
         <div className="flex rounded border border-line" role="radiogroup" aria-label="Data room view">
           {(["tables", "erd", "financials", "operations"] as View[]).map((v) => (
             <button key={v} role="radio" aria-checked={view === v} onClick={() => setView(v)} className={`h-6 px-2.5 text-xs capitalize ${view === v ? "bg-s3 text-fg" : "text-muted hover:text-fg"}`}>
@@ -106,7 +107,7 @@ export function DataRoomTab() {
       </div>
       {view === "erd" && (
         // Large schemas (the generator emits ~14 tables) are unreadable when fit to the pane: scroll instead.
-        <div className="overflow-auto p-3">
+        <div className="min-h-0 flex-1 overflow-auto p-3">
           <Mermaid code={db.erd_mermaid} natural={db.tables.length > 6} />
         </div>
       )}

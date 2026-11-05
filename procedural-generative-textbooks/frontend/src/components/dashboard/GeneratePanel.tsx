@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Dice5, Sparkles, X } from "lucide-react";
+import { ArrowRight, Dice5, Sparkles, X } from "lucide-react";
 import { DIFFICULTIES, PILLARS, type Difficulty } from "../../api/types";
 import { useCatalog } from "../../store/catalogStore";
 import { useSkills } from "../../store/skillsStore";
@@ -7,6 +7,7 @@ import { useCase } from "../../store/caseStore";
 import { navigate } from "../../lib/route";
 import { PILLAR_COLOR, PILLAR_LABEL } from "../../lib/pillars";
 import { Kbd, Skeleton } from "../ui/primitives";
+import { humanize } from "../../lib/format";
 
 const AUTO = "__auto__";
 
@@ -19,6 +20,7 @@ export function GeneratePanel() {
   const clearTargets = useSkills((s) => s.clearTargets);
   const generating = useCase((s) => s.generating);
   const generate = useCase((s) => s.generate);
+  const last = useCase((s) => s.lastGenerated);
 
   const [archetype, setArchetype] = useState<string>(AUTO);
   const [difficulty, setDifficulty] = useState<Difficulty>("practitioner");
@@ -136,6 +138,24 @@ export function GeneratePanel() {
           {generating ? "Generating world…" : "Generate case"}
           <span className="ml-auto opacity-70"><Kbd>⌘K</Kbd></span>
         </button>
+
+        {last && (
+          <button
+            className="block w-full rounded border border-line bg-bg px-2.5 py-2 text-left hover:border-[#2f3848]"
+            onClick={() => navigate({ name: "case", id: last.case_id })}
+            aria-label={`Open last generated case, ${last.company}`}
+          >
+            <div className="field-label mb-0.5">Last generated</div>
+            <div className="flex items-center gap-2">
+              <span className="min-w-0 truncate text-sm text-fg">{last.company}</span>
+              <ArrowRight size={12} className="ml-auto shrink-0 text-muted" aria-hidden />
+            </div>
+            {last.rationale && <p className="mt-0.5 text-xs leading-snug text-[#c2cad8]">{last.rationale}</p>}
+            <div className="mt-0.5 truncate font-mono text-2xs text-muted">
+              {archetypes?.find((a) => a.key === last.archetype)?.title ?? humanize(last.archetype)} · {last.difficulty} · seed {last.seed}
+            </div>
+          </button>
+        )}
       </div>
     </section>
   );

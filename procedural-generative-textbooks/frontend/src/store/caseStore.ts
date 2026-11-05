@@ -6,12 +6,23 @@ import { emptyPersisted, threadFromSession, type PersistedCaseState, type RunSta
 import { createWorkSlice, type WorkSlice } from "./workSlice";
 import { requireLlm, toast } from "./uiStore";
 
+export interface GeneratedSummary {
+  case_id: string;
+  company: string;
+  archetype: string;
+  difficulty: CasePublic["difficulty"];
+  seed: number;
+  rationale: string | null;
+}
+
 export interface CoreSlice extends RunState {
   caseId: string | null;
   caseData: CasePublic | null;
   caseLoading: boolean;
   caseError: string | null;
   generating: boolean;
+  /** The case most recently returned by `POST /cases/generate` (shown on the dashboard's generate panel). */
+  lastGenerated: GeneratedSummary | null;
   dossier: Dossier | null;
   dossierStream: string;
   dossierLoading: boolean;
@@ -69,6 +80,7 @@ export const useCase = create<CaseStore>()((set, get, store) => ({
   caseLoading: false,
   caseError: null,
   generating: false,
+  lastGenerated: null,
   dossier: null,
   dossierStream: "",
   dossierLoading: false,
@@ -105,7 +117,14 @@ export const useCase = create<CaseStore>()((set, get, store) => ({
     set({ generating: true });
     try {
       const c = await api.generateCase(req);
-      set({ ...RESET_WORK, caseId: c.case_id, caseError: null, caseLoading: false });
+      const rationale = typeof c.rationale === "string" && c.rationale.trim() ? c.rationale.trim() : null;
+      set({
+        ...RESET_WORK,
+        caseId: c.case_id,
+        caseError: null,
+        caseLoading: false,
+        lastGenerated: { case_id: c.case_id, company: c.company.name, archetype: c.archetype, difficulty: c.difficulty, seed: c.seed, rationale },
+      });
       hydrate(c);
       // Case ids are deterministic (archetype-seed-difficulty): re-generating restores prior work.
       if (c.status !== "generated") void restoreSession(c.case_id);

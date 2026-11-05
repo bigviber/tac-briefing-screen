@@ -101,6 +101,9 @@ Error statuses with a UI meaning (`backend/axiom/api/errors.py`):
 
 Notes:
 
+- Settings → LLM provider → **Clear stored key** calls `DELETE /settings/llm`, which returns the default
+  `LLMSettingsView` with `configured: false`; the drawer, top-bar health and usage strip then show the unconfigured state.
+- `CasePublic.rationale` (optional) is shown under the case title in the dashboard's "Last generated" card.
 - `ReferenceSolution.sql` / `.python` are lists; each item renders as its own code block.
 - `RubricGrade.ceiling_te` is always sent (10 = unconstrained); the grade report notes it only when
   it is below 10, and says "capped" when the model's raw technical-execution score exceeded it.

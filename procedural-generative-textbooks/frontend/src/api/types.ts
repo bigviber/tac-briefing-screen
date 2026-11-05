@@ -305,6 +305,8 @@ export interface CasePublic {
   asks: Ask[];
   levers: Lever[];
   status: CaseStatus;
+  /** Why the selector picked this archetype/difficulty (auto-pick). Optional: not every backend sends it. */
+  rationale?: string | null;
 }
 
 export type CaseStatus = "generated" | "briefed" | "submitted" | "graded";
