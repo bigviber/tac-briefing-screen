@@ -1292,3 +1292,341 @@ Transition: oversell = f(path, lag model, traffic); cancellations, refunds, chur
 6. "The cache made the site fast." → It added 60 s of staleness on top of lag; cache non-decision data, not availability.
 
 ---
+
+## 12. `window_reconciliation` — Sub-Ledger vs General Ledger
+
+### Identity
+- **key** `window_reconciliation` · **title** "Tie-Out"
+- **primary** sql · **secondary** accounting_finance
+- **skill nodes** `sql.window_functions`, `sql.reconciliation`, `sql.ctes`, `sql.anti_joins`, `sql.deduplication`, `sql.running_totals`, `sql.date_bucketing`, `accounting_finance.subledger_gl_tie`, `accounting_finance.cutoff`, `accounting_finance.allowance`
+- **difficulty** foundation → principal
+- **industries** saas, ecommerce, fintech_marketplace · **schema** `saas_billing` (default)
+
+### Real-world grounding
+1. AICPA AU-C 500 / PCAOB AS 1105 audit evidence — the sub-ledger to GL reconciliation is the first substantive test in a financial audit; ICFR deficiency reports cite unreconciled AR as a top material-weakness category (Audit Analytics annual MW reports).
+2. Stripe "Revenue Recognition" and NetSuite "AR to GL reconciliation" docs — the practical tie-out method (opening + activity − collections = closing).
+3. SQL window-function pedagogy: Markus Winand, *SQL Performance Explained* / modern-sql.com "Window functions"; the DuckDB docs on `QUALIFY`, `LAG/LEAD`, `SUM() OVER (ROWS BETWEEN …)`.
+4. Dirty-data realism: Kim et al., "A Taxonomy of Dirty Data" (*Data Mining and Knowledge Discovery* 2003) — the source of the dirt catalogue in common §8.
+
+### Parameters
+| Param | Draw | Bound |
+|---|---|---|
+| `invoice_count` | 8–30k | — |
+| `break_types` | choose 3–5 from: `dup_invoices` (re-ingested rows), `unapplied_cash` (payments without invoice_id), `credit_memo_unposted` (sub-ledger credit memos missing from GL), `cutoff_shift` (GL period ≠ invoice period for late-posted), `fx_rounding` (multi-currency invoices rounded differently), `writeoff_one_sided` (write-off in sub-ledger, not GL), `reversed_entry_unreversed_subledger` | — |
+| `break_magnitude_pct` | D[p]·U(0.3, 2.5)% of closing AR per break | — |
+| `dup_rate` | U(0.5, 2)% of invoices duplicated with different `ingest_id` | — |
+| `fx_share` | U(0, 30)% invoices in EUR/GBP with daily `fx_rates` table (principal) | — |
+| `tz_mixed` | `payments.paid_at` mixed UTC/local (dirt) | — |
+
+Correlations: total unexplained difference at P8 = Σ breaks (signed); the user must produce the reconciling items table that nets to zero.
+
+### Healthy baseline construction
+1. SaaS baseline (common §3): `customers`, `subscriptions`, `invoices` (`invoice_id`, `customer_id`, `invoice_date`, `due_date`, `amount_cents`, `currency`, `status`, `ingest_id`, `created_at`, `updated_at`), `invoice_lines`, `payments` (`payment_id`, `invoice_id` nullable, `amount_cents`, `paid_at`, `method`), `credit_memos`, `write_offs`, `fx_rates`, `gl_journal`, `gl_lines` (account 1100 activity with `dimension.invoice_id`), `period_calendar`.
+2. The GL is correct and balanced; AR roll-forward per period: `open + invoiced − collected − credits − write_offs = close`.
+3. Row targets: `invoices` 8–30k, `payments` ≈ 0.95× invoices, `gl_lines` 30–50k (cap at 50k overall; downsample `invoice_lines` if needed).
+
+### Anomaly injection
+- Breaks are injected into the **sub-ledger tables** (not the GL) except `credit_memo_unposted` and `writeoff_one_sided`, which are injected as **GL omissions** (entries missing in `gl_journal`) — the engine must then post a compensating "suspense" entry (Dr 1400 suspense, Cr 1100) so statements still balance and the suspense balance is itself a clue. Each break has a known signed amount; ground truth lists them.
+- `dup_invoices`: duplicate rows with `ingest_id` incremented and `created_at` + a few seconds; naive `SUM` overstates AR by `dup_rate × avg`.
+- `unapplied_cash`: `payments.invoice_id NULL` for `U(1, 3)%` of payments (customer paid by wire with no remittance); GL credited 1100 (via a `dimension.customer_id` only).
+- `cutoff_shift`: invoices dated last 2 days of P8 with `gl_journal.date` in P9 (or vice versa).
+- `fx_rounding`: GL converts at daily rate rounded to cents per line; sub-ledger at month-average → small differences Σ to a visible amount.
+- `tz_mixed`: payments near midnight fall in different days by zone → period mis-bucketing if the user doesn't normalize.
+- Invariants hold (with suspense). Ties broken: AR sub-ledger ≠ GL 1100 by Σ breaks; ground truth gives each.
+
+### Red herrings
+1. "The GL is wrong" — the GL is right except for the omissions; most of the difference is sub-ledger dirt.
+2. "FX explains it" — FX rounding is tiny (<5% of difference) unless principal.
+3. "Write it off to suspense" — the suspense account *is* the symptom.
+
+### Ground-truth key
+| key | Derivation | tol |
+|---|---|---|
+| `gl_ar_close_p8_cents` | TB 1100 | exact |
+| `subledger_ar_naive_cents` | Σ open invoices (with dups) | rel 0.01 |
+| `subledger_ar_deduped_cents` | QUALIFY ROW_NUMBER() OVER (PARTITION BY invoice_id ORDER BY ingest_id) = 1 | rel 0.01 |
+| `unexplained_difference_cents` | GL − sub-ledger clean | exact |
+| `reconciling_items` (list of {type, cents}) | | each rel 0.05 |
+| `unapplied_cash_cents` | | rel 0.02 |
+| `duplicate_invoice_count` | | exact |
+| `cutoff_items_cents` | | rel 0.05 |
+| `ar_rollforward_by_period` | opening/invoiced/collected/credits/writeoffs/closing | rel 0.01 each |
+| `aging_buckets_p8` | 0–30/31–60/61–90/90+ from deduped open invoices | rel 0.03 |
+
+Reference SQL:
+```sql
+-- Dedupe, then AR roll-forward by period with running totals
+WITH inv AS (
+  SELECT * FROM invoices QUALIFY ROW_NUMBER() OVER (PARTITION BY invoice_id ORDER BY ingest_id) = 1),
+act AS (
+  SELECT date_trunc('quarter', invoice_date) q, SUM(amount_cents) invoiced, 0 collected FROM inv GROUP BY 1
+  UNION ALL
+  SELECT date_trunc('quarter', (paid_at AT TIME ZONE 'UTC')::date), 0, SUM(amount_cents) FROM payments GROUP BY 1),
+roll AS (
+  SELECT q, SUM(invoiced) invoiced, SUM(collected) collected FROM act GROUP BY 1)
+SELECT q, invoiced, collected,
+       SUM(invoiced - collected) OVER (ORDER BY q ROWS UNBOUNDED PRECEDING) AS subledger_ar_close
+FROM roll ORDER BY q;
+-- Compare to GL
+SELECT period, SUM(debit_cents - credit_cents) gl_ar FROM gl_lines WHERE account='1100' GROUP BY 1;
+-- Unapplied cash
+SELECT SUM(amount_cents) FROM payments WHERE invoice_id IS NULL;
+-- Cutoff: invoice period vs GL period
+SELECT i.invoice_id, i.invoice_date, j.date gl_date FROM inv i JOIN gl_lines l ON l.dimension_invoice_id = i.invoice_id
+JOIN gl_journal j USING (entry_id) WHERE date_trunc('quarter', i.invoice_date) <> date_trunc('quarter', j.date);
+```
+
+### Evidence trail
+1. GL 1100 vs naive Σ invoices → big difference; dedupe → smaller.
+2. Roll-forward by period isolates the period where the break appears.
+3. Anti-joins: payments without invoices; credit memos without GL; GL entries without sub-ledger.
+4. Cutoff and FX items.
+5. Reconciliation table nets to zero; aging from clean data.
+
+### Dossier seed
+- reveal: the auditor's request, the suspense account balance, that an ingestion job was "rerun" in P7, multi-currency launch (principal).
+- conceal: break list and amounts, the dedupe key, which items are GL omissions.
+- stakeholders: Controller (needs the tie-out by Friday), Data engineer (reran the ingestion; doesn't know it duplicated), AR clerk (knows about unapplied wires), Auditor (will test the reconciliation).
+- timeline: P6 "Billing system migration"; P7 "Ingestion rerun after outage"; P7 "New wire remittance process" ; P8 "Multi-currency invoicing live" (principal); P8 "Audit fieldwork begins"; P8 "Suspense balance queried" .
+- artifacts: auditor PBC list excerpt, suspense GL detail, ingestion job log excerpt.
+
+### Decision levers & quarter simulation
+| Lever | Range | Effect |
+|---|---|---|
+| `post_adjusting_entries` | 0/1 | clears suspense; GL = sub-ledger |
+| `fix_ingestion_idempotency` | 0/1 | no new dups |
+| `remittance_matching_rule` | none/amount+customer/ML | unapplied cash ÷ |
+| `allowance_true_up` | 0–5% | bad debt on 90+ aging |
+Transition: next quarter's break sizes by lever; audit finding severity.
+
+### Socratic traps
+1. "Sum of invoices minus payments is AR." → Not with duplicated ingests, unapplied cash and credits; show the roll-forward.
+2. "Delete the duplicates." → Which is canonical? Lowest `ingest_id`; and fix the job's idempotency.
+3. "The difference is small; book it to suspense." → Suspense is a liability for the audit; itemize.
+4. "Timezones don't matter at quarter granularity." → Payments at 23:30 local on quarter end shift periods; they move the roll-forward.
+5. "Use `DISTINCT`." → `DISTINCT` on all columns keeps rows that differ only by `ingest_id`; need `ROW_NUMBER` / `QUALIFY`.
+6. "FX is the cause." → Quantify: it is small; the structural items dominate.
+
+---
+
+## 13. `cohort_matrix` — Build the Retention Triangle
+
+### Identity
+- **key** `cohort_matrix` · **title** "Triangle"
+- **primary** sql · **secondary** python, operations_strategy
+- **skill nodes** `sql.cohort_analysis`, `sql.window_functions`, `sql.ctes`, `sql.date_bucketing`, `sql.pivoting`, `sql.gaps_and_islands`, `python.pandas_wrangling`, `python.visualization`, `operations_strategy.cohort_retention`
+- **difficulty** foundation → practitioner
+- **industries** saas, ecommerce, fintech_marketplace · **schema** `saas_billing` (subscription) or `ecommerce_oms` (repeat-purchase, non-contractual)
+
+### Real-world grounding
+1. Fader & Hardie (2007) sBG for contractual settings; Fader, Hardie & Lee (2005) "Counting Your Customers the Easy Way" (BG/NBD) for non-contractual — the ground truth fits these.
+2. Amplitude / Mixpanel retention analysis docs — "N-day" vs "unbounded" retention definitions, which the archetype asks the user to distinguish.
+3. Groupon/Blue Apron disclosures and the McCarthy-Fader customer-based valuation literature for why the triangle matters.
+4. SQL cohort tutorials (Mode Analytics, Sisense) for the canonical query shape.
+
+### Parameters
+| Param | Draw | Bound |
+|---|---|---|
+| `customers` | 3–12k | — |
+| `mode` | contractual (subscriptions with gaps/reactivations) or non-contractual (orders) | — |
+| `retention curve by segment` | sBG (α, β) per segment; or geometric | `saas.gross_churn_monthly_*`, `ecommerce.repeat_purchase_rate` |
+| `reactivation_rate` | U(3, 8)% of churned reactivate (gaps-and-islands) | — |
+| `embedded_business_anomaly` | one of: a cohort in P5 with 2× churn (promo cohort), a segment whose retention diverges, or a product change date | — |
+| `dirt` | `tz_mixed` on event timestamps; `dup_keys` on subscriptions; `late_arriving` cancellations | — |
+
+### Healthy baseline construction
+Standard SaaS or ecommerce baseline; `subscriptions` with `started_at`, `cancelled_at` nullable, `reactivated_from_id`; or `orders` with `customer_id`, `order_date`. Monthly `invoices`. Row targets `subscriptions` 4–15k, `orders` 10–40k.
+
+### Anomaly injection
+- The anomaly is **analytical**: naive cohort counting over-counts (duplicates, reactivations counted as new) and mis-buckets (timezone). A specific business anomaly is embedded (promo cohort collapse) so the matrix reveals something.
+- GL consistent; no accounting break.
+
+### Red herrings
+1. "Retention improved in recent cohorts" — right-censoring: recent cohorts have fewer observed months; naive averages mislead.
+2. "Reactivations are new customers" — they inflate acquisition and later cohorts.
+
+### Ground-truth key
+| key | Derivation | tol |
+|---|---|---|
+| `retention_matrix` | cohort × month-offset proportions (deduped, reactivations attributed to original cohort) | abs 0.02 per cell |
+| `anomalous_cohort` | the promo cohort month | exact |
+| `anomalous_cohort_m3_retention` | | abs 0.03 |
+| `reactivation_share` | | abs 0.01 |
+| `naive_vs_correct_customer_count_delta` | | exact |
+| `weighted_avg_m6_retention` | | abs 0.02 |
+| `sbg_alpha_beta` (contractual) | fitted | rel 0.25 |
+
+Reference SQL (gaps and islands for reactivations):
+```sql
+WITH s AS (
+  SELECT customer_id, started_at::date s, COALESCE(cancelled_at::date, DATE '9999-12-31') e
+  FROM subscriptions QUALIFY ROW_NUMBER() OVER (PARTITION BY subscription_id ORDER BY ingest_id)=1),
+ord AS (
+  SELECT *, LAG(e) OVER (PARTITION BY customer_id ORDER BY s) prev_e FROM s),
+isl AS (
+  SELECT *, SUM(CASE WHEN prev_e IS NULL OR s > prev_e + INTERVAL 30 DAY THEN 1 ELSE 0 END)
+            OVER (PARTITION BY customer_id ORDER BY s ROWS UNBOUNDED PRECEDING) island FROM ord),
+first_cohort AS (SELECT customer_id, date_trunc('month', MIN(s)) cohort FROM isl GROUP BY 1),
+months AS (SELECT * FROM generate_series(DATE '<P1 start>', DATE '<P8 end>', INTERVAL 1 MONTH) t(m)),
+active AS (
+  SELECT fc.customer_id, fc.cohort, m.m, datediff('month', fc.cohort, m.m) k
+  FROM first_cohort fc JOIN months m ON TRUE
+  WHERE EXISTS (SELECT 1 FROM s WHERE s.customer_id=fc.customer_id AND s.s <= m.m AND s.e > m.m))
+SELECT cohort, k, COUNT(DISTINCT customer_id)*1.0 /
+       FIRST_VALUE(COUNT(DISTINCT customer_id)) OVER (PARTITION BY cohort ORDER BY k) retention
+FROM active GROUP BY cohort, k ORDER BY 1,2;
+```
+Python reference: pandas pivot to triangle, heatmap, sBG fit, right-censoring-aware weighted averages.
+
+### Evidence trail
+Dedupe → define cohort by first island → bucket in one timezone → build triangle → handle censoring → spot the anomalous cohort → tie to the timeline (promo).
+
+### Dossier seed
+- reveal: "retention is improving" slide (naive), the promo in P5, the billing migration.
+- conceal: correct matrix, reactivation handling, the anomalous cohort's cause.
+- stakeholders: Head of Growth (made the slide), Analyst (asked to rebuild), CFO (wants LTV), Data eng (knows about dup ingests).
+- timeline: P3 "Billing migration (dup ingests)"; P5 "Promo"; P7 "Retention slide"; P8 "Board asks for cohort view".
+
+### Decision levers & quarter simulation
+| Lever | Effect |
+|---|---|
+| `promo_policy` | future cohort churn |
+| `winback_campaign` | reactivation rate +; cost |
+Transition: cohorts roll forward one month ×3.
+
+### Socratic traps
+1. "Newer cohorts retain better." → Censoring; compare at equal offsets only.
+2. "A reactivated customer is a new logo." → Island logic; attribute to the original cohort or report separately, never both.
+3. "Use calendar month of `created_at`." → Timezone mix shifts cohort assignment at month edges.
+4. "Average the retention rows." → Weight by cohort size.
+5. "Churn is when `cancelled_at` is set." → Late-arriving cancellations; use `effective_at` and handle NULL.
+
+---
+
+## 14. `monte_carlo_cash` — Will We Make Payroll in March?
+
+### Identity
+- **key** `monte_carlo_cash` · **title** "Runway Under Uncertainty"
+- **primary** python · **secondary** accounting_finance, operations_strategy
+- **skill nodes** `python.monte_carlo`, `python.distributions_fitting`, `python.pandas_wrangling`, `python.visualization`, `accounting_finance.cash_forecasting`, `accounting_finance.working_capital`, `accounting_finance.covenant_compliance`, `operations_strategy.decision_under_uncertainty`
+- **difficulty** practitioner → principal
+- **industries** any (default manufacturing or 3pl) · **schema** `ecommerce_oms` / `logistics_tms`
+
+### Real-world grounding
+1. Hertz (2020) and Hertz's 1980s "Risk Analysis in Capital Investment" (D. B. Hertz, *HBR* 1964 — origin of Monte Carlo in corporate finance). https://hbr.org/1979/09/risk-analysis-in-capital-investment
+2. The 13-week cash flow forecast as used in restructuring practice (AlixPartners/FTI methodology; Turnaround Management Association). 
+3. Savage, *The Flaw of Averages* (2009) — planning on expected values hides the probability of ruin; the archetype's trap is exactly this.
+4. Empirical input distributions: collection timing (DSO variance), demand (lognormal), supplier lead time (Gamma) from `operations.json`; Vose, *Risk Analysis* for fitting.
+
+### Parameters
+| Param | Draw | Bound |
+|---|---|---|
+| `cash_0` | U(1.0, 2.0) × monthly burn-at-risk | — |
+| `revenue_month` | LN with `cv` U(0.12, 0.25), seasonality | `<ind>.*` |
+| `collection_delay` | empirical from `payments` (days late ~ Gamma) | `<ind>.dso` |
+| `big_customer_share` | one customer U(18, 30)% of revenue with `p_default_or_delay` U(0.05, 0.15)/quarter (fat tail) | — |
+| `supplier_prepay_prob` | U(0.1, 0.3) that key supplier demands prepayment (lead-time/cash shock) | — |
+| `fixed_costs`, `payroll_dates` | semi-monthly payroll; rent on 1st; debt service quarterly | — |
+| `revolver_limit`, `covenant` | min liquidity covenant `U(0.5,1.0)` × payroll | — |
+| `horizon_weeks` | 13 | — |
+| `p_shortfall_truth` | engine computes by 20k-path simulation with fixed sub-seed | — |
+
+Correlations: the deterministic (expected-value) forecast shows positive cash every week; the simulation shows `P(cash < 0 at any week) = D[p] ∈ U(0.12, 0.35)`; the dominant driver is the big-customer payment timing × payroll date alignment.
+
+### Healthy baseline construction
+Standard baseline with rich `invoices`/`payments` history (24 months) so collection-delay distributions can be fit; `cash_ledger` (daily bank balance), `payroll_schedule`, `debt_schedule`, `supplier_terms`, `purchase_orders` (committed outflows), `sales_pipeline` (`probability`, `expected_close`, `amount`) for the forward revenue distribution, `management_forecast` (13-week deterministic plan).
+Row targets: `payments` 8–25k, `cash_ledger` ≈ 730, `sales_pipeline` 200–800.
+
+### Anomaly injection
+- The "anomaly" is the **deterministic management forecast** that uses mean DSO, mean demand, and ignores the big-customer tail and payroll timing. The data contains the evidence: payment-delay distribution is right-skewed (Gamma shape ~2), big customer paid 20+ days late twice in 24 months, supplier demanded prepay once.
+- Principal: `sales_pipeline.probability` is systematically optimistic (calibration: deals marked 70% closed 45%) — the user should calibrate from `pipeline_history`.
+- GL/ties: consistent; the forecast artifact is the flaw.
+
+### Red herrings
+1. "Average DSO is 42 days; we're fine." → The mean is not the quantile that kills you.
+2. "Pipeline is $X at 70%." → Calibration says 45%.
+3. "Revolver covers it." → Covenant minimum liquidity blocks the draw exactly when needed.
+
+### Ground-truth key
+| key | Derivation | tol |
+|---|---|---|
+| `p_shortfall_13w` | fraction of paths with min cash < 0 | abs 0.04 |
+| `p_covenant_breach_13w` | | abs 0.04 |
+| `expected_min_cash_cents`, `p5_min_cash_cents` | | rel 0.10 |
+| `worst_week_index` | mode of argmin week | ±1 |
+| `driver_ranking` | Sobol-lite: variance share by input (big customer timing, demand, supplier prepay) | top-1 exact |
+| `collection_delay_fit` | Gamma (k, θ) | rel 0.25 |
+| `pipeline_calibration_factor` (principal) | realized/stated | abs 0.08 |
+| `deterministic_forecast_min_cash_cents` | management's | exact |
+| `cash_needed_for_p95_safety_cents` | | rel 0.10 |
+
+Reference Python:
+```python
+rng = np.random.default_rng(seed)
+delay = rng.gamma(k, theta, size=(N, n_inv))           # fitted from payments
+demand = rng.lognormal(mu, sigma, size=(N, 13))
+big_late = rng.random(N) < p_big_delay                  # tail event
+# build weekly inflows by shifting expected receipts by sampled delay; outflows fixed by schedule
+cash = cash0 + np.cumsum(inflow - outflow, axis=1)
+p_short = (cash.min(axis=1) < 0).mean()
+```
+Reference SQL: fit inputs — delay distribution by customer, big-customer payment history, pipeline calibration (`stated_probability` vs `won`).
+
+### Evidence trail
+1. Management 13-week plan: positive every week.
+2. Fit collection delays: skewed; big customer tail.
+3. Payroll/rent timing vs expected receipts: tight weeks 6 and 10.
+4. Simulate: P(shortfall) ≈ 20%; drivers ranked.
+5. Covenant interaction; pre-arrange liquidity; collection actions on the big customer.
+
+### Dossier seed
+- reveal: the 13-week plan, "we've always been fine", the big customer's importance, revolver existence, pipeline summary.
+- conceal: delay distribution stats, P(shortfall), driver ranking, calibration factor.
+- stakeholders: CFO (built the plan on averages), Treasurer (nervous about week 10), Head of Sales (pipeline optimism), Bank RM (covenant).
+- timeline: P6 "Big customer paid 28 days late" ; P7 "Supplier asked for prepay" ; P7 "Revolver renewed with liquidity covenant" ; P8 "13-week plan approved"; P8 "Payroll date moved to 15th/30th" (**red herring**: minor).
+- artifacts: 13-week plan table, covenant excerpt, pipeline report.
+
+### Decision levers & quarter simulation
+| Lever | Range | Effect |
+|---|---|---|
+| `early_pay_discount_big_customer_pct` | 0–3 | delay distribution shift −10 days at cost |
+| `factoring_pct` | 0–50% of AR | immediate cash at 2–4% cost |
+| `defer_capex` / `defer_vendor_days` | | outflow timing |
+| `revolver_predraw_cents` | | cash + interest; covenant check |
+| `payroll_timing` | semi-monthly / monthly | alignment |
+Transition: re-run the simulation with lever-modified inputs; report P(shortfall), expected cost of each lever.
+
+### Socratic traps
+1. "On average we have $400k of headroom." → The distribution's 5th percentile is −$150k; probability of ruin is what matters.
+2. "Monte Carlo is guesswork." → Inputs are fitted from 24 months of your own payments data; show the fits and sensitivity.
+3. "The revolver is our buffer." → The liquidity covenant disables it in the scenarios where you need it.
+4. "Pipeline at 70% is conservative." → Historical calibration: 45%.
+5. "Factoring is expensive." → 3% vs probability-weighted cost of missing payroll; price the option.
+6. "Just run more simulations for precision." → The error is in the input model (tail of the big customer), not the sample size.
+
+---
+
+## Appendix A — Benchmark keys this spec depends on
+
+The corpus author should confirm these exist (naming `<industry>.<metric>`; `operations.*` and `forensic.*` are cross-industry):
+
+- `<ind>.gross_margin`, `.operating_margin`, `.dso`, `.dio`, `.dpo`, `.current_ratio`, `.debt_to_ebitda`, `.capex_pct_revenue`, `.sga_pct_revenue`, `.rd_pct_revenue`, `.effective_tax_rate`, `.revenue_growth_yoy`, `.allowance_pct_ar`, `.return_rate` (ecommerce/retail), `.cash_pct_revenue`, `.interest_rate` for `<ind> ∈ {saas, ecommerce, manufacturing, 3pl, retail, fintech_marketplace}`
+- `saas.gross_churn_monthly_smb`, `saas.gross_churn_monthly_midmarket`, `saas.gross_churn_monthly_enterprise`, `saas.net_revenue_retention`, `saas.cac_payback_months`, `saas.ltv_cac`, `saas.sm_pct_revenue`, `saas.arpa_monthly`, `saas.deferred_revenue_pct_of_arr`, `saas.annual_prepay_discount`, `saas.magic_number`, `saas.rule_of_40`
+- `ecommerce.repeat_purchase_rate`, `ecommerce.inventory_turns`, `retail.inventory_turns`, `retail.shrink_rate`
+- `manufacturing.oee`, `manufacturing.bottleneck_utilization`, `manufacturing.scrap_rate`, `manufacturing.setup_time_minutes`, `manufacturing.overhead_pct_conversion`
+- `3pl.lead_time_parcel_days`, `3pl.lead_time_ltl_days`, `3pl.lead_time_ftl_days`, `3pl.lead_time_ocean_days`, `3pl.lead_time_air_days` (+ `_cv` variants), `3pl.otif`, `3pl.fill_rate`, `3pl.pick_rate_lines_per_hour`
+- `operations.supplier_lead_time_days`, `operations.safety_stock_service_level`, `operations.bullwhip_ratio_empirical`, `operations.elasticity_grocery`, `operations.elasticity_apparel`, `operations.elasticity_software`, `operations.elasticity_durables`, `operations.elasticity_industrial`, `operations.cohort_retention_subscription_m1/m3/m6/m12`, `operations.cohort_retention_ecommerce_m1/m3/m6/m12`
+- `fintech_marketplace.take_rate`, `fintech_marketplace.chargeback_rate`, `fintech_marketplace.dispute_win_rate`
+- `any.wacc`, `any.terminal_growth`
+- `forensic.channel_stuffing_magnitude` (and the `forensic_patterns.json` typical magnitudes, which this author supplies)
+
+## Appendix B — Open questions for the implementer
+
+1. **Row budget.** Several archetypes want `gl_lines` plus transactional tables that together exceed 50k rows at full scale. Recommend: cap `gl_lines` by batching monthly recurring entries (payroll, depreciation, accruals) and keeping per-row entries only for sales/collections/purchases; expose `scale` so difficulty "foundation" uses ~10k total rows.
+2. **DuckDB functions.** Reference SQL uses `last_day_of_quarter()` as a placeholder — implement as a macro `CREATE MACRO last_day_of_quarter(d) AS (date_trunc('quarter', d) + INTERVAL 3 MONTH - INTERVAL 1 DAY)` created in every case DB, or rewrite the reference queries at build time. Also create `period_calendar` in every DB.
+3. **Expected-metric tolerances** are given per key; the deterministic grader should treat a metric as "attempted" when the user's submitted key matches (case-insensitive, with `_cents`/`_pct` suffix normalization) and "correct" when within tolerance.
+4. **Quarter simulation fidelity.** Transition models are intentionally reduced-form (closed-form KPI updates, not re-running the full ledger). Recommended implementation: a `SimulationModel` per archetype with `step(state, decisions) -> SimQuarter` that updates KPIs and a *summary* IS/BS/CF (revenue, EBITDA, cash, AR, inventory, debt) rather than regenerating tables.
+5. **Round-trip / principal variants** add tables (`suppliers` ↔ `customers` matching); confirm `schema_templates.json` includes `tax_id`/`address` on both.
+6. **Mermaid for finance archetypes.** `architecture_mermaid` is required only for 9–11; for others the dossier may include a process/flow diagram (optional).
+7. **sBG fitting** (archetypes 6, 13) needs `scipy.optimize`; keep it in the ground-truth builder, never in the request path.
+8. **Beneish coefficients**: in `forensic_patterns.json` (`beneish_m_score`), M = −4.84 + 0.920·DSRI + 0.528·GMI + 0.404·AQI + 0.892·SGI + 0.115·DEPI − 0.172·SGAI + 4.679·TATA − 0.327·LVGI; threshold −1.78 (Beneish 1999, 8-variable).

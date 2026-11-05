@@ -1,0 +1,458 @@
+{
+  "meta": {
+    "generated": "2026-11-05",
+    "purpose": "Forensic accounting anomaly signatures used by the deterministic generator (injection magnitudes) and by the pedagogy layer (detection paths). Magnitudes are ranges observed in enforcement actions and the cited literature; the generator scales them by difficulty.",
+    "primary_sources": [
+      "Schilit, Perler & Engelhart, Financial Shenanigans, 4th ed., McGraw-Hill 2018",
+      "Beneish, M. D. (1999). The Detection of Earnings Manipulation. Financial Analysts Journal 55(5), 24-36",
+      "Sloan, R. G. (1996). Do Stock Prices Fully Reflect Information in Accruals and Cash Flows about Future Earnings? The Accounting Review 71(3), 289-315",
+      "ACFE, Occupational Fraud 2024: A Report to the Nations",
+      "Nigrini, M. J. (2012). Benford's Law: Applications for Forensic Accounting, Auditing, and Fraud Detection. Wiley",
+      "SEC Accounting and Auditing Enforcement Releases (AAER) as cited per pattern"
+    ]
+  },
+  "patterns": [
+    {
+      "key": "channel_stuffing",
+      "title": "Channel stuffing",
+      "pillar": "accounting_finance",
+      "description": "Pushing more product into the distribution channel than end demand supports near period end, often with extended terms, deep discounts or return rights, so revenue is recognized before economic sale to end customers.",
+      "signatures": [
+        "Revenue in the last 5 business days of the quarter rises from ~10-14% to 25-40% of quarterly revenue",
+        "DSO rises while revenue growth accelerates; receivables grow faster than revenue (Beneish DSRI > 1.2)",
+        "Concentration: the increase sits in a handful of distributors",
+        "Terms on quarter-end invoices extended (net 90-120 vs net 30-45) and discounts 5-12 points higher",
+        "Returns in the following period 2.5-4x baseline for the window orders; next-quarter orders from the same accounts drop 50-80% of the stuffed amount",
+        "CFO lags net income; allowance for doubtful accounts held flat as AR grows"
+      ],
+      "typical_magnitude": {
+        "pulled_forward_pct_of_quarter_revenue": [0.06, 0.18],
+        "last5day_share_stuffed": [0.25, 0.40],
+        "terms_extension_days": [45, 90],
+        "return_multiplier_next_period": [2.5, 4.0]
+      },
+      "detection": {
+        "ratios": ["DSO trend", "revenue last-5-day share vs history (window LAG over quarters)", "returns rate for window vs non-window orders", "CFO/NI", "DSRI"],
+        "sql_sketch": "SELECT q, SUM(amount) rev, SUM(CASE WHEN invoice_date >= quarter_end - 6 THEN amount END)/SUM(amount) last5_share, LAG(...) OVER (ORDER BY q) FROM invoices GROUP BY q",
+        "python_sketch": "window = inv[inv.days_to_qend <= 5]; two-sample test of return rates window vs rest; distributor concentration (HHI) by quarter"
+      },
+      "real_cases": [
+        {"name": "Sunbeam Corp.", "year": 1998, "summary": "Bill-and-hold and channel stuffing under Al Dunlap inflated 1997 results; SEC AAER 1393 (2001).", "url": "https://www.sec.gov/litigation/admin/33-7976.htm"},
+        {"name": "Bristol-Myers Squibb", "year": 2004, "summary": "~$1.5B of sales stuffed into wholesalers in 2000-2001 with incentives; $150M settlement.", "url": "https://www.sec.gov/news/press/2004-105.htm"},
+        {"name": "Coca-Cola (Japan)", "year": 2005, "summary": "Gallon pushing to Japanese bottlers at quarter end to meet earnings guidance; SEC cease-and-desist.", "url": "https://www.sec.gov/news/press/2005-58.htm"}
+      ],
+      "sources": ["Schilit ch. 3 (Recording revenue too soon)", "SEC AAERs above"]
+    },
+    {
+      "key": "bill_and_hold",
+      "title": "Bill-and-hold revenue",
+      "pillar": "accounting_finance",
+      "description": "Invoicing and recognizing revenue for goods not yet shipped, with the goods held by the seller, where ASC 606 bill-and-hold criteria (customer-requested, substantive reason, goods identified and ready, seller cannot redirect) are not met.",
+      "signatures": [
+        "Invoices with ship_date after period end or NULL; shipment status 'awaiting release'",
+        "Gross margin spikes in the period (revenue booked, COGS at shipment) then reverses",
+        "Inventory sub-ledger shows no issue for invoiced units",
+        "Hold request notes originate from seller, not customer"
+      ],
+      "typical_magnitude": {"invoiced_not_shipped_pct_of_quarter_revenue": [0.03, 0.12], "gm_spike_pts": [1.0, 4.0]},
+      "detection": {
+        "ratios": ["invoiced-not-shipped / revenue", "GM% vs trailing 4 quarters", "inventory units vs invoiced units"],
+        "sql_sketch": "SELECT SUM(i.amount) FROM invoices i JOIN orders o USING(order_id) LEFT JOIN shipments s USING(order_id) WHERE s.ship_date IS NULL OR s.ship_date > period_end(i.invoice_date)",
+        "python_sketch": "merge invoices/shipments; flag ship_date > period_end; margin by period with/without flagged rows"
+      },
+      "real_cases": [
+        {"name": "Sunbeam Corp.", "year": 1998, "summary": "Bill-and-hold grill sales to retailers months before delivery.", "url": "https://www.sec.gov/litigation/admin/33-7976.htm"},
+        {"name": "Diebold", "year": 2010, "summary": "Premature recognition on bill-and-hold transactions among other practices; $25M settlement.", "url": "https://www.sec.gov/news/press/2010/2010-93.htm"}
+      ],
+      "sources": ["ASC 606-10-55-81 to 55-84", "Schilit ch. 3"]
+    },
+    {
+      "key": "premature_revenue_recognition",
+      "title": "Premature / cutoff revenue recognition",
+      "pillar": "accounting_finance",
+      "description": "Recognizing revenue before performance obligations are satisfied: cutoff errors at period end, recognizing on signing rather than delivery, or recognizing multi-period subscriptions up front.",
+      "signatures": [
+        "Invoice dates clustered in the last 2-3 days of the period with delivery in the first days of the next",
+        "Deferred revenue falls relative to billings for subscription businesses",
+        "Unbilled receivables / contract assets rise faster than revenue",
+        "Revenue per customer jumps in Q4 and falls in Q1"
+      ],
+      "typical_magnitude": {"cutoff_pct_of_quarter_revenue": [0.02, 0.08], "deferred_revenue_drawdown_pct": [0.05, 0.20]},
+      "detection": {
+        "ratios": ["deferred revenue / revenue", "unbilled AR / total AR", "day-of-period revenue histogram"],
+        "sql_sketch": "SELECT invoice_date, ship_date FROM invoices JOIN shipments USING(order_id) WHERE date_trunc('quarter', invoice_date) <> date_trunc('quarter', ship_date)",
+        "python_sketch": "histogram of revenue by day-of-quarter; compare deferred revenue roll-forward to billings"
+      },
+      "real_cases": [
+        {"name": "MicroStrategy", "year": 2000, "summary": "Recognized software license revenue before contracts were signed/delivered; restated 1997-1999.", "url": "https://www.sec.gov/litigation/admin/34-43724.htm"},
+        {"name": "Computer Associates", "year": 2004, "summary": "'35-day month' — contracts backdated into the prior quarter; $225M settlement.", "url": "https://www.sec.gov/news/press/2004-134.htm"}
+      ],
+      "sources": ["ASC 606 five-step model", "Schilit ch. 3"]
+    },
+    {
+      "key": "round_tripping",
+      "title": "Round-trip transactions",
+      "pillar": "accounting_finance",
+      "description": "Selling to and buying from the same counterparty (or an affiliate) in offsetting transactions to fabricate revenue with little or no economic substance.",
+      "signatures": [
+        "A supplier and a customer share tax id, address, bank account or officers (fuzzy matches after normalizing case/whitespace)",
+        "Sales to the customer roughly equal purchases from the supplier in the same month",
+        "Margin on those sales near zero; cash often never moves (netting)",
+        "Revenue growth without commensurate cash flow or inventory movement"
+      ],
+      "typical_magnitude": {"pct_of_revenue": [0.01, 0.10]},
+      "detection": {
+        "ratios": ["revenue growth vs CFO", "gross margin by counterparty"],
+        "sql_sketch": "SELECT c.customer_id, s.supplier_id FROM customers c JOIN suppliers s ON lower(trim(c.tax_id)) = lower(trim(s.tax_id)) OR lower(trim(c.address)) = lower(trim(s.address))",
+        "python_sketch": "fuzzy entity resolution (rapidfuzz) across customers/suppliers; monthly net flows by matched pair"
+      },
+      "real_cases": [
+        {"name": "Luckin Coffee", "year": 2020, "summary": "Fabricated ~RMB 2.1B of sales through related parties funding fake purchases; $180M SEC settlement.", "url": "https://www.sec.gov/news/press-release/2020-319"},
+        {"name": "Enron / Dynegy", "year": 2001, "summary": "Energy 'wash trades' inflating volume and revenue.", "url": "https://www.sec.gov/news/press/2002-140.htm"},
+        {"name": "Homestore.com / AOL", "year": 2002, "summary": "Circular advertising deals to inflate online ad revenue.", "url": "https://www.sec.gov/litigation/litreleases/lr17745.htm"}
+      ],
+      "sources": ["Schilit ch. 4 (Bogus revenue)"]
+    },
+    {
+      "key": "capitalizing_opex",
+      "title": "Capitalizing operating expenses",
+      "pillar": "accounting_finance",
+      "description": "Recording ordinary operating costs (line costs, marketing, maintenance, R&D) as assets to spread them over future periods and inflate current earnings.",
+      "signatures": [
+        "Capitalized software / other assets grow much faster than revenue",
+        "Capex % revenue jumps without a stated program; FCF (CFO - capex) deteriorates while CFO looks fine",
+        "Engineering payroll share capitalized rises from ~20% to 50%+",
+        "Depreciation/amortization lag: D&A / gross assets falls"
+      ],
+      "typical_magnitude": {"capitalized_pct_of_opex": [0.05, 0.30], "capex_pct_revenue_delta": [0.02, 0.08]},
+      "detection": {
+        "ratios": ["capex/revenue trend", "capitalized software additions / engineering payroll", "FCF vs CFO divergence", "AQI (Beneish)"],
+        "sql_sketch": "SELECT period, SUM(CASE WHEN account='1600' THEN debit END)/SUM(CASE WHEN dept='engineering' THEN payroll END) FROM ...",
+        "python_sketch": "recompute EBITDA with capitalized amounts expensed; compare margin paths"
+      },
+      "real_cases": [
+        {"name": "WorldCom", "year": 2002, "summary": "~$3.8B of line costs capitalized as assets (ultimately $11B restatement).", "url": "https://www.sec.gov/news/press/2002-94.htm"},
+        {"name": "AOL", "year": 2000, "summary": "Deferred ~$385M of subscriber acquisition (marketing) costs; SEC AAER 1257.", "url": "https://www.sec.gov/litigation/admin/33-7837.htm"}
+      ],
+      "sources": ["Schilit ch. 5 (Shifting current expenses to a later period)"]
+    },
+    {
+      "key": "cookie_jar_reserves",
+      "title": "Cookie-jar reserves",
+      "pillar": "accounting_finance",
+      "description": "Over-accruing reserves (restructuring, warranty, returns, bad debt) in good periods and releasing them in weak periods to smooth earnings.",
+      "signatures": [
+        "Reserve balances as % of the driver (sales, AR) oscillate counter-cyclically with earnings misses",
+        "Large reserve builds coincide with 'big bath' restructuring; subsequent releases flow through operating income",
+        "Journal entries to reserve accounts cluster at quarter end, manual, round amounts"
+      ],
+      "typical_magnitude": {"reserve_pct_of_driver_swing": [0.005, 0.03], "eps_smoothing_pct": [0.02, 0.10]},
+      "detection": {
+        "ratios": ["allowance % AR", "warranty reserve % sales", "reserve release / operating income"],
+        "sql_sketch": "SELECT period, SUM(credit-debit) reserve_activity, is_manual, amount % 10000 = 0 AS round FROM gl_lines WHERE account IN ('1110','2450','2100') GROUP BY ...",
+        "python_sketch": "regress reserve changes on earnings surprise; flag negative correlation"
+      },
+      "real_cases": [
+        {"name": "Microsoft", "year": 2002, "summary": "Unsupported reserves of $200M-$900M used to smooth earnings 1995-1998; SEC cease-and-desist.", "url": "https://www.sec.gov/litigation/admin/34-46017.htm"},
+        {"name": "Sunbeam Corp.", "year": 1998, "summary": "Excess restructuring reserves created in 1996 and released in 1997.", "url": "https://www.sec.gov/litigation/admin/33-7976.htm"}
+      ],
+      "sources": ["Schilit ch. 7 (Shifting future expenses to an earlier period)", "Levitt, 'The Numbers Game' speech 1998"]
+    },
+    {
+      "key": "phantom_inventory",
+      "title": "Phantom / overstated inventory",
+      "pillar": "accounting_finance",
+      "description": "Inventory that does not exist or is worth less than carried, overstating assets and understating COGS.",
+      "signatures": [
+        "Inventory grows faster than COGS (DIO rising) with gross margin improving",
+        "Cycle-count adjustments trend negative and are reversed at period end",
+        "Inventory roll-forward (begin + purchases - COGS) does not tie to the sub-ledger",
+        "Obsolete / slow-moving SKUs with no write-down"
+      ],
+      "typical_magnitude": {"overstatement_pct_of_inventory": [0.05, 0.30]},
+      "detection": {
+        "ratios": ["DIO trend", "GM% vs DIO", "inventory reserve % inventory", "sell-through by SKU"],
+        "sql_sketch": "SELECT sku, SUM(qty_in)-SUM(qty_out) book_qty, last_count_qty FROM inventory_movements ... JOIN inventory_counts",
+        "python_sketch": "roll-forward test per SKU; aging of inventory by last sale date"
+      },
+      "real_cases": [
+        {"name": "Crazy Eddie", "year": 1989, "summary": "Inventory counts inflated by ~$65M; auditors deceived during observation.", "url": "https://www.sec.gov/news/digest/1989/dig090789.pdf"},
+        {"name": "Phar-Mor", "year": 1992, "summary": "$500M fraud with inventory inflated across stores to hide losses.", "url": "https://www.nytimes.com/1992/08/05/business/phar-mor-ousts-2-and-cites-fraud.html"}
+      ],
+      "sources": ["Schilit ch. 5", "ACFE Report to the Nations (asset misappropriation / inventory)"]
+    },
+    {
+      "key": "understated_allowance",
+      "title": "Understated allowance for doubtful accounts",
+      "pillar": "accounting_finance",
+      "description": "Holding the bad-debt allowance flat or reducing it while receivables age and grow, boosting earnings.",
+      "signatures": [
+        "Allowance % of AR declines while AR aging (90+) grows",
+        "Bad debt expense % revenue declines",
+        "Write-offs exceed provisions for several periods (allowance draw-down)"
+      ],
+      "typical_magnitude": {"allowance_pct_ar_shortfall": [0.005, 0.03]},
+      "detection": {
+        "ratios": ["allowance / AR", "allowance / 90+ aging", "provision / write-offs"],
+        "sql_sketch": "SELECT period, SUM(CASE WHEN days_past_due > 90 THEN open END) over90, allowance FROM aging JOIN tb ...",
+        "python_sketch": "expected loss = Σ bucket × historical loss rate; compare to allowance"
+      },
+      "real_cases": [
+        {"name": "Satyam", "year": 2009, "summary": "Fictitious receivables and cash; ~$1B hole.", "url": "https://www.sec.gov/news/press/2011/2011-81.htm"},
+        {"name": "Bally Total Fitness", "year": 2008, "summary": "Understated allowance on membership receivables; restatement 1997-2003.", "url": "https://www.sec.gov/news/press/2008/2008-25.htm"}
+      ],
+      "sources": ["Schilit ch. 5", "ASC 326 (CECL)"]
+    },
+    {
+      "key": "stretched_payables",
+      "title": "Stretched payables / supplier financing masking cash burn",
+      "pillar": "accounting_finance",
+      "description": "Delaying vendor payments or using reverse-factoring to inflate CFO; the liability may be reclassified out of AP.",
+      "signatures": [
+        "DPO rises 10-30 days over 2-4 quarters; CFO improvement equals ΔAP",
+        "Suppliers tighten terms, put accounts on hold, or demand prepayment; stockouts follow",
+        "Supplier-finance programs disclosed vaguely; AP 'other' grows"
+      ],
+      "typical_magnitude": {"dpo_increase_days": [10, 30], "cfo_boost_pct_of_cfo": [0.10, 0.50]},
+      "detection": {
+        "ratios": ["DPO trend", "ΔAP / CFO", "supplier terms distribution", "on-hold POs"],
+        "sql_sketch": "SELECT period, AVG(paid_at - bill_date) days_to_pay, COUNT(*) FILTER (WHERE status='on_hold') FROM vendor_bills ...",
+        "python_sketch": "CFO ex-ΔAP series; supplier-level payment lag drift"
+      },
+      "real_cases": [
+        {"name": "Carillion", "year": 2018, "summary": "Reverse factoring (~£500M) classified as trade payables masked debt before collapse.", "url": "https://publications.parliament.uk/pa/cm201719/cmselect/cmworpen/769/769.pdf"},
+        {"name": "Abengoa", "year": 2015, "summary": "Supplier-finance arrangements obscured leverage prior to insolvency filing.", "url": "https://www.reuters.com/article/abengoa-idUSL8N13K3UR20151125"}
+      ],
+      "sources": ["Schilit ch. 10 (Cash flow shenanigans)", "ASU 2022-04 supplier finance disclosures"]
+    },
+    {
+      "key": "related_party_sales",
+      "title": "Related-party sales",
+      "pillar": "accounting_finance",
+      "description": "Revenue from entities controlled by insiders, often on non-market terms, with collectability and substance in doubt.",
+      "signatures": [
+        "Customers sharing addresses/officers with the company or its executives",
+        "Unusually long or unpaid receivables from those customers",
+        "Sales concentrated at quarter end with high margins"
+      ],
+      "typical_magnitude": {"pct_of_revenue": [0.02, 0.15]},
+      "detection": {
+        "ratios": ["AR days by customer", "margin by customer"],
+        "sql_sketch": "SELECT customer_id FROM customers WHERE address IN (SELECT address FROM officers) OR registered_agent = ...",
+        "python_sketch": "entity resolution customers × officer/affiliate list; collections performance subset"
+      },
+      "real_cases": [
+        {"name": "Adelphia", "year": 2002, "summary": "Undisclosed related-party dealings with the Rigas family; $2.3B off-balance debt.", "url": "https://www.sec.gov/news/press/2002-110.htm"},
+        {"name": "Wirecard", "year": 2020, "summary": "Third-party acquiring partners and €1.9B of cash that did not exist.", "url": "https://www.bafin.de/EN/PublikationenDaten/Jahresbericht/Jahresbericht2020/Kapitel1/Kapitel1_3/kapitel1_3_node_en.html"}
+      ],
+      "sources": ["ASC 850", "Schilit ch. 4"]
+    },
+    {
+      "key": "cutoff_manipulation",
+      "title": "Period cutoff manipulation",
+      "pillar": "accounting_finance",
+      "description": "Keeping the sales ledger open after period end or closing the purchase ledger early, shifting revenue earlier and expenses later.",
+      "signatures": [
+        "GL posting dates after period end with document dates within the period (or vice versa)",
+        "Expense invoices dated in the period but posted in the next (expenses deferred)",
+        "Shipping log dates vs invoice dates mismatch at the boundary"
+      ],
+      "typical_magnitude": {"shifted_pct_of_quarter_revenue": [0.01, 0.06], "shifted_pct_of_quarter_opex": [0.02, 0.08]},
+      "detection": {
+        "ratios": ["boundary-day revenue/expense density", "posting lag distribution at period end vs mid-period"],
+        "sql_sketch": "SELECT j.entry_id FROM gl_journal j WHERE date_trunc('quarter', j.date) <> date_trunc('quarter', j.document_date)",
+        "python_sketch": "posting_lag = post_date - doc_date; compare distribution for last 3 days vs rest"
+      },
+      "real_cases": [
+        {"name": "Computer Associates", "year": 2004, "summary": "Quarter held open ('35-day month').", "url": "https://www.sec.gov/news/press/2004-134.htm"},
+        {"name": "Tesco", "year": 2014, "summary": "Commercial income recognized early; £263M overstatement.", "url": "https://www.fca.org.uk/news/press-releases/tesco-agree-pay-redress-market-abuse"}
+      ],
+      "sources": ["Schilit ch. 3 and 5", "PCAOB AS 2810 (cutoff procedures)"]
+    },
+    {
+      "key": "unbilled_receivables_growth",
+      "title": "Unbilled receivables / contract assets growth",
+      "pillar": "accounting_finance",
+      "description": "Revenue recognized on percentage-of-completion or usage without customer acceptance or invoicing, building contract assets that may not convert to cash.",
+      "signatures": [
+        "Unbilled AR grows faster than billed AR and revenue",
+        "Unbilled / total AR rises above 25-30%",
+        "Large year-end unbilled reversed in Q1"
+      ],
+      "typical_magnitude": {"unbilled_pct_of_ar": [0.15, 0.45]},
+      "detection": {
+        "ratios": ["unbilled AR / revenue", "unbilled / total AR", "aging of unbilled"],
+        "sql_sketch": "SELECT period, SUM(unbilled) / SUM(total_ar) FROM ar_balances GROUP BY period",
+        "python_sketch": "conversion analysis: unbilled at t vs invoiced by t+90"
+      },
+      "real_cases": [
+        {"name": "Hertz", "year": 2014, "summary": "Restatement including improper revenue/accrual timing; $16M settlement.", "url": "https://www.sec.gov/news/press-release/2018-304"},
+        {"name": "Kraft Heinz", "year": 2021, "summary": "Supplier contract accounting misstatements; $62M settlement.", "url": "https://www.sec.gov/news/press-release/2021-174"}
+      ],
+      "sources": ["ASC 606-10-45 (contract assets)", "Schilit ch. 3"]
+    },
+    {
+      "key": "deferred_revenue_drawdown",
+      "title": "Deferred revenue drawdown",
+      "pillar": "accounting_finance",
+      "description": "Deferred revenue declines relative to recognized revenue, signalling slowing bookings or accelerated recognition; often masked by acquisitions or policy changes.",
+      "signatures": [
+        "Deferred revenue / TTM revenue falls for 2+ quarters while revenue grows",
+        "Billings (revenue + Δdeferred) grow slower than revenue",
+        "Change in recognition policy (e.g., term shortening) disclosed as 'alignment'"
+      ],
+      "typical_magnitude": {"deferred_to_revenue_decline_pct": [0.05, 0.25]},
+      "detection": {
+        "ratios": ["billings growth vs revenue growth", "deferred revenue / revenue"],
+        "sql_sketch": "SELECT period, revenue + (deferred_end - deferred_begin) billings FROM ...",
+        "python_sketch": "billings vs revenue growth series; policy change dummy"
+      },
+      "real_cases": [
+        {"name": "Autonomy / HP", "year": 2012, "summary": "Hardware sales and reseller transactions mischaracterized; recognition acceleration; $8.8B write-down.", "url": "https://www.sec.gov/news/press-release/2018-221"}
+      ],
+      "sources": ["Schilit ch. 3", "SaaS Capital billings methodology"]
+    },
+    {
+      "key": "sloan_accrual_anomaly",
+      "title": "Sloan accrual ratio",
+      "pillar": "accounting_finance",
+      "description": "High accruals (earnings not backed by cash flow) predict lower future earnings and returns. Accrual ratio = (Net income - CFO) / average total assets; or balance-sheet version (ΔNOA / avg NOA).",
+      "signatures": [
+        "Accrual ratio > +10% of average assets",
+        "NI growing while CFO flat or falling for 2+ quarters"
+      ],
+      "typical_magnitude": {"accrual_ratio_flag": [0.05, 0.15]},
+      "detection": {
+        "ratios": ["(NI - CFO)/avg assets", "(NI - CFO - CFI)/avg assets (Richardson et al. 2005)"],
+        "sql_sketch": "SELECT period, (net_income - cfo) / ((assets_begin + assets_end)/2.0) FROM statements",
+        "python_sketch": "accrual = (ni - cfo)/avg_assets; decile vs history"
+      },
+      "real_cases": [
+        {"name": "Sloan (1996) sample", "year": 1996, "summary": "Hedge portfolio long low-accrual, short high-accrual earned ~10%/yr abnormal returns 1962-1991.", "url": "https://www.jstor.org/stable/248290"}
+      ],
+      "sources": ["Sloan 1996", "Richardson, Sloan, Soliman & Tuna (2005) JAE"]
+    },
+    {
+      "key": "beneish_m_score",
+      "title": "Beneish M-score (8-variable)",
+      "pillar": "accounting_finance",
+      "description": "Probit model scoring the likelihood of earnings manipulation from year-over-year indices. M = -4.84 + 0.920*DSRI + 0.528*GMI + 0.404*AQI + 0.892*SGI + 0.115*DEPI - 0.172*SGAI + 4.679*TATA - 0.327*LVGI. M > -1.78 flags likely manipulation (Beneish 1999 cutoff; -2.22 in some later usage).",
+      "signatures": [
+        "DSRI (Days Sales in Receivables Index) = (AR_t/Sales_t)/(AR_{t-1}/Sales_{t-1})",
+        "GMI (Gross Margin Index) = GM_{t-1}/GM_t",
+        "AQI (Asset Quality Index) = [1-(CA_t+PPE_t)/TA_t]/[1-(CA_{t-1}+PPE_{t-1})/TA_{t-1}]",
+        "SGI (Sales Growth Index) = Sales_t/Sales_{t-1}",
+        "DEPI (Depreciation Index) = [Dep_{t-1}/(Dep_{t-1}+PPE_{t-1})]/[Dep_t/(Dep_t+PPE_t)]",
+        "SGAI (SG&A Index) = (SGA_t/Sales_t)/(SGA_{t-1}/Sales_{t-1})",
+        "TATA (Total Accruals to Total Assets) = (Income from continuing ops - CFO)/TA_t",
+        "LVGI (Leverage Index) = [(LTD_t+CL_t)/TA_t]/[(LTD_{t-1}+CL_{t-1})/TA_{t-1}]"
+      ],
+      "typical_magnitude": {
+        "coefficients": [-4.84, 0.920, 0.528, 0.404, 0.892, 0.115, -0.172, 4.679, -0.327],
+        "threshold": [-2.22, -1.78],
+        "dsri_manipulator_mean": [1.4, 1.5],
+        "tata_manipulator_mean": [0.03, 0.05]
+      },
+      "detection": {
+        "ratios": ["all eight indices on TTM vs prior TTM"],
+        "sql_sketch": "compute TTM sums per period from statements; indices as ratios of consecutive TTM windows",
+        "python_sketch": "def m_score(cur, prev): dsri=(cur.ar/cur.sales)/(prev.ar/prev.sales); ...; return -4.84+0.92*dsri+0.528*gmi+0.404*aqi+0.892*sgi+0.115*depi-0.172*sgai+4.679*tata-0.327*lvgi"
+      },
+      "real_cases": [
+        {"name": "Enron (retrospective)", "year": 1998, "summary": "Cornell MBA students applying the M-score flagged Enron in 1998.", "url": "https://www.ecgi.global/sites/default/files/working_papers/documents/SSRN-id1992009.pdf"}
+      ],
+      "sources": ["Beneish 1999 FAJ", "Beneish, Lee & Nichols (2013) FAJ 'Earnings Manipulation and Expected Returns'"]
+    },
+    {
+      "key": "benford_first_digit",
+      "title": "Benford's Law first-digit test",
+      "pillar": "accounting_finance",
+      "description": "Naturally occurring transaction amounts follow P(d) = log10(1 + 1/d) for the first digit; fabricated or rounded amounts deviate. Applies to data spanning several orders of magnitude without imposed limits.",
+      "signatures": [
+        "Excess of first digits 5-9 (invented numbers) or spikes at specific digits (threshold gaming, e.g., many 4,9xx amounts below a 5,000 approval limit)",
+        "Mean absolute deviation (MAD) > 0.015 for first digit (Nigrini 'nonconformity')",
+        "Round-number share (amount % 100 == 0) far above the ~3-8% typical for invoices"
+      ],
+      "typical_magnitude": {"mad_conformity_bands": [0.006, 0.012, 0.015], "expected_first_digit_1": [0.301, 0.301]},
+      "detection": {
+        "ratios": ["first-digit distribution vs Benford", "first-two-digit test", "round-number share"],
+        "sql_sketch": "SELECT substr(cast(amount_cents/100 as varchar),1,1) d, COUNT(*)*1.0/SUM(COUNT(*)) OVER () FROM invoices WHERE amount_cents >= 1000 GROUP BY 1",
+        "python_sketch": "obs = first_digit_counts/n; exp = np.log10(1+1/np.arange(1,10)); mad = np.abs(obs-exp).mean(); chi2 test"
+      },
+      "real_cases": [
+        {"name": "Nigrini — Enron and WorldCom revenue data", "year": 2002, "summary": "First-two-digit tests flagged anomalies in reported figures.", "url": "https://www.nigrini.com/"},
+        {"name": "Greece Eurostat data", "year": 2011, "summary": "Rauch et al. found Greek macro data deviated most from Benford among EU states.", "url": "https://onlinelibrary.wiley.com/doi/10.1111/j.1468-0475.2011.00542.x"}
+      ],
+      "sources": ["Nigrini 2012", "Durtschi, Hillison & Pacini (2004) J. Forensic Accounting"]
+    },
+    {
+      "key": "journal_entry_red_flags",
+      "title": "Journal entry red flags (AS 2401 / SAS 99 tests)",
+      "pillar": "accounting_finance",
+      "description": "Top-side and manual entries that bypass normal processing are the primary vehicle for management override. Standard tests examine timing, amounts, preparers and accounts.",
+      "signatures": [
+        "Manual entries posted in the last 3 days of the period or after close (post-closing)",
+        "Round amounts (multiples of 1,000 / 10,000) and amounts just under approval thresholds",
+        "Entries posted on weekends/holidays or outside business hours",
+        "Preparer is senior (CFO/controller) or a non-accounting user; same person prepares and approves",
+        "Entries to seldom-used or suspense accounts; entries with blank or generic descriptions ('adj', 'per CFO')",
+        "Reversals shortly after period end"
+      ],
+      "typical_magnitude": {"manual_je_share_normal": [0.02, 0.08], "period_end_cluster_share_flag": [0.30, 0.60], "round_amount_share_flag": [0.20, 0.50]},
+      "detection": {
+        "ratios": ["manual/total JE count", "period-end 3-day share", "weekend share", "round-amount share", "preparer concentration"],
+        "sql_sketch": "SELECT preparer, COUNT(*) FILTER (WHERE source='manual' AND (date >= period_end - 2 OR dayofweek(date) IN (0,6) OR amount % 100000 = 0)) FROM gl_journal GROUP BY 1",
+        "python_sketch": "score each JE on 6 flags; rank; sample for substantive review"
+      },
+      "real_cases": [
+        {"name": "WorldCom", "year": 2002, "summary": "Top-side entries by senior finance staff moved line costs to capital accounts.", "url": "https://www.sec.gov/news/press/2002-94.htm"},
+        {"name": "HealthSouth", "year": 2003, "summary": "~$2.7B of fictitious entries ('contractual adjustment' plugs) below auditor materiality thresholds.", "url": "https://www.sec.gov/news/press/2003-34.htm"}
+      ],
+      "sources": ["PCAOB AS 2401 (formerly SAS 99) para. 58-62", "ACFE Fraud Examiners Manual"]
+    },
+    {
+      "key": "duplicate_payments",
+      "title": "Duplicate vendor payments",
+      "pillar": "accounting_finance",
+      "description": "Paying the same invoice twice through re-keyed invoice numbers, vendor duplicates, or system re-runs; a recovery-audit staple and a control weakness indicator.",
+      "signatures": [
+        "Same vendor, same amount, within 30 days; invoice numbers differing by punctuation/case/leading zeros",
+        "Same amount to two vendor ids with similar names/addresses/bank accounts",
+        "Payment runs re-executed after a job failure"
+      ],
+      "typical_magnitude": {"pct_of_ap_spend": [0.0005, 0.002], "recovery_audit_typical_pct": [0.0005, 0.001]},
+      "detection": {
+        "ratios": ["duplicate pairs / payments", "recovered / spend"],
+        "sql_sketch": "SELECT a.payment_id, b.payment_id FROM payments a JOIN payments b ON a.vendor_id=b.vendor_id AND a.amount=b.amount AND a.payment_id<b.payment_id AND abs(datediff('day',a.paid_at,b.paid_at))<=30 AND regexp_replace(lower(a.invoice_no),'[^a-z0-9]','')=regexp_replace(lower(b.invoice_no),'[^a-z0-9]','')",
+        "python_sketch": "normalize invoice numbers; fuzzy vendor matching; pairwise within window"
+      },
+      "real_cases": [
+        {"name": "Medicare duplicate payments (OIG)", "year": 2019, "summary": "OIG audits routinely find duplicate claims paid; e.g., $3.3M duplicate payments for selected services.", "url": "https://oig.hhs.gov/oas/reports/region9/91803009.asp"}
+      ],
+      "sources": ["APQC AP benchmarks", "ACFE Report to the Nations (billing schemes)"]
+    },
+    {
+      "key": "ghost_vendors",
+      "title": "Ghost / shell vendors",
+      "pillar": "accounting_finance",
+      "description": "Fictitious vendors created by an insider to route payments; the most common billing-scheme fraud per ACFE.",
+      "signatures": [
+        "Vendor address or bank account matches an employee's",
+        "Vendor created and first paid within days; no PO, no receiving record; round amounts just under approval limit",
+        "P.O. box address; no tax id; sequential invoice numbers (only customer is you)",
+        "Payments approved by the same user who created the vendor"
+      ],
+      "typical_magnitude": {"median_loss_usd": [100000, 150000], "pct_of_ap_spend": [0.001, 0.01]},
+      "detection": {
+        "ratios": ["vendor master vs employee master match rate", "no-PO payments share", "sequential invoice numbers"],
+        "sql_sketch": "SELECT v.vendor_id FROM vendors v JOIN employees e ON v.bank_account=e.bank_account OR lower(trim(v.address))=lower(trim(e.address))",
+        "python_sketch": "Benford on vendor amounts; invoice-number gap analysis per vendor; created_by == approved_by"
+      },
+      "real_cases": [
+        {"name": "Koss Corp.", "year": 2009, "summary": "VP Finance embezzled $34M over 12 years via unauthorized transfers and cover-up entries.", "url": "https://www.sec.gov/litigation/litreleases/2011/lr22138.htm"},
+        {"name": "ACFE Report to the Nations", "year": 2024, "summary": "Billing schemes are ~20% of asset misappropriation cases with median loss ~$100k; shell-company schemes are the costliest sub-type.", "url": "https://www.acfe.com/fraud-resources/report-to-the-nations"}
+      ],
+      "sources": ["ACFE Report to the Nations 2024", "ACFE Fraud Examiners Manual"]
+    }
+  ]
+}
