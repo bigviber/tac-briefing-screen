@@ -12,7 +12,7 @@ from __future__ import annotations
 import datetime as dt
 from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 __all__ = [
     # literals
@@ -176,8 +176,21 @@ class IndustryProfile(_World):
     revenue_range_usd: tuple[int, int] = (1_000_000, 100_000_000)
     benchmarks: dict[str, Benchmark] = Field(default_factory=dict)
     line_items: list[str] = Field(default_factory=list)
+    line_items_by_statement: dict[str, list[str]] = Field(default_factory=dict)
+    stage_mix: dict[str, float] = Field(default_factory=dict)
     schema_template: str = ""
     narrative_hooks: list[str] = Field(default_factory=list)
+
+    @model_validator(mode="before")
+    @classmethod
+    def _accept_line_items_by_statement(cls, data: Any) -> Any:
+        """Accept ``line_items`` as ``{statement: [captions]}`` (corpus form) or a flat list."""
+        if isinstance(data, dict) and isinstance(data.get("line_items"), dict):
+            data = dict(data)
+            by_st = {str(k): [str(c) for c in v] for k, v in data["line_items"].items()}
+            data["line_items_by_statement"] = by_st
+            data["line_items"] = [c for caps in by_st.values() for c in caps]
+        return data
 
 
 # --------------------------------------------------------------------------- finance
