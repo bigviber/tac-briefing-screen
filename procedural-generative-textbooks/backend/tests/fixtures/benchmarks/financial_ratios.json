@@ -1,0 +1,9 @@
+{
+  "meta": {"title": "Fixture financial ratios"},
+  "benchmarks": [
+    {"key": "manufacturing.dso_days", "industry": "manufacturing", "metric": "Days sales outstanding", "unit": "days", "p10": 35.0, "p25": 43.0, "p50": 52.0, "p75": 63.0, "p90": 78.0, "distribution": "empirical", "source": "Axiom test fixture (illustrative values, not a citation)", "source_url": null, "as_of": "2024"},
+    {"key": "manufacturing.dpo_days", "industry": "manufacturing", "metric": "Days payables outstanding", "unit": "days", "p10": 25.0, "p25": 34.0, "p50": 45.0, "p75": 58.0, "p90": 75.0, "distribution": "empirical", "source": "Axiom test fixture (illustrative values, not a citation)", "source_url": null, "as_of": "2024"},
+    {"key": "manufacturing.gross_margin", "industry": "manufacturing", "metric": "Gross margin", "unit": "ratio", "p10": 0.18, "p25": 0.24, "p50": 0.31, "p75": 0.38, "p90": 0.46, "distribution": "beta", "source": "Axiom test fixture (illustrative values, not a citation)", "source_url": null, "as_of": "2024"},
+    {"key": "any.current_ratio", "industry": "any", "metric": "Current ratio", "unit": "x", "p10": 0.9, "p25": 1.2, "p50": 1.6, "p75": 2.2, "p90": 3.1, "distribution": "lognormal", "source": "Axiom test fixture (illustrative values, not a citation)", "source_url": null, "as_of": "2024"}
+  ]
+}

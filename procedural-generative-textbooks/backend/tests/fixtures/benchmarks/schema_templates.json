@@ -1,0 +1,27 @@
+{
+  "meta": {"title": "Fixture schema templates"},
+  "templates": {
+    "subscription_billing": {
+      "description": "Customers, subscriptions, invoices and payments for a recurring-revenue business.",
+      "tables": [
+        {"name": "customers", "description": "Billing accounts",
+         "columns": [
+           {"name": "customer_id", "type": "VARCHAR", "nullable": false, "description": "Primary key"},
+           {"name": "name", "type": "VARCHAR", "nullable": false, "description": "Legal name"},
+           {"name": "segment", "type": "VARCHAR", "nullable": true, "description": "SMB / MM / ENT"},
+           {"name": "created_at", "type": "TIMESTAMP", "nullable": false, "description": "Signup time"}
+         ],
+         "primary_key": ["customer_id"], "foreign_keys": [], "typical_rows_per_month": 120},
+        {"name": "invoices", "description": "Issued invoices",
+         "columns": [
+           {"name": "invoice_id", "type": "VARCHAR", "nullable": false, "description": "Primary key"},
+           {"name": "customer_id", "type": "VARCHAR", "nullable": false, "description": "FK to customers"},
+           {"name": "issued_at", "type": "DATE", "nullable": false, "description": "Issue date"},
+           {"name": "amount_cents", "type": "BIGINT", "nullable": false, "description": "Invoice total in cents"},
+           {"name": "status", "type": "VARCHAR", "nullable": false, "description": "open / paid / void"}
+         ],
+         "primary_key": ["invoice_id"], "foreign_keys": [["customer_id", "customers", "customer_id"]], "typical_rows_per_month": 900}
+      ]
+    }
+  }
+}

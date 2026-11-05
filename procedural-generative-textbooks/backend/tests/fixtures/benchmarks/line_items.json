@@ -1,0 +1,22 @@
+{
+  "meta": {"title": "Fixture line items"},
+  "by_industry": {
+    "saas": {
+      "income_statement": [
+        {"caption": "Subscription revenue", "typical_pct_of_revenue": {"p25": 0.85, "p50": 0.92, "p75": 0.97}},
+        {"caption": "Professional services revenue", "typical_pct_of_revenue": {"p25": 0.03, "p50": 0.08, "p75": 0.15}},
+        "Cost of revenue",
+        {"caption": "Sales and marketing", "typical_pct_of_revenue": {"p25": 0.30, "p50": 0.38, "p75": 0.47}},
+        "Research and development",
+        "General and administrative"
+      ],
+      "balance_sheet": ["Cash and cash equivalents", "Accounts receivable, net", "Deferred commissions", "Deferred revenue"],
+      "cash_flow": ["Net income (loss)", "Stock-based compensation", "Change in deferred revenue"]
+    },
+    "any": {
+      "income_statement": ["Revenue", "Cost of revenue", "Operating expenses"],
+      "balance_sheet": ["Cash", "Accounts receivable", "Accounts payable"],
+      "cash_flow": ["Net income"]
+    }
+  }
+}

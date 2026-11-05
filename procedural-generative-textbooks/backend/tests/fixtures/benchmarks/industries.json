@@ -1,0 +1,23 @@
+{
+  "meta": {"title": "Fixture industries"},
+  "industries": [
+    {
+      "code": "saas", "name": "B2B SaaS", "naics": "513210",
+      "business_models": ["subscription", "usage_based"],
+      "revenue_range_usd": [5000000, 150000000],
+      "benchmark_keys": ["saas.gross_churn_monthly", "saas.net_revenue_retention", "saas.cac_payback_months", "saas.gross_margin", "saas.dso_days", "saas.not_in_corpus"],
+      "line_items": [],
+      "schema_template": "subscription_billing",
+      "narrative_hooks": ["board pressure on net revenue retention", "annual-prepay discounting"]
+    },
+    {
+      "code": "manufacturing", "name": "Discrete manufacturing", "naics": "332710",
+      "business_models": ["make_to_stock", "make_to_order"],
+      "revenue_range_usd": [20000000, 400000000],
+      "benchmark_keys": ["manufacturing.oee", "manufacturing.inventory_turns", "manufacturing.dso_days", "manufacturing.dpo_days", "manufacturing.gross_margin", "any.current_ratio"],
+      "line_items": ["Net sales", "Cost of goods sold", "Inventories", "Accounts receivable, net"],
+      "schema_template": "subscription_billing",
+      "narrative_hooks": ["a single CNC cell feeds three product lines"]
+    }
+  ]
+}

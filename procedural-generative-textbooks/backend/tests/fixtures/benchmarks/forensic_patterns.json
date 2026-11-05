@@ -1,0 +1,23 @@
+{
+  "meta": {"title": "Fixture forensic patterns"},
+  "patterns": [
+    {
+      "key": "channel_stuffing", "title": "Channel stuffing", "pillar": "accounting_finance",
+      "description": "Shipping excess product to distributors near period end to pull revenue forward.",
+      "signatures": ["DSO rises faster than revenue", "quarter-end shipment spike", "elevated returns next quarter"],
+      "typical_magnitude": {"revenue_inflation_pct": {"p50": 0.08}},
+      "detection": {"sql": "compare last-two-weeks shipments to quarter average by customer"},
+      "real_cases": ["Illustrative fixture case"],
+      "sources": ["Axiom test fixture"]
+    },
+    {
+      "key": "duplicate_webhook_delivery", "title": "Duplicate webhook processing", "pillar": "system_design",
+      "description": "At-least-once webhook delivery processed without idempotency keys causes double fulfilment.",
+      "signatures": ["duplicate payment_intent ids in ledger", "retry bursts after 5xx"],
+      "typical_magnitude": {"duplicate_rate": 0.004},
+      "detection": {"sql": "GROUP BY provider_event_id HAVING COUNT(*) > 1"},
+      "real_cases": [],
+      "sources": ["Axiom test fixture"]
+    }
+  ]
+}

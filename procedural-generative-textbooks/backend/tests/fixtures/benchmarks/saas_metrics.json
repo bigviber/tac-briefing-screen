@@ -1,0 +1,12 @@
+{
+  "meta": {"title": "Fixture SaaS metrics", "note": "Illustrative values for unit tests only."},
+  "benchmarks": [
+    {"key": "saas.gross_churn_monthly", "industry": "saas", "metric": "Gross logo churn (monthly)", "unit": "ratio", "p10": 0.004, "p25": 0.007, "p50": 0.012, "p75": 0.020, "p90": 0.032, "distribution": "empirical", "source": "Axiom test fixture (illustrative values, not a citation)", "source_url": null, "as_of": "2024"},
+    {"key": "saas.net_revenue_retention", "industry": "saas", "metric": "Net revenue retention (annual)", "unit": "ratio", "p10": 0.88, "p25": 0.96, "p50": 1.02, "p75": 1.10, "p90": 1.20, "distribution": "normal", "source": "Axiom test fixture (illustrative values, not a citation)", "source_url": null, "as_of": "2024"},
+    {"key": "saas.cac_payback_months", "industry": "saas", "metric": "CAC payback period", "unit": "count", "p10": 8.0, "p25": 12.0, "p50": 17.0, "p75": 24.0, "p90": 33.0, "distribution": "lognormal", "source": "Axiom test fixture (illustrative values, not a citation)", "source_url": null, "as_of": "2024"},
+    {"key": "saas.gross_margin", "industry": "saas", "metric": "Subscription gross margin", "unit": "ratio", "p10": 0.62, "p25": 0.70, "p50": 0.76, "p75": 0.81, "p90": 0.85, "distribution": "beta", "source": "Axiom test fixture (illustrative values, not a citation)", "source_url": null, "as_of": "2024"},
+    {"key": "saas.arpa_monthly_usd", "industry": "saas", "metric": "Average revenue per account (monthly)", "unit": "usd", "p10": 120.0, "p25": 300.0, "p50": 850.0, "p75": 2400.0, "p90": 6500.0, "distribution": "lognormal", "source": "Axiom test fixture (illustrative values, not a citation)", "source_url": null, "as_of": "2024"},
+    {"key": "saas.dso_days", "industry": "saas", "metric": "Days sales outstanding", "unit": "days", "p10": 28.0, "p25": 38.0, "p50": 50.0, "p75": 64.0, "p90": 82.0, "distribution": "empirical", "source": "Axiom test fixture (illustrative values, not a citation)", "source_url": null, "as_of": "2024"},
+    {"key": "saas.sm_pct_revenue", "industry": "saas", "metric": "Sales and marketing as % of revenue", "unit": "ratio", "p10": 0.22, "p25": 0.30, "p50": 0.38, "p75": 0.47, "p90": 0.56, "distribution": "triangular", "source": "Axiom test fixture (illustrative values, not a citation)", "source_url": null, "as_of": "2024"}
+  ]
+}
