@@ -16,3 +16,6 @@ captures/
 *.apk
 *.zip
 !approach-1/solution1-native-stack/magisk-module/**/.gitkeep
+
+# approach-2 is raw device data: nothing in it may be ignored (apks, zips, out/, build/ ...)
+!approach-2/**

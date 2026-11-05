@@ -1,3 +1,3 @@
 # Approach 2
 
-Drop everything for Approach 2 (device folder export, logs, anything else) into `dump/`. No structure required.
+Device export from the TB-J606F (export-lenovo-tab). Pushed from the owner's Windows machine; nothing here is edited.

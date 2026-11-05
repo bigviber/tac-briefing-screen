@@ -1,9 +1,0 @@
-da7e2e993afcde9eff53fac0877e8ccd6e2352b1  /system_ext/lib64/libbluetooth_qti.so
-e8f3f9fa89c97d34e3b1a9b8322dc8fd5ff4ec3e  /system/app/Bluetooth/Bluetooth.apk
-194d57ad8305a8d69bb59dfa5e4921292e1cef60a90fc803921bc5e4a4908a70  /system_ext/lib64/libbluetooth_qti.so
-4b10f479b16e299ea6d3ab444953cc3a16582026f21b7002c6182999d23fb45c  /system/app/Bluetooth/Bluetooth.apk
-da7e2e993afcde9eff53fac0877e8ccd6e2352b1  /data/adb/modules/btdual_patch/system/system_ext/lib64/libbluetooth_qti.so
-e8f3f9fa89c97d34e3b1a9b8322dc8fd5ff4ec3e  /data/adb/modules/btdual_patch/system/app/Bluetooth/Bluetooth.apk
-/dev/block/dm-12 on /system/app/Bluetooth/Bluetooth.apk type f2fs (ro,lazytime,seclabel,noatime,background_gc=on,discard,no_heap,user_xattr,inline_xattr,acl,inline_data,inline_dentry,flush_merge,extent_cache,mode=adaptive,active_logs=6,reserve_root=21890,resuid=0,resgid=1065,inlinecrypt,alloc_mode=default,fsync_mode=nobarrier)
-magisk on /system/app/Bluetooth/oat type tmpfs (ro,seclabel,relatime,mode=755)
-/dev/block/dm-12 on /system_ext/lib64/libbluetooth_qti.so type f2fs (ro,lazytime,seclabel,noatime,background_gc=on,discard,no_heap,user_xattr,inline_xattr,acl,inline_data,inline_dentry,flush_merge,extent_cache,mode=adaptive,active_logs=6,reserve_root=21890,resuid=0,resgid=1065,inlinecrypt,alloc_mode=default,fsync_mode=nobarrier)
