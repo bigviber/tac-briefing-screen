@@ -9,6 +9,7 @@ import textwrap
 from pathlib import Path
 
 import duckdb
+import numpy as np
 import pandas as pd
 import pytest
 
@@ -82,12 +83,15 @@ def test_matrix_is_lower_triangular_and_censoring_aware(worlds: dict, difficulty
     tri = _df(world, folder, _query(world, "retention_triangle_long").sql)
     tri["cohort"] = pd.to_datetime(tri["cohort"])
     last = tri["cohort"].max()
-    assert tri["cohort"].nunique() == 27
+    first = tri["cohort"].min()
+    n_months = (last.year - first.year) * 12 + last.month - first.month + 1
+    # installed base: the product launched 18-30 months before the books open (27 months of books incl. the warm-up)
+    assert 27 + 18 <= n_months <= 27 + 30 and tri["cohort"].nunique() == n_months
     # no cell beyond the as-of month; k = 0 is always 100%; retention within [0, 1]
     month_no = tri["cohort"].dt.year * 12 + tri["cohort"].dt.month
     assert (month_no + tri["k"] <= last.year * 12 + last.month).all()
     assert (tri.loc[tri["k"] == 0, "retention"] == 1.0).all() and tri["retention"].between(0, 1).all()
-    assert tri.groupby("cohort")["k"].max().max() == 26
+    assert tri.groupby("cohort")["k"].max().max() == n_months - 1
     pivot = _df(world, folder, _query(world, "cohort_pivot_m1_m3_m6_m12").sql)
     assert pivot["m3"].isna().sum() == 3 and pivot["m6"].isna().sum() == 6 and pivot["m12"].isna().sum() == 12
     assert pivot["m1"].isna().sum() == 1
@@ -131,3 +135,82 @@ def test_python_reference_reproduces_sql_metrics(worlds: dict, difficulty: str, 
     assert res["m3_anomalous"] == pytest.approx(m["anomalous_cohort_m3_retention"], abs=1e-6)
     assert res["m3_others"] == pytest.approx(m["baseline_m3_retention"], abs=1e-6)
     assert res["m6_weighted"] == pytest.approx(m["weighted_avg_m6_retention"], abs=1e-6)
+
+
+def _mrr_revenue_by_quarter(world: CaseWorld, folder: Path) -> dict[str, float]:
+    """Revenue rebuilt from the subscription table alone: every subscription bills its MRR (list price; LAUNCH50 halves the
+    first three charges) on each monthly anniversary, recognised pro rata over the service month - i.e. Sigma active MRR
+    per month, x 3 per quarter, with plan changes and proration."""
+    subs = _df(world, folder, """
+        SELECT subscription_id, CAST(started_at AS VARCHAR) AS started_at, ended_at, mrr_cents, promo_code
+        FROM subscriptions QUALIFY ROW_NUMBER() OVER (PARTITION BY subscription_id ORDER BY ingest_id) = 1""")
+    start = pd.to_datetime(subs["started_at"], utc=True, format="mixed").dt.tz_localize(None)
+    asof = pd.Timestamp(world.periods[-1][:4] + "-" + str(int(world.periods[-1][-1]) * 3).zfill(2) + "-01") + pd.offsets.MonthBegin(1)
+    end = pd.to_datetime(subs["ended_at"]).fillna(asof + pd.DateOffset(months=1))
+    n = ((end.dt.year - start.dt.year) * 12 + end.dt.month - start.dt.month + 1).clip(lower=1).to_numpy()
+    idx = np.repeat(np.arange(len(subs)), n)
+    k = np.concatenate([np.arange(c) for c in n])
+    s0 = start.iloc[idx].reset_index(drop=True)
+    a = pd.Series([t + pd.DateOffset(months=int(j)) for t, j in zip(s0, k, strict=True)])
+    b = pd.Series([t + pd.DateOffset(months=int(j) + 1) for t, j in zip(s0, k, strict=True)])
+    keep = (a < asof) & (a < end.iloc[idx].reset_index(drop=True))
+    price = subs["mrr_cents"].to_numpy()[idx].astype(float)
+    promo = subs["promo_code"].notna().to_numpy()[idx] & (k < 3)
+    net = np.where(promo, price - np.round(price * 0.5), price)
+    out = {}
+    for period in world.periods:
+        y, q = int(period[:4]), int(period[-1])
+        qs, qe = pd.Timestamp(year=y, month=3 * q - 2, day=1), pd.Timestamp(year=y, month=3 * q - 2, day=1) + pd.DateOffset(months=3)
+        ov = (np.minimum(b, qe) - np.maximum(a, qs)).dt.total_seconds().clip(lower=0) / (b - a).dt.total_seconds()
+        out[period] = float((net * ov * keep).sum())
+    return out
+
+
+@pytest.mark.parametrize("difficulty", DIFFICULTIES)
+def test_revenue_is_derived_from_subscription_mrr(worlds: dict, difficulty: str) -> None:
+    """Review P0 #1: quarterly revenue ties to the subscription table (Sigma active MRR, pro rata) within 0.5%, and growth is
+    organic (new logos x ARPA net of churn), not a 6x independent growth path."""
+    world, folder = worlds[(difficulty, 7)]
+    mrr = _mrr_revenue_by_quarter(world, folder)
+    inc = {i.period: i for i in world.finance.statements.income}
+    for period, v in mrr.items():
+        assert inc[period].revenue_cents == pytest.approx(v, rel=0.005), period
+    growth = inc[world.periods[-1]].revenue_cents / inc[world.periods[0]].revenue_cents
+    assert 1.2 < growth < 3.0
+    # revenue per head follows the base benchmark, not a 12-person floor
+    assert 120_000 < world.company.revenue_ttm_cents / 100 / world.company.headcount < 400_000
+
+
+@pytest.mark.parametrize("difficulty", DIFFICULTIES)
+def test_unit_economics_and_cohorts_from_the_books(worlds: dict, difficulty: str) -> None:
+    """Review P2 #23: CAC from booked sales & marketing, payback and LTV populated; cohorts carry the real curves."""
+    world, folder = worlds[(difficulty, 1)]
+    ue = world.operations.unit_economics
+    assert ue["cac"] > 0 and 3 < ue["payback_months"] < 30 and ue["ltv"] > ue["cac"]
+    sm = sum(sum(ln.debit_cents - ln.credit_cents for ln in e.lines if ln.account == "6000")
+             for e in world.finance.journal if world.periods[-4] <= f"{e.date.year}Q{(e.date.month - 1) // 3 + 1}")
+    assert ue["sales_marketing_ttm_cents"] == pytest.approx(sm)
+    assert ue["cac"] == pytest.approx(sm / ue["new_logos_ttm"])
+    spend = _df(world, folder, "SELECT SUM(spend_cents) AS s FROM marketing_spend")["s"].iloc[0]
+    assert 0.4 * sm < spend  # program spend is the non-payroll part of 6000 over the whole window
+    cohorts = world.operations.cohorts
+    assert len(cohorts) >= 27 and all(c.retention[0] == 1.0 for c in cohorts)
+    tri = _df(world, folder, _query(world, "retention_triangle_long").sql)
+    tri["cohort"] = pd.to_datetime(tri["cohort"]).dt.strftime("%Y-%m")
+    c0 = cohorts[0]
+    sql_curve = tri[tri["cohort"] == c0.acquisition_period].sort_values("k")["retention"].tolist()
+    assert c0.retention[: len(sql_curve)] == pytest.approx(sql_curve, abs=1e-9)
+
+
+@pytest.mark.parametrize("difficulty", DIFFICULTIES)
+def test_reveal_names_the_promo_month_only_at_foundation(worlds: dict, difficulty: str) -> None:
+    """Review P2 #24: the practitioner / principal reveal says a promotion ran 'last <season>', never the month."""
+    world, _ = worlds[(difficulty, 7)]
+    pm = int(next(m.value for m in world.ground_truth.expected_metrics if m.key == "anomalous_cohort"))
+    month = f"{pm // 100}-{pm % 100:02d}"
+    reveal = " ".join(world.dossier_seed.reveal)
+    month_name = pd.Timestamp(f"{month}-01").strftime("%B")
+    if difficulty == "foundation":
+        assert month in reveal
+    else:
+        assert month not in reveal and month_name not in reveal and "promotion" in reveal and "last " in reveal

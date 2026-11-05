@@ -1,6 +1,7 @@
 """``monte_carlo_cash`` - "Runway Under Uncertainty" (archetypes.md section 14).
 
-An asset-light B2B services company (3PL / contract manufacturer / distributor) approved a 13-week
+An asset-light 3PL and freight brokerage (it buys transportation from carriers and resells it to shippers;
+it owns no trucks and holds no inventory, so the working capital is receivables vs carrier payables) approved a 13-week
 cash plan built on averages: mean days-late, mean weekly billings, stated pipeline probabilities,
 payroll and supplier payments on schedule. Every week of the plan is positive. The data says
 otherwise: collection delays are right-skewed (Gamma, shape ~2), the key customer (18-30% of
@@ -39,8 +40,16 @@ Model of the 13 weeks (horizon days 1..91 after the as-of date, week = (day - 1)
 * Driver ranking (Sobol-lite first-order shares of Var(min_cash)): key-customer tail and supplier
   prepay by group means, billings / collection timing / pipeline by 20 quantile bins.
 
-Books: invoices ``Dr 1100; Cr 4010`` (3PL) or ``4000``; collections; supplier bills ``Dr 5030 /
-5000; Cr 2000`` paid on due dates; semi-monthly payroll paid on the 15th and the last day; rent on the
+Industries: ``3pl`` only. A contract manufacturer or a distributor would carry raw materials / stock on the balance
+sheet, which this cash model (bills in, bills out) does not represent; rather than exempt the inventory caption, the
+archetype is restricted to the asset-light brokerage where no inventory is the correct answer.
+
+Gross margin: purchased transportation is the carriers' share of each month's billings (``purchased_share``, the
+brokerage spread) plus the base quarterly GM noise (review C2), scaled by 0.7 and rate-limited so the margin moves by at
+most 2 pts quarter to quarter; carrier bills within a month are normalised to that month's share, so the number of
+Fridays in a quarter or a skipped small-carrier bill no longer swings the margin (review P1 #17: 11.5% -> 25.4% before).
+
+Books: invoices ``Dr 1100; Cr 4010``; collections; carrier bills ``Dr 5030; Cr 2000`` paid on due dates; semi-monthly payroll paid on the 15th and the last day; rent on the
 1st; insurance / software; term-debt service at quarter ends; tax paid mid-month after each quarter;
 owner distributions at month ends (sized so the as-of cash equals the calibrated ``cash0`` while the
 historical balance never goes negative - "we've always been fine"). AR, AP and revenue ties hold;
@@ -100,10 +109,6 @@ DRIVERS = ("key_customer_timing", "weekly_billings", "collection_timing", "pipel
 STORY = {
     "3pl": ("Asset-light 3PL and freight brokerage: bills shippers per load, pays carriers on 30-45 day terms", "4010", "5030",
             "Purchased transportation (carriers)"),
-    "manufacturing": ("Contract manufacturer: bills OEM customers per shipment, buys materials on 30-45 day terms", "4000", "5000",
-                      "Materials and subcontracting"),
-    "ecommerce": ("B2B distributor for e-commerce brands: bills retailers per delivery, pays suppliers on 30-45 day terms", "4000", "5000",
-                  "Merchandise (drop-shipped)"),
 }
 
 REF_DEFS = '''
@@ -339,14 +344,11 @@ class MonteCarloCash(Archetype):
     key = "monte_carlo_cash"
     title = "Runway Under Uncertainty"
     pillars = ("python", "accounting_finance", "operations_strategy")
-    industries = ("3pl", "manufacturing", "ecommerce")
+    industries = ("3pl",)  # asset-light brokerage: no inventory is correct (manufacturing / distribution would need stock)
     schema_template = "ecommerce_oms"
     summary = ("The CFO's 13-week cash plan is positive every week; the treasurer is nervous about payroll weeks. "
                "Quantify the probability of a shortfall and of a covenant breach from the company's own data.")
     root_cause_terms = ("flaw of averages", "key customer", "monte carlo", "covenant")
-    bs_caption_exemptions = {"manufacturing:inventor": "simplification of the cash model: materials are bought to order and billed on delivery "
-                                                   "(payables are tracked, stock is not)",
-                             "ecommerce:inventor": "the distributor cross-docks to order (bought and billed per delivery); no stock is held"}
 
     # ------------------------------------------------------------------ params
 
@@ -481,20 +483,40 @@ class MonteCarloCash(Archetype):
                             "name": [ctx.rng.spawn(f"sup{i}").company_name("3pl" if p["industry"] == "3pl" else "manufacturing") for i in range(S)],
                             "terms_days": np.where(np.arange(S) == 0, 30, g.choice([30, 45], S)).astype(np.int64),
                             "is_key_supplier": np.arange(S) == 0, "prepay_requests_24m": np.where(np.arange(S) == 0, 1, 0).astype(np.int64)})
-        # weekly supplier bills: purchased share of the billings run-rate, per supplier
+        # weekly carrier bills (Fridays): each month's bills add up to the carriers' share of that month's billings
+        # (purchased_share less the quarter's GM shift); small carriers bill every other week or so, each bill covering the
+        # weeks since its last one, so the month total does not depend on how many Fridays it has (review P1 #17)
         weeks = pd.date_range(start + pd.Timedelta(days=(4 - start.dayofweek) % 7), horizon_end, freq="7D")
         bill_m = inv.groupby(inv["invoice_date"].dt.to_period("M"))["amount_cents"].sum()
-        run = np.array([bill_m.get(pd.Timestamp(wk).to_period("M"), bill_m.iloc[-1]) for wk in weeks]) / 4.33
+        noise = self.period_noise(ctx, state)
+        qs = sorted({f"{w.year}Q{(w.month - 1) // 3 + 1}" for w in weeks})
+        shift, prev_s = {}, None
+        for q in qs:  # 0.7 x the base GM noise, moving at most 2 pts from one quarter to the next
+            v = 0.7 * noise.gm_pts.get(q, 0.0)
+            shift[q] = v if prev_s is None else float(np.clip(v, prev_s - 0.02, prev_s + 0.02))
+            prev_s = shift[q]
+        state.extras["gm_shift_by_quarter"] = shift
+        wk_month = np.array([pd.Timestamp(w).to_period("M") for w in weeks])
+        bills = []
+        for s_ in range(S):
+            on = np.ones(len(weeks), dtype=bool) if s_ == 0 else (g.random(len(weeks)) >= 0.35)
+            for mo in np.unique(wk_month):
+                idx = np.flatnonzero(wk_month == mo)
+                if not on[idx].any():
+                    on[idx[int(g.integers(0, len(idx)))]] = True
+            bills.append(on)
         rows = []
-        for j, wk in enumerate(weeks):
-            amt_total = run[j] * p["purchased_share"]
+        for mo in np.unique(wk_month):
+            idx = np.flatnonzero(wk_month == mo)
+            q = f"{mo.year}Q{(mo.month - 1) // 3 + 1}"
+            month_total = float(bill_m.get(mo, bill_m.iloc[-1])) * (p["purchased_share"] - shift[q])
             for s_ in range(S):
-                if s_ > 0 and g.random() < 0.35:  # small suppliers bill every other week or so
-                    continue
-                skip_adj = 1.0 if s_ == 0 else 1 / 0.65  # a bill from a small supplier covers ~1.5 weeks
-                a = int(round(amt_total * sw[s_] * skip_adj * float(g.lognormal(0, 0.12)) / 100) * 100)
-                rows.append((s_, wk, a))
-        po = pd.DataFrame(rows, columns=["_s", "expected_receipt", "amount_cents"])
+                mine = idx[bills[s_][idx]]
+                raw = g.lognormal(0, 0.06, len(mine))
+                parts = month_total * sw[s_] * raw / raw.sum()
+                for j, a in zip(mine, parts, strict=True):
+                    rows.append((s_, weeks[j], int(round(a / 100) * 100)))
+        po = pd.DataFrame(rows, columns=["_s", "expected_receipt", "amount_cents"]).sort_values(["expected_receipt", "_s"], kind="stable").reset_index(drop=True)
         po["supplier_id"] = sup["supplier_id"].to_numpy()[po["_s"].to_numpy()]
         po["ordered_at"] = po["expected_receipt"] - pd.to_timedelta(g.integers(7, 21, len(po)), unit="D")
         # receipts inside the 13-week horizon are covered by blanket POs / capacity commitments placed before the as-of date

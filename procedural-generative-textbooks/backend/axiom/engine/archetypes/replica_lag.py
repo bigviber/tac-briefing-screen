@@ -1,6 +1,8 @@
 """``replica_lag`` - "Read Your Writes" (archetypes.md section 11).
 
-A B2B flash-sale marketplace sells wholesale lots (cases / pallets of overstock) to resellers. Read
+A B2B flash-sale liquidator buys overstock lots (cases / pallets) into its own warehouse and resells
+them to resellers - it holds the inventory, so revenue is the full sale price and COGS the lot cost
+(16-30% gross margin, a reseller's economics, not a marketplace take rate). Read
 replicas were added in P4 "to scale reads"; the checkout service checks ``available_qty`` on the
 **replica** and then reserves stock on the primary with an unconditional decrement. Under flash-sale
 write bursts the asynchronous replica falls seconds behind, so buyers who arrive just after a lot
@@ -165,9 +167,10 @@ class ReplicaLag(Archetype):
         rev_usd = math.exp(rng.uniform(math.log(5e6), math.log(14e6)))
         p: dict[str, Any] = {
             "industry": ind,
-            "business_model": {"ecommerce": "B2B flash-sale marketplace for wholesale overstock lots",
-                               "retail": "off-price wholesale arm of a retailer selling overstock lots to resellers",
-                               "3pl": "liquidation marketplace run by a logistics group, selling returned and overstock lots"}[ind],
+            # a liquidator / reseller: it buys the lots, holds them in its own warehouse and resells them (review P1 #12)
+            "business_model": {"ecommerce": "B2B flash-sale liquidator holding inventory: buys wholesale overstock lots and resells them online",
+                               "retail": "off-price wholesale arm of a retailer, buying overstock lots and reselling them to resellers from its own stock",
+                               "3pl": "liquidation reseller run by a logistics group: buys returned and overstock lots and resells them from its warehouses"}[ind],
             "revenue_ttm_cents": int(rev_usd * 100),
             "growth_qoq": float(rng.uniform(0.03, 0.08)),
             "gm": float(rng.uniform(0.24, 0.36)),
@@ -237,7 +240,7 @@ class ReplicaLag(Archetype):
             "email": [f"buyer{i}@reseller{i % 97}.example.com" for i in range(1, C + 1)],
             "country": country,
             "region": np.where(intl, "APAC", np.array(REGIONS_US)[g.integers(0, len(REGIONS_US), C)]),
-            "acquisition_channel": np.array(("marketplace_ads", "referral", "trade_show", "organic"))[g.integers(0, 4, C)],
+            "acquisition_channel": np.array(("paid_search", "referral", "trade_show", "organic"))[g.integers(0, 4, C)],
             "created_at": epoch - pd.to_timedelta(g.integers(0, 400, C), unit="D") + pd.to_timedelta(g.integers(0, n_m * 30, C) * (g.random(C) < 0.5), unit="D"),
         })
         # --- normal orders (US business hours mostly), 1-2 lines, 1-4 cases
@@ -300,6 +303,10 @@ class ReplicaLag(Archetype):
                 drops.append({"start": st, "apac": apac})
             t += pd.Timedelta(days=p["drop_every_days"])
         state.extras["drops"] = drops
+        # read-path switch to the replica (P4) and, at principal, the availability cache in front of it (before the first limited lot)
+        state.extras["read_path_switch_at"] = pd.Timestamp(cal.bounds(state.p(4))[0]) + pd.Timedelta(days=9, hours=10)
+        first_lot = min([f["starts_at"] for f in sales] + [d["start"] for d in drops])
+        state.extras["cache_from"] = (first_lot - pd.Timedelta(days=int(g.integers(5, 15)))).normalize() + pd.Timedelta(hours=11)
 
     # ------------------------------------------------------------------ anomaly: limited lots under replica lag
 
@@ -564,15 +571,19 @@ class ReplicaLag(Archetype):
         ev = ev.sort_values(["occurred_at", "_sku"], kind="stable").reset_index(drop=True)
         ev.insert(0, "event_id", np.arange(1, len(ev) + 1, dtype=np.int64))
         ev["sku"] = products["sku"].to_numpy()[ev["_sku"].to_numpy()]
-        # --- checkout reads: logged since replicas went live (P4); seen value for regular SKUs from the lagged primary
+        # --- checkout reads: every order since the books opened. Before the read-path switch (P4) checkout read the primary
+        # (seen = exact availability); from the switch it reads replica-1, and (principal) the availability cache from its launch
         rep_from = pd.Timestamp(cal.bounds(state.p(4))[0])
-        rl = lines[lines["placed_at"] >= rep_from].copy()
+        switch_at, cache_from = state.extras["read_path_switch_at"], state.extras["cache_from"]
+        rl = lines.copy()
         rl["read_at"] = rl["placed_at"] - pd.to_timedelta(np.round(g.uniform(0.08, 0.9, len(rl)), 3), unit="s")
         reg_mask = rl["kind"].to_numpy() == "regular"
         if reg_mask.any():
             r = rl[reg_mask]
-            lag_s = lag.lag(_secs(r["read_at"], epoch))
-            age = g.uniform(0, p["cache_ttl_s"], len(r)) if p["cache_ttl_s"] else np.zeros(len(r))
+            on_replica = (r["read_at"] >= switch_at).to_numpy()
+            cached = (r["read_at"] >= cache_from).to_numpy() if p["cache_ttl_s"] else np.zeros(len(r), dtype=bool)
+            lag_s = np.where(on_replica, lag.lag(_secs(r["read_at"], epoch)), 0.0)
+            age = np.where(cached, g.uniform(0, p["cache_ttl_s"], len(r)), 0.0) if p["cache_ttl_s"] else np.zeros(len(r))
             stale = (r["read_at"] - pd.to_timedelta(lag_s + age, unit="s")).to_numpy()
             q = pd.DataFrame({"_sku": r["_sku"].to_numpy(), "t": stale, "_i": np.arange(len(r))}).sort_values("t", kind="stable")
             evs = ev[["_sku", "occurred_at", "qty_after"]].sort_values("occurred_at", kind="stable")
@@ -580,10 +591,11 @@ class ReplicaLag(Archetype):
             rl.loc[reg_mask, "_seen"] = mm["qty_after"].fillna(0).to_numpy()
             rl.loc[reg_mask, "_lag"] = lag_s
             rl.loc[reg_mask, "_age"] = age
+        read_at = rl["read_at"]
+        src = np.where(read_at < switch_at, "primary", np.where((read_at >= cache_from).to_numpy() & bool(p["cache_ttl_s"]), "cache", "replica"))
         reads = pd.DataFrame({"order_id": rl["order_id"], "sku": products["sku"].to_numpy()[rl["_sku"].to_numpy()], "available_qty_seen": rl["_seen"].astype(np.int64),
-                              "requested_qty": rl["quantity"], "read_at": rl["read_at"],
-                              "read_from": "cache" if p["cache_ttl_s"] else "replica",
-                              "cache_age_ms": np.round(rl["_age"].to_numpy() * 1000).astype(np.int64) if p["cache_ttl_s"] else 0})
+                              "requested_qty": rl["quantity"], "read_at": read_at, "read_from": src,
+                              "cache_age_ms": np.where(src == "cache", np.round(np.nan_to_num(rl["_age"].to_numpy()) * 1000), 0).astype(np.int64)})
         reads = reads.sort_values(["read_at", "order_id"], kind="stable").reset_index(drop=True)
         reads.insert(0, "read_id", np.arange(1, len(reads) + 1, dtype=np.int64))
         # --- replica lag samples: 12 h baseline since P4, 10 s in flash windows, 2 min around drops, 5 min in batch jobs
@@ -787,11 +799,11 @@ class ReplicaLag(Archetype):
         inventory = pd.DataFrame({"sku": products["sku"], "warehouse_id": "WH-1", "on_hand": on_hand.astype(np.int64), "reserved": res.astype(np.int64),
                                   "updated_at": products["sku"].map(last_ev)})
         jobs = pd.DataFrame(state.extras["batch_jobs"]) if state.extras["batch_jobs"] else None
-        cfg_rows = [("checkout", "inventory_read_path", "replica", pd.Timestamp(cal.bounds(state.p(4))[0]) + pd.Timedelta(days=9)),
+        cfg_rows = [("checkout", "inventory_read_path", "replica", state.extras["read_path_switch_at"]),
                     ("ops", "replica_lag_alert_threshold_s", str(p["alert_threshold_s"]), pd.Timestamp(cal.bounds(state.p(6))[0]) + pd.Timedelta(days=20)),
                     ("checkout", "inventory_decrement", "UPDATE inventory SET reserved = reserved + :qty WHERE sku = :sku", pd.Timestamp(cal.start) - pd.Timedelta(days=200))]
         if p["cache_ttl_s"]:
-            cfg_rows.append(("edge", "availability_cache_ttl_s", str(int(round(p["cache_ttl_s"]))), pd.Timestamp(cal.bounds(state.p(5))[0]) + pd.Timedelta(days=12)))
+            cfg_rows.append(("edge", "availability_cache_ttl_s", str(int(round(p["cache_ttl_s"]))), state.extras["cache_from"]))
         if p["nightly_job"]:
             cfg_rows.append(("analytics", "dashboard_refresh_dsn", "postgres://replica-1/shop", pd.Timestamp(state.extras["batch_jobs"][0]["started_at"]).normalize()))
         config = pd.DataFrame(cfg_rows, columns=["service", "key", "value", "changed_at"])
@@ -839,13 +851,16 @@ class ReplicaLag(Archetype):
                           column_types=types)
         builder.add_frame("checkout_reads", reads := state.frames["checkout_reads"], primary_key=["read_id"], foreign_keys=[("order_id", "orders", "order_id")],
                           column_types=types, dirt=dirt.get("checkout_reads", ()),
-                          descriptions={"available_qty_seen": "available quantity checkout saw before reserving", "read_from": "replica | cache (cache in front of the replica)",
+                          descriptions={"available_qty_seen": "available quantity checkout saw before reserving", "read_from": "primary | replica | cache (cache in front of the replica)",
                                         "cache_age_ms": "age of the cached availability value"},
-                          description="Availability reads logged by the checkout service (since read replicas went live).")
+                          description=("Availability reads logged by the checkout service for every order line since the books opened "
+                                       "(read_from = primary before the read-path switch in service_config, replica after it"
+                                       + (", cache once the availability cache went live" if p["cache_ttl_s"] else "") + ")."))
         del reads
         builder.add_frame("replica_lag_samples", state.frames["replica_lag_samples"], primary_key=["sample_id"], column_types=types,
                           descriptions={"lag_ms": "replication lag of replica-1 behind the primary"},
-                          description="Replication lag telemetry (10-30 s during flash sales, 3-5 min around restock drops, 5 min during batch jobs, 12-24 h otherwise).")
+                          description=("Replication lag telemetry of replica-1 since it went live in the read-path switch "
+                                       "(every 10-30 s during flash sales, 3-5 min around restock drops, 5 min during batch jobs, 12-24 h otherwise)."))
         builder.add_frame("flash_sales", fs, primary_key=["flash_sale_id"], column_types=types, description="Flash-sale calendar (marketing).")
         if jobs is not None:
             builder.add_frame("batch_jobs", jobs[["job_name", "started_at", "finished_at"]].assign(target="replica-1", owner="analytics")
@@ -1118,7 +1133,11 @@ ORDER BY 1"""
             metric("lag_p50_ms", float(lag_row["lag_p50_ms"]), "ms", "Median of replica_lag_samples.lag_ms outside flash_sales windows and batch_jobs runs "
                    "(steady state; telemetry is sampled far more densely during events, so an unfiltered median is biased).", pillar="system_design",
                    tol_rel=0.15, label="Replica lag p50 (steady state)", hint="Exclude flash-sale windows and batch-job runs."),
-            metric("lag_p99_ms", float(lag_row["lag_p99_ms"]), "ms", "99th percentile of all lag samples (quantile_cont).", pillar="system_design", tol_rel=0.15,
+            metric("lag_p99_ms", float(lag_row["lag_p99_ms"]), "ms",
+                   f"99th percentile of all lag samples (quantile_cont). Context: {lag_row['lag_p99_ms'] / 1000:,.0f} s is the tail of the event windows "
+                   f"(flash sales{', nightly analytics job' if p['nightly_job'] else ''}), which telemetry samples far more densely than steady state; a checkout "
+                   f"read in steady state sees ~{lag_row['lag_p50_ms']:,.0f} ms, but one stale second is enough to oversell a lot that sells out in minutes.",
+                   pillar="system_design", tol_rel=0.15,
                    label="Replica lag p99", hint="Percentile of the lag telemetry."),
             metric("lag_p99_flash_ms", float(lag_row["lag_p99_flash_ms"]), "ms", "99th percentile of lag samples taken inside flash_sales windows.",
                    pillar="system_design", tol_rel=0.15, label="Replica lag p99 during flash sales", hint="Restrict the lag samples to flash-sale windows."),

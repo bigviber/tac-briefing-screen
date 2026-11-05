@@ -162,7 +162,8 @@ class OutboxPattern(Archetype):
             "incident_failure_rate": float(rng.uniform(0.05, 0.25)),
             "deploy_flush_loss_rate": float(rng.uniform(0.35, 0.7)),
             "n_incidents": int(rng.integers(2, 4)),
-            "lost_event_share": magnitude(rng, difficulty, 0.008, 0.035),
+            # the case headline is the gross-margin drift (spec: 1-3 pts); the lost share is solved from it below
+            "gm_drift_target_pts": magnitude(rng, difficulty, 1.6, 2.7),
             "ordering_fault": difficulty == "principal",
             "phantom_rate": magnitude(rng, difficulty, 0.01, 0.03) if difficulty == "principal" else 0.0,
             "complaint_rate": float(rng.uniform(0.02, 0.06)),
@@ -172,6 +173,11 @@ class OutboxPattern(Archetype):
             "n_red_herrings": difficulty_pick(difficulty, 1, 2, 3),
             "difficulty": difficulty,
         }
+        # drift = GM(as billed) - GM(had the metered usage been billed) ~ (1 - GM) x u s / (1 - u s), u = usage share of
+        # revenue, s = lost share of metered units; solve for s so every difficulty shows >= 1.5 pts (review: -0.8 pts before).
+        # The window's realised cost ratio runs ~10% below 1 - gm (cloud price -2%, fixed infrastructure), hence the 0.9.
+        d, u = p["gm_drift_target_pts"] / 100.0, 1.0 - p["fee_share"]
+        p["lost_event_share"] = float(min(0.09, d / (u * (0.9 * (1.0 - p["gm"]) + d))))
         p["n_customers"] = difficulty_pick(difficulty, 24, 42, 80)
         budget = ROW_BUDGET[difficulty]
         # rows: usage (1.0) + bus (~0.55) + dup dirt; fixed: invoices/lines/payments/rated/gl/etc.
@@ -565,7 +571,10 @@ class OutboxPattern(Archetype):
         cu = 0.82 * (1 - p["gm"]) * rev_ttm_est / max(1, units_m[last12].sum())
         p6_m = int(_month_index(pd.Series([pd.Timestamp(cal.bounds(state.p(6))[0])]), cal.start)[0])
         unit_cost = np.where(np.arange(n_m) >= p6_m, cu * (1 + p["cloud_price_change"]), cu)
-        fixed = np.array([cents(0.18 * (1 - p["gm"]) * rev_ttm_est / 12 * (1 + p["growth_qoq"]) ** ((m - n_m + 6) / 3.0)) for m in range(n_m)])
+        # fixed infrastructure (reserved capacity, storage, observability) is provisioned for the trailing three months' load, so
+        # the cost ratio is flat before the migration and the as-billed margin visibly slips once usage goes unbilled
+        trail = np.array([units_m[max(0, m - 2):m + 1].mean() for m in range(n_m)])
+        fixed = np.array([cents(0.18 * (1 - p["gm"]) * rev_ttm_est / 12 * trail[m] / max(1.0, units_m[last12].mean())) for m in range(n_m)])
         hosting = np.array([cents(units_m[m] * unit_cost[m]) for m in range(n_m)])
         infra = pd.DataFrame({"month": pd.to_datetime(pd.Series(months)), "provider": "cloud", "units_metered": units_m.astype(np.int64),
                               "compute_cost_cents": hosting, "fixed_cost_cents": fixed,
@@ -990,7 +999,10 @@ ORDER BY recoverable_cents DESC, 1"""
                    pillar="system_design", tol_abs=0.08, label="Incident share of attributable losses", hint="Tag each lost event: inside a broker incident, near a deploy, or neither."),
             metric("gm_drift_pts", f["gm_drift_pts"], "pts",
                    f"100 x (GM actual - GM had metered usage been billed) over {win[0]}..{win[-1]}: GM from the income statements, "
-                   f"counterfactual revenue = revenue + metered-minus-billed gap ({f['gap_window']} cents).",
+                   f"counterfactual revenue = revenue + metered-minus-billed gap ({f['gap_window']} cents), cost of revenue unchanged. "
+                   f"Baseline: the same quarters' gross margin with every metered unit invoiced ({f['gm_if_billed_window']:.1%} vs "
+                   f"{f['gm_actual_window']:.1%} as billed) - not the pre-migration margin, which also moved with the {p['cloud_price_change']:+.0%} "
+                   "cloud price change, plan mix and quarterly noise.",
                    pillar="accounting_finance", tol_abs=0.15, label="Gross-margin drift caused by unbilled usage", hint="Recompute gross margin as if the metered-but-unbilled usage had been invoiced."),
             metric("usage_vs_billed_gap_cents_p8", gap8, "cents",
                    f"{P8}: metered usage value (usage_events x plan price) minus billed usage invoice lines (= GL 4020).",

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import itertools
 import json
 import subprocess
 import sys
@@ -144,3 +145,31 @@ def test_reference_runs_in_the_product_sandbox(worlds: dict) -> None:
     assert out["error"] is None, (out["error"], out["stderr"][-2000:])
     m = _metrics(world)
     assert out["result_json"]["p_shortfall_13w"] == pytest.approx(m["p_shortfall_13w"], abs=1e-3)
+
+
+@pytest.mark.parametrize("difficulty", DIFFICULTIES)
+@pytest.mark.parametrize("seed", SEEDS)
+def test_gross_margin_moves_at_most_three_points_a_quarter(worlds: dict, difficulty: str, seed: int) -> None:
+    """Review P1 #17: brokerage gross margin (carrier bills normalised per month + capped base GM noise) changes by
+    <= 3 pts quarter to quarter and stays in the 3PL brokerage band."""
+    world, _ = worlds[(difficulty, seed)]
+    gm = [world.finance.statements.ratios[p]["gross_margin"] for p in world.periods]
+    assert max(abs(b - a) for a, b in itertools.pairwise(gm)) <= 0.03
+    assert all(0.10 <= g <= 0.30 for g in gm)
+
+
+def test_restricted_to_asset_light_brokerage_without_inventory_exemption() -> None:
+    """The inventory 'simplification' exemption is gone: only the asset-light 3PL brokerage (no stock) is offered."""
+    from axiom.engine.archetypes.monte_carlo_cash import MonteCarloCash
+
+    assert MonteCarloCash.industries == ("3pl",)
+    assert not any("inventor" in k for k in MonteCarloCash.bs_caption_exemptions)
+    with pytest.raises(ValueError):
+        generate_world(KEY, 7, difficulty="foundation", industry="manufacturing", pool=get_default_pool())
+
+
+def test_balance_sheet_has_no_stock(worlds: dict) -> None:
+    world, _ = worlds[("practitioner", 7)]
+    for bs in world.finance.statements.balance:
+        caps = {ln.caption: ln.cents for ln in bs.lines}
+        assert caps.get("Inventory, net", 0) == 0 and caps["Accounts receivable, net"] > 0 and caps["Accounts payable"] > 0

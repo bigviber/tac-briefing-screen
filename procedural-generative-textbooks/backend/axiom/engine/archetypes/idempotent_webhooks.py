@@ -60,6 +60,7 @@ from typing import Any
 import duckdb
 import numpy as np
 import pandas as pd
+from scipy import special
 
 from axiom.engine import benchmark_keys as bk
 from axiom.engine.archetypes import register
@@ -127,7 +128,7 @@ class IdempotentWebhooks(Archetype):
                "network threshold and finance cannot reconcile the payments ledger to the provider.")
     root_cause_terms = ("timeout", "idempotency", "dedupe", "incident windows")
     bs_caption_exemptions = {"saas:deferred revenue": "revenue is a take rate earned on each captured payment; nothing is billed in advance",
-                             "ecommerce:inventor": "marketplace model: the sellers own the goods"}
+                             "ecommerce:inventor": "drop-ship model: suppliers ship from their own stock and invoice per order; no owned inventory"}
 
     # ------------------------------------------------------------------ params
 
@@ -140,17 +141,24 @@ class IdempotentWebhooks(Archetype):
         lo, hi = pool.industry(ind).revenue_range_usd
         rev_usd = math.exp(rng.uniform(math.log(max(lo, 8e6)), math.log(max(min(hi, 40e6), lo * 1.5))))
         if marketplace:
-            take = float(np.clip(bk.sample_between(pool, rng.spawn("bench:take"), "ops.fintech.marketplace_take_rate", ind, 0.25, 0.75), 0.06, 0.25))
+            # B2B procurement marketplaces with embedded payments keep 12-15% of GPV; the processor takes 2.9% + 30c of GPV, so
+            # gross margin = 1 - (processor + payment operations) / take revenue lands at 72-79% for every difficulty (review P1 #13)
+            take = float(np.clip(bk.sample_between(pool, rng.spawn("bench:take"), "ops.fintech.marketplace_take_rate", ind, 0.25, 0.75), 0.12, 0.15))
         else:
             take = 1.0
+        # cost of revenue beyond processor fees (5000): payment operations and hosting (marketplace, SaaS) or drop-shipped
+        # merchandise invoiced by suppliers per order (e-commerce storefront)
+        cogs_share = float(rng.spawn("bench:cogs").uniform(*{"fintech_marketplace": (0.04, 0.06), "saas": (0.15, 0.20), "ecommerce": (0.58, 0.66)}[ind]))
         window = difficulty_pick(difficulty, 2, 3, 3)
         p: dict[str, Any] = {
             "industry": ind,
             "marketplace": marketplace,
             "business_model": "B2B procurement marketplace with embedded card payments" if marketplace else
-                              ("B2B SaaS billing annual plans by card" if ind == "saas" else "B2B e-commerce storefront taking card payments"),
+                              ("B2B SaaS billing annual plans by card" if ind == "saas" else
+                               "B2B e-commerce storefront taking card payments; suppliers drop-ship and invoice per order"),
             "revenue_ttm_cents": int(rev_usd * 100),
             "take_rate": take,
+            "cogs_share": cogs_share,
             "growth_qoq": float(rng.uniform(0.03, 0.08)),
             "chargeback_rate_base": float(np.clip(bk.sample_between(pool, rng.spawn("bench:cb"), "fintech_marketplace.chargeback_rate", "fintech_marketplace", 0.25, 0.6), 0.001, 0.008)),
             "dispute_win_rate": float(np.clip(bk.sample_between(pool, rng.spawn("bench:win"), "fintech_marketplace.dispute_win_rate", "fintech_marketplace", 0.2, 0.5), 0.1, 0.6)),
@@ -212,9 +220,14 @@ class IdempotentWebhooks(Archetype):
             "status": "active",
         })
         N = p["n_intents"]
-        trend = (1 + p["growth_qoq"]) ** (np.arange(n_m) / 3.0) * g.lognormal(0, 0.04, n_m)
+        # monthly volume: growth x the base seasonal / idiosyncratic quarter noise (review C2), no archetype-specific jumps
+        noise = self.period_noise(ctx, state)
+        plan = (1 + p["growth_qoq"]) ** (np.arange(n_m) / 3.0)
+        trend = plan * np.array([noise.vol(m) for m in months])
         counts = np.floor(N * trend / trend.sum()).astype(int)
         counts[-1] += N - counts.sum()
+        # the plan (pre-noise) take revenue by month: fixed opex is budgeted on it
+        state.extras["rev_plan_m"] = p["revenue_ttm_cents"] / 12 * plan / plan[-12:].mean()
         midx = np.repeat(np.arange(n_m), counts)
         mstart = pd.to_datetime(pd.Series(months))
         days_in = mstart.dt.days_in_month.to_numpy()
@@ -225,7 +238,15 @@ class IdempotentWebhooks(Archetype):
         gpv_ttm = p["revenue_ttm_cents"] / p["take_rate"]
         n_ttm = counts[-12:].sum()
         median = gpv_ttm / n_ttm / math.exp(0.8 ** 2 / 2)
-        amount = np.maximum(5_000, np.round(g.lognormal(math.log(median), 0.8, N) / 100) * 100).astype(np.int64)
+        # ticket sizes LN(median, 0.8) drawn by stratified quantiles within each month: every month sees the whole size
+        # distribution, so monthly GPV follows the volume plan instead of a few jumbo tickets (op-margin noise, review P1 #13)
+        u = np.empty(N)
+        pos = 0
+        for c in counts:
+            u[pos:pos + c] = (g.permutation(c) + g.random(c)) / max(c, 1)
+            pos += c
+        z = special.ndtri(np.clip(u, 1e-6, 1 - 1e-6))
+        amount = np.maximum(5_000, np.round(np.exp(math.log(median) + 0.8 * z) / 100) * 100).astype(np.int64)
         intents = pd.DataFrame({
             "payment_intent_id": [f"pi_{i:07d}" for i in range(1, N + 1)],
             "created_at": pd.to_datetime(ts),
@@ -268,15 +289,20 @@ class IdempotentWebhooks(Archetype):
         dedupe_factor = p["new_api_share"] if p["dedupe"] == "event_id" else 1.0
         target_dups = p["dup_charge_share_target"] * base_in_months
         per_window = max(20, int(round(target_dups / max(1e-6, p["p_timeout_window"] * dedupe_factor) / len(windows))))
-        rows = []
+        # a campaign launch concentrates the month's orders into the window (it pulls demand forward; it does not add a month of
+        # GPV): per_window intents of the same month move into the window, at most 60% of the month
+        allint = intents.copy()
+        taken = np.zeros(len(allint), dtype=bool)
+        cr = allint["created_at"]
         for (ws, we) in windows:
             span = (we - ws).total_seconds()
-            for _ in range(per_window):
-                rows.append(ws + pd.Timedelta(seconds=float(g.uniform(0, span))))
-        flash = intents.sample(n=len(rows), replace=True, random_state=np.random.RandomState(int(g.integers(0, 2**31 - 1)))).copy()
-        flash["created_at"] = rows
-        flash["flash"] = True
-        allint = pd.concat([intents, flash], ignore_index=True).sort_values("created_at", kind="stable").reset_index(drop=True)
+            pool_i = np.flatnonzero(((cr.dt.year == ws.year) & (cr.dt.month == ws.month)).to_numpy() & ~taken)
+            k = min(per_window, int(0.6 * len(pool_i)))
+            pick = g.choice(pool_i, size=k, replace=False) if k else np.array([], dtype=np.int64)
+            taken[pick] = True
+            allint.loc[pick, "created_at"] = [ws + pd.Timedelta(seconds=float(x)) for x in g.uniform(0, span, k)]
+            allint.loc[pick, "flash"] = True
+        allint = allint.sort_values("created_at", kind="stable").reset_index(drop=True)
         allint["payment_intent_id"] = [f"pi_{i:07d}" for i in range(1, len(allint) + 1)]
         state.extras["intents"] = allint
         state.extras["windows"] = windows
@@ -535,8 +561,10 @@ class IdempotentWebhooks(Archetype):
         tx, rf, dsp, po, tk = (state.extras[k] for k in ("tx", "refunds", "disputes", "payouts", "tickets"))
         R = p["revenue_ttm_cents"]
         months = state.extras["months"]
-        gm_est = 1 - (FEE_RATE + FEE_FIXED / max(1, tx["amount_cents"].mean())) / p["take_rate"]
+        # gross margin is tied to the take rate: processor fees (5050) and payment operations / hosting (5000) over take revenue
+        gm_est = 1 - (FEE_RATE + FEE_FIXED / max(1, tx["amount_cents"].mean())) / p["take_rate"] - p["cogs_share"]
         opex_pct = max(0.2, gm_est - p["op_margin"] - 0.02)
+        rev_plan = state.extras["rev_plan_m"]
         ppe = cents(R * p["capex_pct"] * 5 * 0.55)
         accdep = cents(ppe * 0.45)
         cash0 = cents(R * 0.35)
@@ -599,10 +627,17 @@ class IdempotentWebhooks(Archetype):
         tk_m = tk.groupby((tk["created_at"].dt.year - cal.start.year) * 12 + tk["created_at"].dt.month - cal.start.month).size()
         rev_m = tx[~tx["_dup"]].groupby((tx["created_at"].dt.year - cal.start.year) * 12 + tx["created_at"].dt.month - cal.start.month)["take_cents"].sum()
         prev = {"payroll": 0, "opex": 0}
+        cogs_label = {"fintech_marketplace": "Payment operations and hosting", "saas": "Hosting and customer support",
+                      "ecommerce": "Drop-shipped merchandise (supplier invoices)"}[p["industry"]]
         for m, ms in enumerate(months):
             me = (pd.Timestamp(ms) + pd.offsets.MonthEnd(0)).date()
+            realized = float(rev_m.get(m, 0))
             run_rate = float(rev_m.reindex(range(max(0, m - 2), m + 1)).fillna(0).mean()) or R / 12
-            opex = cents(run_rate * opex_pct * self.period_noise(ctx, state).ox(ms))  # review C2: opex noise
+            # 35% of the cost base is budgeted on the volume plan (people, rent), 65% moves with the month's take revenue (support,
+            # account management, variable compensation); the budgeted part carries the base quarterly opex noise (review C2) -
+            # no archetype-specific jumps (review P1 #13)
+            opex = cents(opex_pct * (0.35 * float(rev_plan[m]) * self.period_noise(ctx, state).ox(ms) + 0.65 * realized))
+            cogs = cents(realized * p["cogs_share"])
             payroll = cents(opex * 0.65)
             other = opex - payroll
             support = int(tk_m.get(m, 0)) * p["support_cost_per_ticket_cents"]
@@ -614,6 +649,7 @@ class IdempotentWebhooks(Archetype):
             ox["6200"] += support
             events.append((me, 7, lambda d, s=pr: L.payroll(d, s)))
             events.append((me, 7, lambda d, s=ox: L.accrue_opex(d, s, memo="Operating expenses incl. support tickets")))
+            events.append((me, 7, lambda d, a=cogs, lb=cogs_label: L.adjust(d, [("5000", a, 0), ("2100", 0, a)], f"{lb} (accrued)", "cost_of_revenue")))
             events.append((ms + dt.timedelta(days=14), 6, lambda d, a=cents(run_rate * p["capex_pct"]): L.capex(d, a)))
             events.append((me, 8, lambda d: L.depreciate(d, cents(L.closing_balances()["1500"] / 60))))
             if ms.month % 3 == 0:
@@ -624,7 +660,7 @@ class IdempotentWebhooks(Archetype):
                 events.append((me, 11, tax))
             if ms.month in (1, 4, 7, 10) and m > 0:
                 events.append((ms + dt.timedelta(days=14), 1, lambda d: L.pay_tax(d, -L.closing_balances()["2400"])))
-            prev = {"payroll": payroll, "opex": other + support}
+            prev = {"payroll": payroll, "opex": other + support + cogs}
         events.sort(key=lambda e: (e[0], e[1]))
         for d, _prio, fn in events:
             if d <= end_date:
@@ -816,6 +852,10 @@ class IdempotentWebhooks(Archetype):
             "dup_in_windows": int(sum(((dup_rows["created_at"] >= a) & (dup_rows["created_at"] <= b + pd.Timedelta(hours=2))).sum() for a, b in state.extras["windows"])),
             "refunds_p8": int(rf[(rf["created_at"] >= s8t) & (rf["created_at"] <= e8t)]["amount_cents"].sum()),
         }
+        post = (dl["sent_at"] >= state.extras["migration_at"]).to_numpy() & ~win_mask
+        f["timeout_share_outside"] = float((dl.loc[post, "status"] == "timeout").mean()) if post.any() else 0.0
+        win_q = sorted({cal.labels([a])[0] for a, _ in state.extras["windows"]})
+        f["rev_window"] = sum(next(i for i in state.statements.income if i.period == q).revenue_cents for q in win_q)  # type: ignore[union-attr]
         state.extras["facts"] = f
         return f
 
@@ -847,6 +887,7 @@ class IdempotentWebhooks(Archetype):
         q = {"lambda_normal": lam, "W_normal_s": normal["W"], "rho_incident": busy["rho"], "W_incident_s": busy["W"],
              "provider_timeout_s": float(p["consumer_timeout_s"]), "throughput": summary["throughput"]}
         unit = {"take_rate": p["take_rate"], "avg_ticket_cents": float(tx["amount_cents"].mean()), "processing_fee_rate": FEE_RATE,
+                "payment_ops_cost_share": p["cogs_share"],
                 "gross_margin": float(np.mean([st.ratios[x]["gross_margin"] for x in state.periods])),  # type: ignore[union-attr]
                 "cac": 0.0, "ltv": 0.0, "payback_months": 0.0, "arpa": float(tx["amount_cents"].mean() * p["take_rate"]), "churn_monthly": 0.0}
         return build_operations_state(stations=stations, queueing=q, unit_economics=unit,
@@ -877,7 +918,9 @@ class IdempotentWebhooks(Archetype):
                    + "; ".join(f"{a:%Y-%m-%d %H:%M}-{b:%H:%M}" for a, b in windows) + ".",
                    pillar="system_design", tol_abs=0.0, label="Incident windows"),
             metric("timeout_share_in_incidents", f["timeout_share_windows"], "ratio",
-                   f"Share of delivery attempts sent inside the incident windows with status='timeout' ({f['window_deliveries']} attempts).",
+                   f"Share of delivery attempts sent inside the incident windows with status='timeout' ({f['window_deliveries']} attempts). "
+                   f"Context: outside the windows {f['timeout_share_outside']:.2%} of post-migration attempts time out; a retry of a committed "
+                   "handler is what creates a duplicate, so the windows carry almost all of them.",
                    pillar="system_design", tol_abs=0.05, label="Timeout share inside incidents"),
             metric("dedupe_present_code", dedupe_code, "code",
                    "0 = no dedupe, 1 = dedupe on the wrong key (event_id), 2 = dedupe on payment_intent_id / idempotency key.",
@@ -887,10 +930,14 @@ class IdempotentWebhooks(Archetype):
                    "= duplicate captures in the quarter not offset by duplicate refunds.",
                    pillar="accounting_finance", tol_rel=0.05, label="Ledger vs provider gap, latest quarter"),
             metric("dispute_rate_p8", f["dispute_rate_p8"], "ratio", f"Disputes opened in {P8} / provider transactions created in {P8} "
-                   f"({f['disputes_p8']} / {f['tx_p8']}).", pillar="accounting_finance", tol_abs=0.001, label="Dispute rate, latest quarter"),
+                   f"({f['disputes_p8']} / {f['tx_p8']}). Context: the baseline chargeback rate is ~{p['chargeback_rate_base']:.2%}; card-network "
+                   "monitoring programs start at roughly 0.9% (Visa) to 1.5% (Mastercard) of transactions, with fines and higher fees beyond.",
+                   pillar="accounting_finance", tol_abs=0.001, label="Dispute rate, latest quarter"),
             metric("cost_of_duplicates_cents", f["cost"], "cents",
                    f"Processing fees kept on duplicate captures ({f['dup_fees']}) + $15 x {f['dup_dispute_n']} duplicate disputes + "
-                   f"support cost x {f['dup_ticket_n']} duplicate_charge tickets.", pillar="accounting_finance", tol_rel=0.10, label="Cost of duplicates"),
+                   f"support cost x {f['dup_ticket_n']} duplicate_charge tickets. Context: the duplicate amounts themselves are refunded or charged "
+                   f"back (cash, not P&L); the cost is {f['cost'] / max(1, f['rev_window']):.2%} of take revenue in the incident quarters, "
+                   "the dispute-rate exposure is the larger risk.", pillar="accounting_finance", tol_rel=0.10, label="Cost of duplicates"),
         ]
         sql_dups = """
 WITH pl AS (

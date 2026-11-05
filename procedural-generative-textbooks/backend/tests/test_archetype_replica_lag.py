@@ -116,3 +116,39 @@ def test_cost_rollup_reproduced_by_sql(worlds: dict) -> None:
         m = _metrics(world)
         total = _query(world, "oversell_cost_rollup").expected["checks"]["total_cents"]
         assert total == pytest.approx(m["cancellation_cost_cents"], rel=1e-6)
+
+
+@pytest.mark.parametrize("difficulty", DIFFICULTIES)
+def test_liquidator_holds_inventory_and_says_so(worlds: dict, difficulty: str) -> None:
+    """Review P1 #12: the company is a liquidator / reseller (inventory, COGS, reseller margins), and the profile says so."""
+    world, _ = worlds[(difficulty, 7)]
+    bm = world.company.business_model.lower()
+    assert "marketplace" not in bm and ("liquidat" in bm or "reselling" in bm or "resell" in bm)
+    assert "marketplace" not in world.company.description.lower()
+    for p in world.periods:
+        assert 0.10 <= world.finance.statements.ratios[p]["gross_margin"] <= 0.35
+    assert any(ln.caption == "Inventory, net" and ln.cents > 0 for bs in world.finance.statements.balance for ln in bs.lines)
+
+
+@pytest.mark.parametrize("difficulty", DIFFICULTIES)
+@pytest.mark.parametrize("seed", SEEDS)
+def test_checkout_reads_cover_the_whole_window(worlds: dict, difficulty: str, seed: int) -> None:
+    """QA: checkout_reads spans the same quarters as orders - primary reads before the read-path switch, replica (and the
+    cache at principal) after it; every order line has exactly one read."""
+    world, folder = worlds[(difficulty, seed)]
+    reads = dict(_fetch(world, folder, "SELECT period_of(read_at), COUNT(*) FROM checkout_reads GROUP BY 1"))
+    orders = {r[0] for r in _fetch(world, folder, "SELECT DISTINCT period_of(CAST(CAST(placed_at AS TIMESTAMPTZ) AT TIME ZONE 'UTC' AS TIMESTAMP)) FROM orders")}
+    assert set(world.periods) <= set(reads) and set(world.periods) <= orders
+    (n_reads, n_items), = _fetch(world, folder, "SELECT (SELECT COUNT(*) FROM checkout_reads), (SELECT COUNT(*) FROM order_items)")
+    assert n_reads == n_items
+    (switch,), = _fetch(world, folder, "SELECT changed_at FROM service_config WHERE key = 'inventory_read_path'")
+    by_src = dict(_fetch(world, folder, f"""SELECT read_from, COUNT(*) FILTER (WHERE read_at < TIMESTAMP '{switch}')
+                                            FROM checkout_reads GROUP BY 1"""))
+    assert by_src.get("primary", 0) > 0 and by_src.get("replica", 0) == 0 and by_src.get("cache", 0) == 0
+    # a primary read is exact: the regular SKUs never sell out, so no primary read saw zero
+    (bad,), = _fetch(world, folder, "SELECT COUNT(*) FROM checkout_reads WHERE read_from = 'primary' AND available_qty_seen < requested_qty")
+    assert bad == 0
+    if difficulty == "principal":
+        (cache_from,), = _fetch(world, folder, "SELECT changed_at FROM service_config WHERE key = 'availability_cache_ttl_s'")
+        (early_cache,), = _fetch(world, folder, f"SELECT COUNT(*) FROM checkout_reads WHERE read_from = 'cache' AND read_at < TIMESTAMP '{cache_from}'")
+        assert early_cache == 0

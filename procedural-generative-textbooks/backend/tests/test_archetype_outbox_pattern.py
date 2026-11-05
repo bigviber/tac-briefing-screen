@@ -62,8 +62,8 @@ def test_recovered_loss_share_matches_sampled_parameter(worlds: dict, difficulty
     assert sampled - 0.0015 <= share <= sampled + 0.006, (share, sampled)
     m = _metrics(world)
     assert m["lost_unit_share_window"] == pytest.approx(share, abs=1e-6)
-    lo, hi = {"foundation": (0.0275, 0.035), "practitioner": (0.0185, 0.0245), "principal": (0.008, 0.0145)}[difficulty]
-    assert lo - 1e-9 <= sampled <= hi + 1e-9
+    # the share is solved from the gross-margin drift target (1.6-2.7 pts by difficulty), see test_gm_drift_is_a_case_headline...
+    assert 0.03 <= sampled <= 0.09
 
 
 @pytest.mark.parametrize("difficulty", DIFFICULTIES)
@@ -133,3 +133,20 @@ def test_unit_infra_cost_is_flat(worlds: dict) -> None:
         con.close()
     vals = sorted({r[0] for r in rows})
     assert len(vals) == 2 and vals[0] == pytest.approx(vals[1] * 0.98, rel=1e-4)
+
+
+@pytest.mark.parametrize("difficulty", DIFFICULTIES)
+@pytest.mark.parametrize("seed", SEEDS)
+def test_gm_drift_is_a_case_headline_against_a_stated_baseline(worlds: dict, difficulty: str, seed: int) -> None:
+    """Review: -0.8 pts was too small for a headline. The lost share is solved from a 1.6-2.7 pt drift target, so practitioner
+    and principal show >= 1.5 pts (spec 1-3) and the derivation names the counterfactual baseline; the as-billed margin the
+    CFO sees also slips from the pre-migration quarter to the latest one."""
+    world, _ = worlds[(difficulty, seed)]
+    m = _metrics(world)
+    assert -3.5 < m["gm_drift_pts"] <= -1.5
+    deriv = next(x for x in world.ground_truth.expected_metrics if x.key == "gm_drift_pts").derivation
+    assert "Baseline:" in deriv and "every metered unit invoiced" in deriv and "not the pre-migration margin" in deriv
+    r = world.finance.statements.ratios
+    assert r[world.periods[-1]]["gross_margin"] < r[world.periods[3]]["gross_margin"]
+    # a Kafka-era usage-API platform is not founded in the 1990s (base founded_floor for usage / API business models)
+    assert world.company.founded >= 2008

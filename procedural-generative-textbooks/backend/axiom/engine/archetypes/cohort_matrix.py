@@ -110,6 +110,12 @@ def _midx(ts: pd.Series, start: dt.date) -> np.ndarray:
     return ((t.dt.year - start.year) * 12 + t.dt.month - start.month).to_numpy()
 
 
+def _season(d: dt.date) -> str:
+    """Northern-hemisphere season of a month (the practitioner / principal reveal names the season, not the month)."""
+    return {12: "winter", 1: "winter", 2: "winter", 3: "spring", 4: "spring", 5: "spring",
+            6: "summer", 7: "summer", 8: "summer"}.get(pd.Timestamp(d).month, "autumn")
+
+
 def _utc(col: str, dirty: bool) -> str:
     """SQL expression normalising a timestamp column that may carry mixed UTC offsets (tz_mixed dirt)."""
     return f"(CAST({col} AS TIMESTAMPTZ) AT TIME ZONE 'UTC')" if dirty else col
@@ -128,7 +134,7 @@ class CohortMatrix(Archetype):
                "subscription data - duplicates, reactivations, time zones and all.")
     root_cause_terms = ("promo cohort", "right-censoring", "reactivation", "deduplicat")
     bs_caption_exemptions = {"ecommerce:inventor": "subscription boxes are fulfilled by a partner billed per box; no owned stock is modelled"}
-    stage_options = ("seed", "growth")  # the narrative is a growth story
+    stage_options = ("growth",)  # a growth story with tens of $M of ARR (never seed stage)
 
     # ------------------------------------------------------------------ params
 
@@ -141,6 +147,8 @@ class CohortMatrix(Archetype):
         churn_smb = float(np.clip(bk.sample_between(pool, rng.spawn("bench:smb"), "saas.gross_churn_monthly_smb", "saas", 0.4, 0.7), 0.02, 0.06))
         churn_mm = float(np.clip(bk.sample_between(pool, rng.spawn("bench:mm"), "saas.gross_churn_monthly_midmarket", "saas", 0.4, 0.7), 0.01, 0.035))
         arpa = float(np.clip(bk.sample_between(pool, rng.spawn("bench:arpa"), "saas.arpa_monthly", "saas", 0.3, 0.6), 60, 900))
+        if ind != "saas":  # a subscription box or a seller-pro plan is priced like a consumer / small-seller subscription
+            arpa = float(rng.spawn("bench:arpa_b2c").uniform(*{"ecommerce": (35.0, 90.0), "fintech_marketplace": (60.0, 250.0)}[ind]))
         p: dict[str, Any] = {
             "industry": ind,
             "business_model": story,
@@ -149,7 +157,7 @@ class CohortMatrix(Archetype):
             "sbg_concentration": float(rng.uniform(6.0, 14.0)),  # a + b: heterogeneity (lower = more heterogeneous)
             "arpa_usd": arpa,
             "seg_mix": float(rng.uniform(0.6, 0.8)),
-            "growth_monthly": float(rng.uniform(0.015, 0.035)),
+            "growth_monthly": float(rng.uniform(0.005, 0.02)),
             "promo_boost": float(rng.uniform(2.0, 2.5)),
             "promo_churn_mult": magnitude(rng, difficulty, 1.6, 2.4),
             "promo_cliff_share": magnitude(rng, difficulty, 0.2, 0.5),
@@ -160,15 +168,21 @@ class CohortMatrix(Archetype):
             "voluntary_share": float(rng.uniform(0.55, 0.75)),
             "unsynced_days": int(rng.integers(15, 40)),
             "gm": float(rng.uniform(0.68, 0.8)) if ind != "ecommerce" else float(rng.uniform(0.35, 0.45)),
-            "op_margin": float(rng.uniform(-0.02, 0.08)),
+            # sales & marketing is booked per new logo (CAC = ARPA x GM x payback months); R&D / G&A / rent scale with revenue
+            "cac_payback_months": float(rng.uniform(10.0, 16.0)) if ind != "ecommerce" else float(rng.uniform(4.0, 7.0)),
+            "rd_ga_share": float(rng.uniform(0.27, 0.34)) if ind != "ecommerce" else float(rng.uniform(0.17, 0.22)),
+            # months of subscription history before the books open: the product has an installed base on day one
+            "history_months": int(rng.integers(18, 31)),
             "tax_rate": float(rng.uniform(0.18, 0.25)),
             "n_red_herrings": difficulty_pick(difficulty, 1, 2, 3),
             "difficulty": difficulty,
         }
         budget = ROW_BUDGET[difficulty]
-        # rows per customer: customers 1 + subscriptions ~1.1 (+dups) + events ~1.7 (+ headroom)
-        p["n_customers"] = int((budget * 0.9 - 1600) / 4.0)
-        p["description"] = f"{story}; the subscription product launched a little over two years ago and has acquired ~{p['n_customers']:,} customers since."
+        # rows per customer: customers 1 + subscriptions ~1.1 (+dups) + events ~1.7 (+ headroom); marketing_spend ~130 rows
+        p["n_customers"] = int((budget * 0.9 - 1750) / 4.0)
+        years = (p["history_months"] + 27) / 12.0
+        p["description"] = (f"{story}; the subscription product launched about {years:.0f} years ago and has acquired "
+                            f"~{p['n_customers']:,} customers since.")
         return p
 
     # ------------------------------------------------------------------ baseline
@@ -179,15 +193,21 @@ class CohortMatrix(Archetype):
         p, cal = state.params, state.calendar
         rng = ctx.rng.spawn("baseline")
         g = rng.generator
-        months = cal.month_starts()
+        H = p["history_months"]
+        window = cal.month_starts()
+        m0 = (pd.Timestamp(cal.start) - pd.DateOffset(months=H)).date()
+        months = [(pd.Timestamp(m0) + pd.DateOffset(months=k)).date() for k in range(H)] + list(window)
         n_m = len(months)
-        state.extras["months"] = months
+        # month index 0 = launch month (history); index H = the month the books open
+        state.extras.update({"months": months, "m0": m0, "m_open": H})
         # promo month: first or second month of P5
         p5 = pd.Timestamp(cal.bounds(state.p(5))[0])
-        promo_m = int(_midx(pd.Series([p5]), cal.start)[0]) + int(g.integers(0, 2))
+        promo_m = int(_midx(pd.Series([p5]), m0)[0]) + int(g.integers(0, 2))
         state.extras["promo_m"] = promo_m
         C = p["n_customers"]
-        w = (1 + p["growth_monthly"]) ** np.arange(n_m) * g.lognormal(0, 0.06, n_m)
+        # new logos per month: organic growth x the SaaS Q4 bookings lift (base noise model) x idiosyncratic noise
+        noise = self.period_noise(ctx, state)
+        w = (1 + p["growth_monthly"]) ** np.arange(n_m) * np.array([noise.bookings(m) for m in months]) * g.lognormal(0, 0.06, n_m)
         w[promo_m] *= p["promo_boost"]
         counts = np.floor(C * w / w.sum()).astype(int)
         counts[-1] += C - counts.sum()
@@ -229,6 +249,7 @@ class CohortMatrix(Archetype):
             "created_at": start - pd.to_timedelta(g.integers(0, 3600, C), unit="s"),
         })
         state.frames.update({"customers": cust, "plans": plans})
+        state.extras["arpa_net_cents"] = float(np.mean([price_base[x] for x in seg]) * 100)
         state.extras.update({"start": start, "T": T, "promo": promo, "seg": seg, "cohort_m": cm, "cliff": cliff})
 
     # ------------------------------------------------------------------ anomaly + subscription rows
@@ -375,27 +396,42 @@ class CohortMatrix(Archetype):
         self._post(ctx, state)
 
     def _post(self, ctx: BuildContext, state: WorldState) -> None:
-        """Opening balances, monthly charge batches, hosting, payroll / opex, capex, depreciation, tax."""
+        """Opening balances, monthly charge batches, hosting, sales & marketing per new logo, R&D / G&A, capex, depreciation, tax.
+
+        Revenue is the subscription charges themselves (list price less the promo discount, recognised over the service month
+        through the quarter-end deferral), so quarterly revenue is Sigma active MRR x 3 plus plan changes and proration - it
+        grows only as fast as new logos x ARPA net of churn. Charges billed before the books open (installed-base history)
+        are not posted."""
         p, cal = state.params, state.calendar
         L = state.ledger
         months = state.extras["months"]
+        m0, H = state.extras["m0"], state.extras["m_open"]
         ch = state.extras["charges"]
+        noise = self.period_noise(ctx, state)
         # card charges of the last two days of a month settle in the next month (T+2): settlement receivable at month end
         bat = pd.to_datetime(ch["billed_at"])
         transit = (bat.dt.day > bat.dt.days_in_month - 2).to_numpy()
         ch_t = ch.assign(tr=np.where(transit, ch["net_cents"] - ch["fee_cents"], 0))
-        ch_m = ch_t.groupby(_midx(ch["billed_at"], cal.start)).agg(g=("gross_cents", "sum"), d=("discount_cents", "sum"), f=("fee_cents", "sum"),
-                                                                   n=("_s", "size"), tr=("tr", "sum"))
+        ch_m = ch_t.groupby(_midx(ch["billed_at"], m0)).agg(g=("gross_cents", "sum"), d=("discount_cents", "sum"), f=("fee_cents", "sum"),
+                                                            n=("_s", "size"), tr=("tr", "sum"))
         state.extras["charges_by_month"] = ch_m
         rev_ttm = float((ch_m["g"] - ch_m["d"]).iloc[-12:].sum()) or 1.0
-        cash0 = cents(rev_ttm * 0.35) + 25_000_000
+        # sales & marketing: CAC per new logo (a promo signup costs ~30%: the discount is the incentive)
+        cohort_m, promo = state.extras["cohort_m"], state.extras["promo"]
+        new_eq = np.bincount(cohort_m, weights=np.where(promo, 0.3, 1.0), minlength=len(months))
+        cac = cents(state.extras["arpa_net_cents"] * p["gm"] * p["cac_payback_months"])
+        state.extras["cac_cents"] = cac
+        sm_m = {m: cents(new_eq[m] * cac * noise.ox(months[m])) for m in range(H, len(months))}
+        state.extras["sm_by_month"] = sm_m
+        cash0 = cents(rev_ttm * 0.45) + 25_000_000
         ppe = cents(rev_ttm * 0.04)
         accdep = cents(ppe * 0.4)
         cs = cents(0.6 * (cash0 + ppe - accdep))
         L.open_books(cal.opening_date, {"1000": cash0, "1500": ppe, "1510": -accdep, "3000": -cs, "3100": -(cash0 + ppe - accdep - cs)})
         events: list[tuple[dt.date, int, Any]] = []
         prev = {"payroll": 0, "opex": 0, "cogs": 0}
-        for m, ms in enumerate(months):
+        for m in range(H, len(months)):
+            ms = months[m]
             me = (pd.Timestamp(ms) + pd.offsets.MonthEnd(0)).date()
             r = ch_m.loc[m] if m in ch_m.index else None
             net = int(r.g - r.d) if r is not None else 0
@@ -407,19 +443,23 @@ class CohortMatrix(Archetype):
                 events.append((me + dt.timedelta(days=2), 2, lambda d, t=int(r.tr), dm=dim: L.collect_cash(
                     d, t, memo="Card settlements in transit received", source="settlement_funds", dim=dm)))
             run = float(np.mean([int(ch_m.loc[j].g - ch_m.loc[j].d) if j in ch_m.index else 0 for j in range(max(0, m - 2), m + 1)])) or rev_ttm / 12
-            cogs = cents(net * (1 - p["gm"] - self.period_noise(ctx, state).gm(ms)))  # review C2: quarterly GM / opex noise
-            opex = cents(run * max(0.1, p["gm"] - 0.03 - p["op_margin"]) * self.period_noise(ctx, state).ox(ms))
-            payroll = cents(opex * 0.62)
-            other = opex - payroll
-            if m > 0:
+            cogs = cents(net * (1 - p["gm"] - noise.gm(ms)))  # review C2: quarterly GM / opex noise
+            sm = sm_m[m]
+            rdga = cents(run * p["rd_ga_share"] * noise.ox(ms))
+            sm_pay, rd_pay = cents(sm * 0.45), cents(rdga * 0.7)
+            payroll = sm_pay + rd_pay
+            other = (sm - sm_pay) + (rdga - rd_pay)
+            if m > H:
                 events.append((ms + dt.timedelta(days=4), 1, lambda d, a=prev["payroll"]: L.pay_ap(d, a, payable_account="2110", memo="Payroll paid", source="payroll")))
                 events.append((ms + dt.timedelta(days=9), 1, lambda d, a=prev["opex"]: L.pay_ap(d, a, payable_account="2100", memo="Accrued opex paid", source="opex")))
                 events.append((ms + dt.timedelta(days=9), 1, lambda d, a=prev["cogs"]: L.pay_ap(d, a, memo="Hosting / fulfilment vendors paid", source="payables")))
             events.append((me, 5, lambda d, a=cogs: L.adjust(d, [("5000", a, 0), ("2000", 0, a)], "Hosting / fulfilment cost", "cost_of_revenue")))
-            pr = dict(zip(("6000", "6100", "6200"), split_cents(payroll, [0.4, 0.4, 0.2]), strict=True))
-            ox = dict(zip(("6000", "6200", "6400"), split_cents(other, [0.55, 0.25, 0.2]), strict=True))
+            rd = split_cents(rd_pay, [0.6, 0.4])
+            pr = {"6000": sm_pay, "6100": rd[0], "6200": rd[1]}
+            ox = dict(zip(("6100", "6200", "6400"), split_cents(rdga - rd_pay, [0.4, 0.35, 0.25]), strict=True))
+            ox["6000"] = sm - sm_pay
             events.append((me, 7, lambda d, s=pr: L.payroll(d, s)))
-            events.append((me, 7, lambda d, s=ox: L.accrue_opex(d, s, memo="Marketing and operating expenses")))
+            events.append((me, 7, lambda d, s=ox: L.accrue_opex(d, s, memo="Marketing programs and operating expenses")))
             events.append((ms + dt.timedelta(days=14), 6, lambda d, a=cents(run * 0.01): L.capex(d, a)))
             events.append((me, 8, lambda d: L.depreciate(d, cents(L.closing_balances()["1500"] / 48))))
             if ms.month % 3 == 0:
@@ -428,7 +468,7 @@ class CohortMatrix(Archetype):
                     pretax = -sum(v for c, v in act.items() if c[0] in "4567" and c != "8000")
                     L.provision_tax(d, max(0, cents(pretax * p["tax_rate"])))
                 events.append((me, 11, tax))
-            if ms.month in (1, 4, 7, 10) and m > 0:
+            if ms.month in (1, 4, 7, 10) and m > H:
                 events.append((ms + dt.timedelta(days=14), 1, lambda d: L.pay_tax(d, -L.closing_balances()["2400"])))
             prev = {"payroll": payroll, "opex": other, "cogs": cogs}
         events.sort(key=lambda e: (e[0], e[1]))
@@ -437,8 +477,10 @@ class CohortMatrix(Archetype):
                 fn(d)
         # monthly charges are billed in advance for the next month of service: quarter-end deferral (review P0 #3)
         bill = pd.to_datetime(ch["billed_at"])
+        posted = (bill >= pd.Timestamp(cal.start)).to_numpy()
+        bill = bill[posted]
         docs = pd.DataFrame({"posted": bill.dt.to_period("M").dt.to_timestamp(how="end").dt.normalize(), "service_start": bill,
-                             "service_end": bill + pd.DateOffset(months=1), "amount_cents": ch["net_cents"]})
+                             "service_end": bill + pd.DateOffset(months=1), "amount_cents": ch["net_cents"].to_numpy()[posted]})
         state.extras["deferral_effect"] = post_deferred_revenue_trueups(state, docs, revenue_account="4000")
 
     # ------------------------------------------------------------------ tables
@@ -485,11 +527,35 @@ class CohortMatrix(Archetype):
                                         "previous_subscription_id": "the customer's previous subscription (plan change, re-subscribe or reactivation)",
                                         "ingest_id": ">1 marks a re-ingested copy from the billing migration"},
                           description="Subscriptions (one row per subscription; a customer can have several).")
+        builder.add_frame("marketing_spend", self._marketing_spend(ctx, state), primary_key=["month", "channel"],
+                          column_types={"month": "DATE", "spend_cents": "BIGINT", "new_customers_attributed": "INTEGER"},
+                          descriptions={"spend_cents": "program spend (media, partner fees, events); sales & marketing payroll is not included",
+                                        "new_customers_attributed": "new customers whose acquisition_channel maps to this channel (last touch)"},
+                          description="Monthly marketing program spend by channel since the books opened (GL 6000 also carries S&M payroll).")
         builder.add_frame("subscription_events", state.frames["subscription_events"], primary_key=["event_id"],
                           foreign_keys=[("subscription_id", "subscriptions", "subscription_id")], column_types={"event_id": "BIGINT"},
                           dirt=dirt.get("subscription_events", ()),
                           descriptions={"recorded_at": "when the event reached the warehouse (payment failures sync days late)"},
                           description="Subscription lifecycle events from the billing provider.")
+
+    def _marketing_spend(self, ctx: BuildContext, state: WorldState) -> pd.DataFrame:
+        """Program part of the monthly S&M spend (55%; the rest is S&M payroll), split by channel: the promo month's
+        paid-social campaign carries the promo signups, the rest follows the organic channel mix."""
+        g = ctx.rng.spawn("marketing").generator
+        months, H = state.extras["months"], state.extras["m_open"]
+        cust = state.frames["customers"]
+        cm = state.extras["cohort_m"]
+        chan_of = {"paid_search": "paid_search", "partner": "partner", "referral": "partner", "organic": "content_seo", "promo": "paid_social"}
+        rows = []
+        for m in range(H, len(months)):
+            sm = state.extras["sm_by_month"][m]
+            prog = sm - cents(sm * 0.45)
+            got = cust.loc[cm == m, "acquisition_channel"].map(chan_of).value_counts()
+            chans = ["paid_search", "partner", "content_seo", "events"] + (["paid_social"] if got.get("paid_social", 0) else [])
+            wts = np.array([1.0 + got.get(c, 0) for c in chans]) * g.uniform(0.8, 1.2, len(chans))
+            for c, a in zip(chans, split_cents(prog, list(wts / wts.sum())), strict=True):
+                rows.append({"month": pd.Timestamp(months[m]), "channel": c, "spend_cents": int(a), "new_customers_attributed": int(got.get(c, 0))})
+        return pd.DataFrame(rows)
 
     # ------------------------------------------------------------------ ties
 
@@ -507,12 +573,12 @@ class CohortMatrix(Archetype):
     def _triangle(self, state: WorldState) -> dict[str, Any]:
         if "tri" in state.extras:
             return state.extras["tri"]
-        cal = state.calendar
         subs = state.extras["subs"]
         n_m = len(state.extras["months"])
-        s_idx = _midx(subs["started_at"], cal.start)
+        m0 = state.extras["m0"]
+        s_idx = _midx(subs["started_at"], m0)
         # active at the end of month M  <=>  start month <= M  and  (open  or  end month >= M + 1)
-        e_idx = np.where(subs["_active"], n_m, _midx(subs["ended_at"], cal.start))
+        e_idx = np.where(subs["_active"], n_m, _midx(subs["ended_at"], m0))
         cust = subs["_c"].to_numpy()
         C = int(cust.max()) + 1
         active = np.zeros((C, n_m), dtype=bool)
@@ -551,32 +617,61 @@ class CohortMatrix(Archetype):
     # ------------------------------------------------------------------ operations
 
     def build_operations(self, ctx: BuildContext, state: WorldState) -> OperationsState:
-        """Cohorts (one per quarter, from the triangle), unit economics and KPIs by period."""
+        """Monthly cohort curves (from the triangle), unit economics from the books and KPIs by period."""
         p, cal = state.params, state.calendar
         st = state.statements
         tri = self._triangle(state)
         months = state.extras["months"]
         n_m = len(months)
-        arpa = float(state.frames["plans"]["price_cents"].mean())
-        cohorts = []
-        for co in range(0, n_m, 3):
-            curve = [float(x) for x in tri["ret"][co] if not np.isnan(x)]
-            cohorts.append(cohort_from_curve(f"{pd.Timestamp(months[co]):%Y-%m}", int(tri["size"][co]), curve, arpa))
         subs = state.extras["subs"]
+        mrr = subs["price_cents"].to_numpy()
+        cust_mrr = pd.Series(mrr).groupby(subs["_c"].to_numpy()).first()
+        cohorts = []
+        for co in range(n_m):
+            if not tri["size"][co]:
+                continue
+            curve = [float(x) for x in tri["ret"][co] if not np.isnan(x)]
+            members = np.flatnonzero(tri["cohort"] == co)
+            arpa_co = float(cust_mrr.reindex(members).mean())
+            cohorts.append(cohort_from_curve(f"{pd.Timestamp(months[co]):%Y-%m}", int(tri["size"][co]), curve, arpa_co))
         kpis = {}
         for period in state.periods:
             inc = next(i for i in st.income if i.period == period)  # type: ignore[union-attr]
             s, e = cal.bounds(period)
             e_ts = pd.Timestamp(e) + pd.Timedelta(days=1)
-            act = ((subs["started_at"] < e_ts) & (subs["_active"] | (subs["ended_at"] >= e_ts))).sum()
+            on = (subs["started_at"] < e_ts) & (subs["_active"] | (subs["ended_at"] >= e_ts))
             new = ((subs["started_at"] >= pd.Timestamp(s)) & (subs["started_at"] < e_ts) & (subs["_kind"] == "new")).sum()
             kpis[period] = {"revenue_cents": float(inc.revenue_cents), "net_income_cents": float(inc.net_income_cents),
-                            "active_subscriptions": float(act), "new_customers": float(new), "gross_margin": st.ratios[period]["gross_margin"]}  # type: ignore[union-attr]
-        churn_m = 1 - tri["m6_base"] ** (1 / 6) if tri["m6_base"] > 0 else 0.0
-        unit = {"arpa": arpa, "churn_monthly": churn_m, "gross_margin": p["gm"], "ltv": arpa * p["gm"] / max(churn_m, 1e-3),
-                "cac": 0.0, "payback_months": 0.0}
-        return build_operations_state(unit_economics=unit, cohorts=cohorts, kpis_by_period=kpis,
+                            "active_subscriptions": float(on.sum()), "mrr_cents": float(subs.loc[on, "price_cents"].sum()),
+                            "new_customers": float(new), "gross_margin": st.ratios[period]["gross_margin"]}  # type: ignore[union-attr]
+        ue = self._unit_economics(state)
+        return build_operations_state(unit_economics=ue, cohorts=cohorts, kpis_by_period=kpis,
                                       pricing={"promo": {"code": PROMO_CODE, "discount": p["promo_discount"], "months": 3}})
+
+    def _unit_economics(self, state: WorldState) -> dict[str, float]:
+        """CAC = sales & marketing booked in the last four quarters (GL 6000) / new logos acquired in them; ARPA = MRR per
+        active customer at the as-of date; churn from the censoring-aware month-6 retention of non-promo cohorts;
+        LTV = ARPA x GM / churn; payback = CAC / (ARPA x GM)."""
+        if "unit_economics" in state.extras:
+            return state.extras["unit_economics"]
+        cal, st = state.calendar, state.statements
+        tri = self._triangle(state)
+        subs = state.extras["subs"]
+        ttm = state.periods[-4:]
+        sm = float(sum(state.ledger.activity(x)["6000"] for x in ttm))
+        t0 = pd.Timestamp(cal.bounds(ttm[0])[0])
+        first = subs.groupby("_c")["started_at"].min()
+        new_ttm = int((first >= t0).sum())
+        cac = sm / max(1, new_ttm)
+        active = subs[subs["_active"]]
+        arpa = float(active["price_cents"].sum() / max(1, active["_c"].nunique()))
+        gm = float(np.mean([st.ratios[x]["gross_margin"] for x in ttm]))  # type: ignore[union-attr]
+        churn = 1 - tri["m6_base"] ** (1 / 6) if tri["m6_base"] > 0 else 0.0
+        ue = {"arpa": arpa, "churn_monthly": churn, "gross_margin": gm, "ltv": arpa * gm / max(churn, 1e-3), "cac": cac,
+              "payback_months": cac / max(1.0, arpa * gm), "new_logos_ttm": float(new_ttm), "sales_marketing_ttm_cents": sm}
+        ue["ltv_to_cac"] = ue["ltv"] / max(1.0, cac)
+        state.extras["unit_economics"] = ue
+        return ue
 
     # ------------------------------------------------------------------ ground truth
 
@@ -834,7 +929,8 @@ ORDER BY 1"""
         old = subs[(subs["started_at"] >= pd.Timestamp(cal.bounds(P[1])[0])) & (subs["started_at"] < pd.Timestamp(cal.bounds(P[2])[0]))]
         reveal = [
             f"Growth's slide: {recent['_active'].mean():.0%} of customers who signed up in {P[6]}-{P[7]} are still active vs {old['_active'].mean():.0%} of the {P[1]} signups - 'retention is improving'.",
-            f"A {PROMO_CODE} promotion ran in {pm_label}.",
+            (f"A {PROMO_CODE} promotion ran in {pm_label}." if p["difficulty"] == "foundation"
+             else f"A {PROMO_CODE} promotion (50% off the first three months) ran last {_season(state.extras['months'][tri['promo_m']])}."),
             f"Billing was migrated to a new provider in {P[2]}.",
             "The board asked for a proper cohort view before approving next year's acquisition budget.",
         ]
