@@ -416,3 +416,16 @@ The case "asks" (which metric keys the user must fill in `Submission.metrics`) a
 Streaming: `/cases/{id}/dossier`, `/cases/{id}/textbook`, `/cases/{id}/adversary` also accept
 `?stream=1` and then return `text/event-stream` with `data: {"delta": "..."}` chunks followed by
 `data: {"done": true, "payload": <final JSON>}`. Non-stream is the default and always works.
+
+## 12. Contract additions requested by the frontend (binding for the API layer)
+
+1. `CasePublic.levers: list[Lever]` — decision levers are public (they are not ground truth).
+2. `CasePublic.status` — same values as `CaseSummary.status`.
+3. `GET /cases/{id}/session` → `{submission_id: str|None, grade: GradeReport|None, adversary_turns: list[AdversaryTurn], sim_history: list[SimQuarter]}` so a reload restores the workbench.
+4. `/sandbox/sql` returns `column_types: list[str]` alongside `columns`.
+5. `/skills/graph` nodes include `summary: str` and `tier`.
+6. `GradeReport.revealed` is typed: `{root_cause: str, anomalies: list[Anomaly-public-fields: id, kind, pillar, title, mechanism, periods, severity, evidence_trail], reference_solution: ReferenceSolution}`.
+7. Python sandbox: a top-level variable named `result` (dict/list/scalar/DataFrame) is serialized as `result_json`; matplotlib figures are captured as base64 PNG in `figures`.
+8. Streaming errors are emitted as `data: {"error": "..."}` then the stream closes.
+9. For `provider == "anthropic"` the client omits `temperature` when the model rejects sampling params (retry once without it on a 400 that mentions temperature).
+10. Default model suggestions: anthropic `claude-haiku-5-5` (fast) / `claude-opus-5-5` (deep); openrouter `anthropic/claude-haiku-5.5` / `anthropic/claude-opus-5.5`; openai `gpt-4o-mini` / `gpt-4.1`; local `llama3.1` / `qwen2.5:32b`.

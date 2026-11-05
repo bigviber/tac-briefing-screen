@@ -1,0 +1,163 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html,
+  body,
+  #root {
+    @apply h-full bg-bg text-fg font-sans text-sm antialiased;
+  }
+  body {
+    font-feature-settings: "cv11", "ss01", "tnum";
+    overflow: hidden;
+  }
+  *:focus-visible {
+    @apply outline outline-1 outline-offset-1 outline-accent;
+  }
+  ::selection {
+    background: rgba(91, 141, 239, 0.35);
+  }
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #2a3241;
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex h-7 items-center gap-1.5 whitespace-nowrap rounded border border-line bg-s2 px-2.5 text-sm text-fg transition-colors hover:border-[#2f3848] hover:bg-s3 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  .btn-primary {
+    @apply border-accent bg-accent text-white hover:border-[#6f9cf3] hover:bg-[#6f9cf3];
+  }
+  .btn-ghost {
+    @apply border-transparent bg-transparent text-muted hover:border-transparent hover:bg-s2 hover:text-fg;
+  }
+  .btn-sm {
+    @apply h-6 px-2 text-xs;
+  }
+  .input {
+    @apply h-7 w-full rounded border border-line bg-bg px-2 text-sm text-fg placeholder:text-[#5b6577] focus:border-accent focus:outline-none;
+  }
+  .field-label {
+    @apply mb-1 block text-2xs font-medium uppercase tracking-wider text-muted;
+  }
+  .panel {
+    @apply rounded border border-line bg-s1;
+  }
+  .panel-head {
+    @apply flex h-8 shrink-0 items-center gap-2 border-b border-line px-3 text-xs font-medium uppercase tracking-wider text-muted;
+  }
+  .chip {
+    @apply inline-flex h-5 items-center gap-1 rounded-sm border border-line bg-s2 px-1.5 font-mono text-2xs text-muted;
+  }
+  .num {
+    @apply font-mono tabular-nums;
+  }
+  .tbl {
+    @apply w-full border-collapse text-xs;
+  }
+  :where(.tbl) th {
+    @apply sticky top-0 z-10 border-b border-line bg-s2 px-2 py-1 text-left font-medium text-muted;
+  }
+  :where(.tbl) td {
+    @apply border-b border-[#1a2029] px-2 py-1 align-top;
+  }
+}
+
+/* Markdown prose, tuned for dense dark UI. */
+.md {
+  @apply text-sm leading-relaxed text-fg;
+}
+.md h1 {
+  @apply mb-2 mt-4 text-base font-semibold;
+}
+.md h2 {
+  @apply mb-2 mt-4 border-b border-line pb-1 text-[13px] font-semibold;
+}
+.md h3 {
+  @apply mb-1 mt-3 text-sm font-semibold text-fg;
+}
+.md p {
+  @apply my-2;
+}
+.md ul {
+  @apply my-2 list-disc pl-5;
+}
+.md ol {
+  @apply my-2 list-decimal pl-5;
+}
+.md li {
+  @apply my-0.5;
+}
+.md a {
+  @apply text-accent underline-offset-2 hover:underline;
+}
+.md strong {
+  @apply font-semibold text-white;
+}
+.md blockquote {
+  @apply my-2 border-l-2 border-accent/60 bg-s2 px-3 py-1.5 text-muted;
+}
+.md code {
+  @apply rounded-sm bg-s3 px-1 py-px font-mono text-[11.5px] text-[#e8c48a];
+}
+.md pre {
+  @apply my-2 overflow-x-auto rounded border border-line bg-bg p-2.5 font-mono text-[11.5px] leading-[18px];
+}
+.md pre code {
+  @apply bg-transparent p-0 text-fg;
+}
+.md table {
+  @apply my-2 w-full border-collapse text-xs;
+}
+.md th {
+  @apply border-b border-line bg-s2 px-2 py-1 text-left font-medium text-muted;
+}
+.md td {
+  @apply border-b border-[#1a2029] px-2 py-1 font-mono tabular-nums;
+}
+.tok-kw {
+  color: #b78cff;
+}
+.tok-str {
+  color: #9ece6a;
+}
+.tok-num {
+  color: #ff9e64;
+}
+.tok-com {
+  color: #5c6779;
+  font-style: italic;
+}
+.tok-fn {
+  color: #7aa2f7;
+}
+
+.mermaid-host svg {
+  max-width: 100%;
+  height: auto;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200px 0;
+  }
+  100% {
+    background-position: 200px 0;
+  }
+}
+.skeleton {
+  background: linear-gradient(90deg, #161b24 0px, #1e2531 80px, #161b24 160px);
+  background-size: 400px 100%;
+  animation: shimmer 1.2s linear infinite;
+  @apply rounded-sm;
+}
