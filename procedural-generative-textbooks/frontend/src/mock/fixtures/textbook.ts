@@ -54,5 +54,10 @@ print(f"open AR: \${open_ar:,.0f}")
       { question: "Why do duplicate invoice keys inflate DSO?", answer: "They double-count open AR in the numerator without adding revenue to the denominator." },
       { question: "Which table tells you whether long terms were contracted or granted informally?", answer: "customers.payment_terms_days (contracted) compared with due_date − issue_date on invoices and collections_notes holds." },
     ],
+    snippets: [
+      { language: "sql", purpose: "Deduplicate a key, keeping the latest row (DuckDB QUALIFY).", code: "SELECT *\nFROM invoices\nQUALIFY ROW_NUMBER() OVER (PARTITION BY invoice_id ORDER BY updated_at DESC) = 1;" },
+      { language: "python", purpose: "Aging buckets with pandas.cut.", code: "days = (pd.Timestamp('2024-12-31') - inv.due_date).dt.days\ninv['bucket'] = pd.cut(days, [-10**6, 0, 30, 60, 90, 10**6], labels=['current', '1-30', '31-60', '61-90', '90+'])" },
+    ],
+    leak_redacted: false,
   };
 }

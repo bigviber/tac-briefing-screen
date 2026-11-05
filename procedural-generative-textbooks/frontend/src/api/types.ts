@@ -1,5 +1,6 @@
 /**
- * TypeScript mirrors of the Axiom contract (docs/ARCHITECTURE.md §4, §5, §11).
+ * TypeScript mirrors of the Axiom contract. Source of truth: backend/axiom/models.py and the
+ * API views in backend/axiom/api/schemas.py (ARCHITECTURE.md §4, §5, §11, §12).
  * Money values are integer cents; percentages are floats in [0, 1].
  * The client only ever receives the public view of a CaseWorld (no ground_truth).
  */
@@ -53,6 +54,8 @@ export interface IndustryProfile {
   revenue_range_usd: [number, number];
   benchmarks: Record<string, Benchmark>;
   line_items: string[];
+  line_items_by_statement: Record<string, string[]>;
+  stage_mix: Record<string, number>;
   schema_template: string;
   narrative_hooks: string[];
 }
@@ -166,7 +169,7 @@ export interface Cohort {
   acquisition_period: string;
   size: number;
   retention: number[];
-  revenue: number[];
+  revenue_cents: number[];
 }
 
 export interface OperationsState {
@@ -280,7 +283,7 @@ export interface Ask {
   hint: string;
 }
 
-/** CaseWorld.public_view() + asks (§11). `levers` is an optional extension; see README contract gaps. */
+/** `CasePublicView` (backend/axiom/api/schemas.py): CaseWorld public view + asks, levers, status. */
 export interface CasePublic {
   case_id: string;
   seed: number;
@@ -299,8 +302,8 @@ export interface CasePublic {
   simulation: SimulationState;
   generated_at: string;
   asks: Ask[];
-  levers?: Lever[];
-  status?: CaseStatus;
+  levers: Lever[];
+  status: CaseStatus;
 }
 
 export type CaseStatus = "generated" | "briefed" | "submitted" | "graded";
@@ -310,7 +313,7 @@ export interface CaseSummary {
   archetype: string;
   company_name: string;
   industry: string;
-  difficulty: string;
+  difficulty: Difficulty;
   pillars: Pillar[];
   created_at: string;
   status: CaseStatus;
@@ -340,13 +343,24 @@ export interface GenerateRequest {
   target_skills?: string[];
 }
 
+/** Known channels; the LLM may return other strings (rendered as a memo). */
 export type StakeholderChannel = "email" | "slack" | "memo" | "board_deck";
 
 export interface StakeholderMessage {
   from_name: string;
   role: string;
-  channel: StakeholderChannel;
+  channel: StakeholderChannel | (string & {});
+  /** Email subject line; empty for non-email channels. */
+  subject: string;
   body: string;
+}
+
+/** Dossier timeline row as written by the LLM: `{period, headline, detail}` (free-form dict in the backend). */
+export interface DossierTimelineItem {
+  period?: string;
+  headline?: string;
+  detail?: string;
+  [k: string]: JsonValue | undefined;
 }
 
 export interface Dossier {
@@ -357,6 +371,10 @@ export interface Dossier {
   the_ask: string;
   deliverables: string[];
   data_room_index: string[];
+  timeline: DossierTimelineItem[];
+  architecture_mermaid: string | null;
+  /** True when the leak filter removed concealed facts from the LLM output. */
+  leak_redacted: boolean;
 }
 
 export interface SelfCheck {
@@ -364,11 +382,21 @@ export interface SelfCheck {
   answer: string;
 }
 
+/** Chapter code snippet as written by the LLM: `{language, purpose, code}` (free-form dict in the backend). */
+export interface TextbookSnippet {
+  language?: string;
+  purpose?: string;
+  code?: string;
+  [k: string]: JsonValue | undefined;
+}
+
 export interface TextbookChapter {
   skill_node: string;
   title: string;
   markdown: string;
   self_checks: SelfCheck[];
+  snippets: TextbookSnippet[];
+  leak_redacted: boolean;
 }
 
 export interface SqlRequest {
@@ -379,15 +407,16 @@ export interface SqlRequest {
 
 export type Cell = string | number | boolean | null;
 
+/** `SqlQueryResultView`. A failing statement is HTTP 200 with `error` set; a rejected (non read-only) one is HTTP 400. */
 export interface SqlResult {
   columns: string[];
-  /** Optional DuckDB type names, parallel to `columns` (contract gap: not in §5). */
-  column_types?: string[];
+  /** DuckDB type names, parallel to `columns` (empty on error). */
+  column_types: string[];
   rows: Cell[][];
   row_count: number;
   elapsed_ms: number;
   truncated: boolean;
-  error?: string | null;
+  error: string | null;
 }
 
 export interface PythonRequest {
@@ -399,15 +428,17 @@ export interface PythonRequest {
 export interface PythonResult {
   stdout: string;
   stderr: string;
-  result_json?: JsonValue;
+  result_json: JsonValue;
+  /** Base64 PNGs. */
   figures: string[];
   elapsed_ms: number;
-  error?: string | null;
+  error: string | null;
 }
 
 export interface SqlEvidence {
   name: string;
   sql: string;
+  /** Plain-text table preview written by the client (the backend accepts any JSON). */
   result_preview: string;
 }
 
@@ -444,18 +475,29 @@ export interface MetricResult {
   tolerance_abs: number | null;
   tolerance_rel: number | null;
   derivation: string;
+  pillar: Pillar | null;
+  anomaly_ids: string[];
 }
 
 export interface QuerySignatureMatch {
   name: string;
   matched: boolean;
   detail: string;
+  pillar: Pillar | null;
+  anomaly_id: string | null;
+  /** False when the check could not run (e.g. no evidence of that kind). */
+  evaluated: boolean;
+  method: "signature" | "execution";
 }
 
 export interface DeterministicGrade {
   metric_results: MetricResult[];
   query_signature_matches: QuerySignatureMatch[];
   accuracy: number;
+  /** Share of deterministic items passed, in [0, 1]. */
+  det_pass: number;
+  items_passed: number;
+  items_total: number;
 }
 
 export interface RubricDimension {
@@ -471,12 +513,33 @@ export interface RubricGrade {
   strongest_point: string;
   weakest_point: string;
   next_drill_nodes: string[];
+  stated_root_cause: string;
+  /** Dimension scores as the LLM returned them, before clamps. */
+  raw_scores: Record<string, number>;
+  /** Cap on technical_execution imposed by the deterministic check (null = no cap). */
+  ceiling_te: number | null;
+  llm_overall: number | null;
+  /** Human-readable notes for every clamp applied to the LLM scores. */
+  clamps: string[];
 }
+
+export type Outcome = "correct" | "incorrect" | "borderline";
 
 export interface SkillUpdate {
   node: string;
   before: number;
   after: number;
+  score: number | null;
+  outcome: Outcome | null;
+}
+
+export interface Observation {
+  node: string;
+  pillar: Pillar;
+  score: number;
+  correct: boolean;
+  outcome: Outcome;
+  slip_adjust: number;
 }
 
 export interface RevealedAnomaly {
@@ -491,10 +554,11 @@ export interface RevealedAnomaly {
 }
 
 export interface ReferenceSolution {
-  sql?: string;
-  python?: string;
-  memo_bullets?: string[];
-  design_mermaid?: string | null;
+  /** One statement per item; rendered as separate code blocks. */
+  sql: string[];
+  python: string[];
+  memo_bullets: string[];
+  design_mermaid: string | null;
 }
 
 export interface Revealed {
@@ -510,6 +574,9 @@ export interface GradeReport {
   skill_updates: SkillUpdate[];
   revealed: Revealed;
   adversary_opening: string;
+  observations: Observation[];
+  /** False when the submission did not move mastery (e.g. a resubmission). */
+  counted_for_mastery: boolean;
 }
 
 export interface AdversaryRequest {
@@ -524,6 +591,27 @@ export interface AdversaryTurn {
   cites: string[];
   concedes: boolean;
   turn_index: number;
+  /** Escalation rung of the Socratic ladder (1 = first probe). */
+  rung: number;
+}
+
+/** One message of the adversary conversation, in order (`ThreadMessage`). */
+export interface ThreadMessage {
+  role: "user" | "adversary" | "system";
+  message: string;
+  turn_index: number;
+  persona: string | null;
+  created_at: string;
+}
+
+/** `GET /cases/{id}/session`: everything needed to restore the workbench on reload. */
+export interface SessionState {
+  submission_id: string | null;
+  grade: GradeReport | null;
+  adversary_turns: AdversaryTurn[];
+  sim_history: SimQuarter[];
+  thread: ThreadMessage[];
+  status: CaseStatus;
 }
 
 export interface AdvanceRequest {
@@ -539,18 +627,28 @@ export interface SkillNode {
   mastery: number;
   prereqs: string[];
   attempts: number;
-  /** Optional one-line description (contract gap: not in §5). */
-  summary?: string;
+  summary: string;
+  tier: string;
 }
 
+/** Edges carry both spellings: backend `src`/`dst` and graph-library `source`/`target`. */
 export interface SkillEdge {
+  src: string;
+  dst: string;
   source: string;
   target: string;
+}
+
+export interface PillarSummary {
+  mean_mastery: number;
+  nodes: number;
+  mastered: number;
 }
 
 export interface SkillGraph {
   nodes: SkillNode[];
   edges: SkillEdge[];
+  pillars: Partial<Record<Pillar, PillarSummary>>;
 }
 
 export type Provider = "openrouter" | "openai" | "anthropic" | "local";
@@ -567,10 +665,13 @@ export interface LLMSettings {
   max_tokens: number;
 }
 
+/** `LLMSettingsView`: `api_key` and `api_key_masked` both hold the masked key ("****abcd" or ""). */
 export interface LLMSettingsPublic {
   provider: Provider;
   base_url: string;
+  api_key: string;
   api_key_masked: string;
+  api_key_set: boolean;
   fast_model: string;
   deep_model: string;
   temperature_fast: number;
@@ -583,13 +684,15 @@ export interface LLMTestResult {
   ok: boolean;
   model: string;
   latency_ms: number;
-  error?: string | null;
+  error: string | null;
 }
 
 export interface ModelUsage {
+  calls: number;
   prompt_tokens: number;
   completion_tokens: number;
-  calls: number;
+  total_tokens: number;
+  avg_latency_ms: number;
   cost_usd_est: number;
 }
 

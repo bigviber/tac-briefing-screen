@@ -158,7 +158,7 @@ export function buildCase(overrides: Partial<CasePublic> = {}): CasePublic {
     },
     industry: {
       code: "saas", name: "B2B SaaS", naics: "511210", business_models: ["subscription", "usage"],
-      revenue_range_usd: [10_000_000, 200_000_000], benchmarks: {}, line_items: [], schema_template: "saas_billing",
+      revenue_range_usd: [10_000_000, 200_000_000], benchmarks: {}, line_items: [], line_items_by_statement: {}, stage_mix: { "Series C": 1 }, schema_template: "saas_billing",
       narrative_hooks: ["enterprise procurement cycles", "annual prepay vs quarterly billing"],
     },
     periods: PERIODS,

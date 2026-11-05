@@ -1,11 +1,34 @@
 import { useEffect, useMemo, useState } from "react";
-import { BookOpen, ChevronRight } from "lucide-react";
-import { PILLARS } from "../../api/types";
+import { BookOpen, ChevronRight, Lock, Settings } from "lucide-react";
+import { HTTP_CONFLICT, HTTP_LLM_NOT_CONFIGURED } from "../../api/client";
+import { PILLARS, type TextbookSnippet } from "../../api/types";
+import { useUi } from "../../store/uiStore";
 import { useCase } from "../../store/caseStore";
 import { useSkills } from "../../store/skillsStore";
 import { PILLAR_COLOR, PILLAR_LABEL } from "../../lib/pillars";
 import { Markdown } from "../ui/Markdown";
-import { EmptyState, ErrorLine, SkeletonBlock } from "../ui/primitives";
+import { EmptyState, ErrorLine, RedactedBadge, SkeletonBlock } from "../ui/primitives";
+
+function Snippets({ snippets }: { snippets: TextbookSnippet[] }) {
+  const usable = snippets.filter((s) => typeof s.code === "string" && s.code.trim());
+  if (usable.length === 0) return null;
+  return (
+    <div className="mt-4">
+      <div className="field-label">Syntax patterns · {usable.length}</div>
+      <div className="space-y-2">
+        {usable.map((s, i) => {
+          const lang = String(s.language ?? "").toLowerCase().includes("py") ? "python" : String(s.language ?? "sql").toLowerCase();
+          return (
+            <div key={i}>
+              {s.purpose && <div className="mb-0.5 text-xs text-[#c2cad8]">{String(s.purpose)}</div>}
+              <Markdown>{"```" + lang + "\n" + String(s.code) + "\n```"}</Markdown>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
 export function TextbookTab() {
   const c = useCase((s) => s.caseData);
@@ -13,7 +36,10 @@ export function TextbookTab() {
   const loadingNode = useCase((s) => s.chapterLoading);
   const stream = useCase((s) => s.chapterStream);
   const error = useCase((s) => s.chapterError);
+  const errorStatus = useCase((s) => s.chapterErrorStatus);
+  const graded = useCase((s) => s.grade !== null);
   const loadChapter = useCase((s) => s.loadChapter);
+  const openSettings = useUi((s) => s.setSettings);
   const graph = useSkills((s) => s.graph);
   const loadGraph = useSkills((s) => s.load);
   const [node, setNode] = useState<string>(c?.skill_nodes[0] ?? "");
@@ -22,9 +48,10 @@ export function TextbookTab() {
     if (!graph) void loadGraph();
   }, [graph, loadGraph]);
 
+  // Re-run after grading: principal chapters unlock with the first submission (409 before).
   useEffect(() => {
     if (node) void loadChapter(node);
-  }, [node, loadChapter]);
+  }, [node, loadChapter, graded]);
 
   const titleOf = useMemo(() => {
     const m = new Map(graph?.nodes.map((n) => [n.id, n]) ?? []);
@@ -72,14 +99,39 @@ export function TextbookTab() {
         })}
       </div>
       <div className="flex-1 p-3">
-        {error && !chapter && <ErrorLine message={`Textbook: ${error}`} onRetry={() => void loadChapter(node)} />}
+        {error && !chapter && errorStatus === HTTP_CONFLICT && (
+          <EmptyState icon={Lock} title="Chapter locked until your first submission">
+            Principal cases use productive failure: attempt the diagnosis first, then the textbook unlocks for every skill node.
+          </EmptyState>
+        )}
+        {error && !chapter && errorStatus === HTTP_LLM_NOT_CONFIGURED && (
+          <EmptyState
+            icon={Settings}
+            title="Chapters need an LLM"
+            action={
+              <div className="flex gap-1.5">
+                <button className="btn btn-sm btn-primary" onClick={() => openSettings(true, "llm")}>Configure LLM</button>
+                <button className="btn btn-sm" onClick={() => void loadChapter(node, true)}>Retry</button>
+              </div>
+            }
+          >
+            Chapters are synthesized for this case by the configured model and cached.
+          </EmptyState>
+        )}
+        {error && !chapter && errorStatus !== HTTP_CONFLICT && errorStatus !== HTTP_LLM_NOT_CONFIGURED && (
+          <ErrorLine message={`Textbook: ${error}`} onRetry={() => void loadChapter(node, true)} />
+        )}
         {loadingNode === node && !stream && <SkeletonBlock lines={10} />}
         {loadingNode === node && stream && <Markdown>{stream}</Markdown>}
         {!chapter && !loadingNode && !error && <EmptyState icon={BookOpen} title="Pick a skill node">Chapters are synthesized for this case and cached.</EmptyState>}
         {chapter && (
           <article>
-            <h2 className="mb-2 text-[15px] font-semibold text-white">{chapter.title}</h2>
+            <div className="mb-2 flex items-start gap-2">
+              <h2 className="flex-1 text-[15px] font-semibold text-white">{chapter.title}</h2>
+              {chapter.leak_redacted && <RedactedBadge />}
+            </div>
             <Markdown>{chapter.markdown}</Markdown>
+            <Snippets snippets={chapter.snippets} />
             {chapter.self_checks.length > 0 && (
               <div className="mt-4">
                 <div className="field-label">Self-checks</div>

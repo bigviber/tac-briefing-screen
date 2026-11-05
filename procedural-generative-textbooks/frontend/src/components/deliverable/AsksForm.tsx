@@ -1,6 +1,6 @@
 import { useCase } from "../../store/caseStore";
 
-const UNIT_LABEL: Record<string, string> = { usd: "$", pct: "%", days: "days", ratio: "×", x: "×", count: "#" };
+const UNIT_LABEL: Record<string, string> = { usd: "$", cents: "¢", pct: "%", days: "days", months: "mo", ratio: "0–1", bool: "1/0", x: "×", count: "#" };
 
 /** One numeric input per case ask. Percentages accept 31 or 0.31. */
 export function AsksForm() {

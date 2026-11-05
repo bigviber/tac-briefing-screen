@@ -7,14 +7,19 @@ import type { StreamEvent } from "../api/sse";
 import type {
   AdvanceRequest,
   AdversaryRequest,
+  AdversaryTurn,
   CasePublic,
   CaseSummary,
   GenerateRequest,
+  GradeReport,
   LLMSettings,
+  LLMSettingsPublic,
   PythonRequest,
+  SessionState,
   SimQuarter,
   SqlRequest,
   Submission,
+  ThreadMessage,
 } from "../api/types";
 import { ARCHETYPES } from "./fixtures/archetypes";
 import { buildCase, CASE_ID } from "./fixtures/case";
@@ -22,7 +27,7 @@ import { DOSSIER } from "./fixtures/dossier";
 import { chapterFor } from "./fixtures/textbook";
 import { gradeSubmission } from "./fixtures/grade";
 import { adversaryTurn } from "./fixtures/adversary";
-import { buildSkillGraph } from "./fixtures/skills";
+import { buildSkillGraph, pillarSummary } from "./fixtures/skills";
 import { LLM_SETTINGS, PROMPTS, USAGE } from "./fixtures/settings";
 import { runSql } from "./sqlRunner";
 import { runPython } from "./pythonRunner";
@@ -37,10 +42,45 @@ const summaries: CaseSummary[] = [
   { case_id: "cs_93ad14", archetype: "cohort_collapse", company_name: "Lumen Fitness", industry: "consumer_subscription", difficulty: "practitioner", pillars: ["operations_strategy", "sql"], created_at: "2026-10-29T16:40:00Z", status: "submitted" },
   { case_id: "cs_0c4e77", archetype: "toc_bottleneck", company_name: "Arden Fabrication", industry: "manufacturing", difficulty: "foundation", pillars: ["operations_strategy"], created_at: "2026-10-21T08:02:00Z", status: "generated" },
 ];
-let settings = { ...LLM_SETTINGS };
+let settings: LLMSettingsPublic = { ...LLM_SETTINGS };
 let submissions = 0;
-const adversaryIdx = new Map<string, number>();
 const simHistory = new Map<string, SimQuarter[]>();
+
+/** Per-case session, mirroring what the backend persists (latest graded submission + its thread). */
+interface MockSession {
+  submissionId: string;
+  grade: GradeReport;
+  turns: AdversaryTurn[];
+  thread: ThreadMessage[];
+}
+const sessions = new Map<string, MockSession>();
+
+/** Same message as backend/axiom/services.py LLM_NOT_CONFIGURED. */
+const LLM_NOT_CONFIGURED =
+  "The LLM is not configured. Open Settings, choose a provider and model, and add an API key (or choose the local provider), then try again.";
+function requireLlm(): void {
+  if (!settings.configured) throw new ApiError(428, LLM_NOT_CONFIGURED);
+}
+
+/** Backend QUARTERS_BY_DIFFICULTY. */
+const QUARTERS: Record<string, number> = { foundation: 1, practitioner: 2, principal: 4 };
+
+function maskKey(key: string): string {
+  if (!key) return "";
+  return key.length <= 4 ? "****" : `****${key.slice(-4)}`;
+}
+
+function thread(role: ThreadMessage["role"], message: string, turn_index: number, persona: string | null = null): ThreadMessage {
+  return { role, message, turn_index, persona, created_at: new Date().toISOString() };
+}
+
+function sessionOf(id: string): SessionState {
+  const c = getCase(id);
+  const s = sessions.get(id);
+  const sim = simHistory.get(id) ?? [];
+  if (!s) return { submission_id: null, grade: null, adversary_turns: [], sim_history: sim, thread: [], status: c.status };
+  return { submission_id: s.submissionId, grade: s.grade, adversary_turns: s.turns, sim_history: sim, thread: s.thread, status: c.status };
+}
 
 function summarize(c: CasePublic): CaseSummary {
   return { case_id: c.case_id, archetype: c.archetype, company_name: c.company.name, industry: c.industry.name, difficulty: c.difficulty, pillars: c.pillars, created_at: c.generated_at, status: c.status ?? "generated" };
@@ -61,7 +101,10 @@ function nextPeriod(p: string): string {
 
 function advance(id: string, req: AdvanceRequest): SimQuarter {
   const c = getCase(id);
+  requireLlm();
   const hist = simHistory.get(id) ?? [];
+  const limit = QUARTERS[c.difficulty] ?? 2;
+  if (hist.length >= limit) throw new ApiError(409, `simulation already ran ${hist.length} of ${limit} quarters`);
   const last = hist.at(-1);
   const period = nextPeriod(last?.period ?? c.simulation.current_period);
   const d = req.decisions;
@@ -101,40 +144,70 @@ const routes: [string, RegExp, Handler][] = [
   ["GET", /^\/cases$/, () => summaries],
   ["GET", /^\/cases\/([^/]+)$/, (m) => getCase(m[1])],
   ["GET", /^\/cases\/([^/]+)\/schema$/, (m) => getCase(m[1]).database],
-  ["POST", /^\/cases\/([^/]+)\/dossier$/, (m) => (getCase(m[1]), DOSSIER)],
-  ["POST", /^\/cases\/([^/]+)\/textbook$/, (_m, b) => {
+  ["GET", /^\/cases\/([^/]+)\/session$/, (m) => sessionOf(m[1])],
+  ["POST", /^\/cases\/([^/]+)\/dossier$/, (m) => (getCase(m[1]), requireLlm(), DOSSIER)],
+  ["POST", /^\/cases\/([^/]+)\/textbook$/, (m, b) => {
+    const c = getCase(m[1]);
+    requireLlm();
+    if (c.difficulty === "principal" && !sessions.has(c.case_id)) {
+      throw new ApiError(409, "principal cases unlock chapters after the first submission");
+    }
     const id = (b as { skill_node: string }).skill_node;
     return chapterFor(graph.nodes.find((n) => n.id === id), id);
   }],
   ["POST", /^\/sandbox\/sql$/, (_m, b) => runSql(b as SqlRequest)],
   ["POST", /^\/sandbox\/python$/, (_m, b) => runPython(b as PythonRequest)],
   ["POST", /^\/cases\/([^/]+)\/submit$/, (m, b) => {
-    submissions += 1;
     const c = getCase(m[1]);
+    requireLlm();
+    submissions += 1;
     c.status = "graded";
-    return gradeSubmission(b as Submission, submissions);
+    const grade = gradeSubmission(b as Submission, submissions);
+    const opening: AdversaryTurn = { ...adversaryTurn(1), message: grade.adversary_opening, challenge_type: "alternative_explanation", cites: [], turn_index: 0, rung: 1 };
+    sessions.set(c.case_id, {
+      submissionId: grade.submission_id,
+      grade,
+      turns: [opening],
+      thread: [thread("adversary", opening.message, 0, opening.persona)],
+    });
+    simHistory.delete(c.case_id);
+    return grade;
   }],
-  ["POST", /^\/cases\/([^/]+)\/adversary$/, (_m, b) => {
-    const { submission_id } = b as AdversaryRequest;
-    // Turn 0 is the grade's adversary_opening; replies start at turn 1.
-    const i = adversaryIdx.get(submission_id) ?? 0;
-    adversaryIdx.set(submission_id, i + 1);
-    return adversaryTurn(i + 1);
+  ["POST", /^\/cases\/([^/]+)\/adversary$/, (m, b) => {
+    const { submission_id, message } = b as AdversaryRequest;
+    requireLlm();
+    const s = sessions.get(getCase(m[1]).case_id);
+    if (!s || s.submissionId !== submission_id) throw new ApiError(409, `submission ${submission_id} has no grade for this case`);
+    // Turn 0 is the opening; each reply is one user turn plus one adversary turn.
+    const userIndex = s.thread.length;
+    s.thread.push(thread("user", message, userIndex));
+    const turn = adversaryTurn(s.turns.length + 1);
+    turn.turn_index = userIndex + 1;
+    s.turns.push(turn);
+    s.thread.push(thread("adversary", turn.message, turn.turn_index, turn.persona));
+    return turn;
   }],
   ["POST", /^\/cases\/([^/]+)\/advance$/, (m, b) => advance(m[1], b as AdvanceRequest)],
   ["GET", /^\/skills\/graph$/, () => graph],
   ["POST", /^\/skills\/reset$/, () => {
     graph.nodes.forEach((n) => { n.mastery = 0.1; n.attempts = 0; });
+    graph.pillars = pillarSummary(graph.nodes);
     return { ok: true };
   }],
   ["GET", /^\/settings\/llm$/, () => settings],
   ["PUT", /^\/settings\/llm$/, (_m, b) => {
     const s = b as LLMSettings;
-    const masked = s.api_key ? `${s.api_key.slice(0, 5)}…${s.api_key.slice(-4)}` : settings.api_key_masked;
-    settings = { provider: s.provider, base_url: s.base_url, api_key_masked: masked, fast_model: s.fast_model, deep_model: s.deep_model, temperature_fast: s.temperature_fast, temperature_deep: s.temperature_deep, max_tokens: s.max_tokens, configured: masked.length > 0 };
+    // Backend merge_api_key: an empty or masked echo keeps the stored key.
+    const keep = !s.api_key || s.api_key.startsWith("****") || s.api_key.includes("…");
+    const masked = keep ? settings.api_key_masked : maskKey(s.api_key);
+    const configured = masked.length > 0 || s.provider === "local";
+    settings = { provider: s.provider, base_url: s.base_url, api_key: masked, api_key_masked: masked, api_key_set: masked.length > 0, fast_model: s.fast_model, deep_model: s.deep_model, temperature_fast: s.temperature_fast, temperature_deep: s.temperature_deep, max_tokens: s.max_tokens, configured };
     return settings;
   }],
-  ["POST", /^\/settings\/llm\/test$/, () => ({ ok: true, model: settings.fast_model, latency_ms: 412 })],
+  ["POST", /^\/settings\/llm\/test$/, () =>
+    settings.configured
+      ? { ok: true, model: settings.fast_model, latency_ms: 412, error: null }
+      : { ok: false, model: settings.fast_model, latency_ms: 0, error: LLM_NOT_CONFIGURED }],
   ["GET", /^\/settings\/usage$/, () => USAGE],
   ["GET", /^\/settings\/prompts$/, () => PROMPTS],
 ];

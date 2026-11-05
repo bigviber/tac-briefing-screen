@@ -81,3 +81,17 @@ export const useUi = create<UiState>((set, get) => ({
 
 /** Shortcut for non-React callers (stores, async actions). */
 export const toast = (message: string, kind?: ToastKind) => useUi.getState().toast(message, kind);
+
+let lastLlmPrompt = 0;
+/**
+ * The backend answered 428 (LLM not configured): open Settings on the LLM tab with a toast.
+ * De-duplicated so parallel requests (dossier + chapter) prompt once.
+ */
+export function requireLlm(action: string): void {
+  const now = Date.now();
+  if (now - lastLlmPrompt < 2500) return;
+  lastLlmPrompt = now;
+  const ui = useUi.getState();
+  ui.setSettings(true, "llm");
+  ui.toast(`${action} needs an LLM. Choose a provider and add an API key (or pick Local).`, "error");
+}

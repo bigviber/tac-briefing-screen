@@ -36,7 +36,7 @@ function fakeFigure(): string {
 export function runPython(req: PythonRequest): PythonResult {
   const code = req.code;
   if (/raise\s+|1\s*\/\s*0/.test(code)) {
-    return { stdout: "", stderr: 'Traceback (most recent call last):\n  File "<case>", line 3, in <module>\nZeroDivisionError: division by zero', figures: [], elapsed_ms: 211, error: "ZeroDivisionError: division by zero" };
+    return { stdout: "", stderr: 'Traceback (most recent call last):\n  File "<case>", line 3, in <module>\nZeroDivisionError: division by zero', result_json: null, figures: [], elapsed_ms: 211, error: "ZeroDivisionError: division by zero" };
   }
   const wantsPlot = /plt\.|\.plot\(/.test(code);
   return {
@@ -55,5 +55,6 @@ export function runPython(req: PythonRequest): PythonResult {
     result_json: { dso_2024q4: 77.6, open_ar_usd: 12204551, dup_invoice_ids: 61, legacy_rows: 214 },
     figures: wantsPlot ? [fakeFigure()] : [],
     elapsed_ms: 640 + (code.length % 300),
+    error: null,
   };
 }

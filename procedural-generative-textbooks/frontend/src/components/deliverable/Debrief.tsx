@@ -6,8 +6,27 @@ import { Mermaid } from "../ui/Mermaid";
 
 const SEV: Record<string, string> = { low: "text-muted", medium: "text-warn", high: "text-[#ff8a5b]", critical: "text-bad" };
 
+/** One code block per reference statement/script. */
+function CodeList({ label, lang, items }: { label: string; lang: string; items: string[] }) {
+  const blocks = items.filter((x) => x.trim());
+  if (blocks.length === 0) return null;
+  return (
+    <div>
+      <div className="field-label">
+        {label}
+        {blocks.length > 1 ? ` · ${blocks.length}` : ""}
+      </div>
+      <div className="space-y-2">
+        {blocks.map((code, i) => (
+          <Markdown key={i}>{"```" + lang + "\n" + code.trim() + "\n```"}</Markdown>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 /** Revealed ground truth: root cause, anomalies, reference solution. Collapsed by default. */
-export function Debrief({ revealed }: { revealed: Revealed }) {
+export function Debrief({ revealed, statedRootCause = "" }: { revealed: Revealed; statedRootCause?: string }) {
   const ref = revealed.reference_solution;
   return (
     <details className="group rounded border border-line bg-s1">
@@ -20,6 +39,12 @@ export function Debrief({ revealed }: { revealed: Revealed }) {
         <div>
           <div className="field-label">Root cause</div>
           <p className="text-sm leading-relaxed text-fg">{revealed.root_cause}</p>
+          {statedRootCause && (
+            <p className="mt-1.5 border-l-2 border-line pl-2 text-xs text-muted">
+              <span className="mr-1 text-2xs uppercase tracking-wider">You stated</span>
+              {statedRootCause}
+            </p>
+          )}
         </div>
         <div>
           <div className="field-label">Injected anomalies</div>
@@ -38,24 +63,14 @@ export function Debrief({ revealed }: { revealed: Revealed }) {
             ))}
           </div>
         </div>
-        {ref.memo_bullets && ref.memo_bullets.length > 0 && (
+        {ref.memo_bullets.length > 0 && (
           <div>
             <div className="field-label">Reference memo</div>
             <Markdown>{ref.memo_bullets.map((b) => `- ${b}`).join("\n")}</Markdown>
           </div>
         )}
-        {ref.sql && (
-          <div>
-            <div className="field-label">Reference SQL</div>
-            <Markdown>{"```sql\n" + ref.sql + "\n```"}</Markdown>
-          </div>
-        )}
-        {ref.python && (
-          <div>
-            <div className="field-label">Reference Python</div>
-            <Markdown>{"```python\n" + ref.python + "\n```"}</Markdown>
-          </div>
-        )}
+        <CodeList label="Reference SQL" lang="sql" items={ref.sql} />
+        <CodeList label="Reference Python" lang="python" items={ref.python} />
         {ref.design_mermaid && (
           <div>
             <div className="field-label">Reference design</div>

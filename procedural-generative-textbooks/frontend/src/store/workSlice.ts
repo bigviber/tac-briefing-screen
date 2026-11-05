@@ -1,10 +1,10 @@
 import type { StateCreator } from "zustand";
-import { api, errorMessage } from "../api/client";
+import { api, apiStatus, errorMessage, HTTP_CONFLICT, HTTP_LLM_NOT_CONFIGURED } from "../api/client";
 import type { GradeReport, SimQuarter, Submission } from "../api/types";
 import { previewTable } from "../lib/csv";
 import type { CaseStore } from "./caseStore";
-import type { ThreadItem } from "./caseTypes";
-import { toast } from "./uiStore";
+import { blankTurn, threadFromSession, type ThreadItem } from "./caseTypes";
+import { requireLlm, toast } from "./uiStore";
 import { useSkills } from "./skillsStore";
 
 /** Sandbox execution, evidence, submission/grade, adversary thread and quarter simulation. */
@@ -15,6 +15,8 @@ export interface WorkSlice {
   adversaryBusy: boolean;
   sim: SimQuarter[];
   advancing: boolean;
+  /** Set when the backend answered 409 to /advance: the case's quarter budget is spent. */
+  simExhausted: string | null;
   levers: Record<string, number>;
   runSql: (sqlOverride?: string) => Promise<void>;
   runPython: () => Promise<void>;
@@ -34,6 +36,7 @@ export const createWorkSlice: StateCreator<CaseStore, [], [], WorkSlice> = (set,
   adversaryBusy: false,
   sim: [],
   advancing: false,
+  simExhausted: null,
   levers: {},
 
   runSql: async (sqlOverride) => {
@@ -47,7 +50,7 @@ export const createWorkSlice: StateCreator<CaseStore, [], [], WorkSlice> = (set,
       const d = get().draft;
       set({ sqlResult: r, draft: d ? { ...d, sqlHistory: [item, ...d.sqlHistory].slice(0, 30) } : d });
     } catch (e) {
-      set({ sqlResult: { columns: [], rows: [], row_count: 0, elapsed_ms: 0, truncated: false, error: errorMessage(e) } });
+      set({ sqlResult: { columns: [], column_types: [], rows: [], row_count: 0, elapsed_ms: 0, truncated: false, error: errorMessage(e) } });
     } finally {
       set({ sqlRunning: false });
     }
@@ -60,7 +63,7 @@ export const createWorkSlice: StateCreator<CaseStore, [], [], WorkSlice> = (set,
     try {
       set({ pyResult: await api.runPython({ case_id: caseId, code: draft.python, timeout_s: 20 }) });
     } catch (e) {
-      set({ pyResult: { stdout: "", stderr: "", figures: [], elapsed_ms: 0, error: errorMessage(e) } });
+      set({ pyResult: { stdout: "", stderr: "", result_json: null, figures: [], elapsed_ms: 0, error: errorMessage(e) } });
     } finally {
       set({ pyRunning: false });
     }
@@ -115,13 +118,21 @@ export const createWorkSlice: StateCreator<CaseStore, [], [], WorkSlice> = (set,
       const grade = await api.submit(caseId, submission);
       const opening: ThreadItem = {
         role: "adversary",
-        turn: { persona: caseData.dossier_seed.stakeholders[1]?.name ?? "Adversary", message: grade.adversary_opening, challenge_type: "opening", cites: [], concedes: false, turn_index: 0 },
+        turn: blankTurn({ persona: caseData.dossier_seed.stakeholders[1]?.name ?? "Adversary", message: grade.adversary_opening, challenge_type: "opening", turn_index: 0 }),
       };
-      set({ grade, thread: [opening], caseData: { ...caseData, status: "graded" } });
+      set({ grade, thread: grade.adversary_opening ? [opening] : [], sim: [], simExhausted: null, caseData: { ...caseData, status: "graded" } });
       toast(`Graded · accuracy ${(grade.deterministic.accuracy * 100).toFixed(0)}% · rubric ${grade.rubric.overall.toFixed(1)}/10`, "success");
       void useSkills.getState().load();
+      // The backend stores the opening as a real adversary turn (persona, challenge type, rung).
+      try {
+        const s = await api.session(caseId);
+        if (get().caseId === caseId && s.submission_id === grade.submission_id && s.thread.length > 0) set({ thread: threadFromSession(s) });
+      } catch {
+        /* keep the synthesized opening */
+      }
     } catch (e) {
-      toast(`Submit failed: ${errorMessage(e)}`, "error");
+      if (apiStatus(e) === HTTP_LLM_NOT_CONFIGURED) requireLlm("Grading");
+      else toast(`Submit failed: ${errorMessage(e)}`, "error");
     } finally {
       set({ submitting: false });
     }
@@ -130,11 +141,7 @@ export const createWorkSlice: StateCreator<CaseStore, [], [], WorkSlice> = (set,
   sendAdversary: async (message) => {
     const { caseId, grade } = get();
     if (!caseId || !grade || get().adversaryBusy) return;
-    const placeholder: ThreadItem = {
-      role: "adversary",
-      streaming: true,
-      turn: { persona: "", message: "", challenge_type: "…", cites: [], concedes: false, turn_index: -1 },
-    };
+    const placeholder: Extract<ThreadItem, { role: "adversary" }> = { role: "adversary", streaming: true, turn: blankTurn({ challenge_type: "…" }) };
     set({ adversaryBusy: true, thread: [...get().thread, { role: "user", message, at: Date.now() }, placeholder] });
     const replaceLast = (item: ThreadItem | null) => {
       const t = get().thread.slice(0, -1);
@@ -147,7 +154,8 @@ export const createWorkSlice: StateCreator<CaseStore, [], [], WorkSlice> = (set,
       replaceLast({ role: "adversary", turn });
     } catch (e) {
       replaceLast(null);
-      toast(`Adversary: ${errorMessage(e)}`, "error");
+      if (apiStatus(e) === HTTP_LLM_NOT_CONFIGURED) requireLlm("The adversary");
+      else toast(`Adversary: ${errorMessage(e)}`, "error");
     } finally {
       set({ adversaryBusy: false });
     }
@@ -157,13 +165,18 @@ export const createWorkSlice: StateCreator<CaseStore, [], [], WorkSlice> = (set,
 
   advance: async () => {
     const { caseId, grade, levers } = get();
-    if (!caseId || !grade || get().advancing) return;
+    if (!caseId || !grade || get().advancing || get().simExhausted) return;
     set({ advancing: true });
     try {
       const q = await api.advance(caseId, { submission_id: grade.submission_id, decisions: levers });
       set({ sim: [...get().sim, q] });
     } catch (e) {
-      toast(`Advance failed: ${errorMessage(e)}`, "error");
+      const status = apiStatus(e);
+      if (status === HTTP_CONFLICT) {
+        set({ simExhausted: errorMessage(e) });
+        toast("Quarter budget exhausted for this case's difficulty.", "info");
+      } else if (status === HTTP_LLM_NOT_CONFIGURED) requireLlm("Quarter narration");
+      else toast(`Advance failed: ${errorMessage(e)}`, "error");
     } finally {
       set({ advancing: false });
     }

@@ -1,6 +1,7 @@
 import type {
   AdversaryTurn,
   CasePublic,
+  SessionState,
   FinancialModel,
   PythonEvidence,
   PythonResult,
@@ -34,7 +35,33 @@ export interface PersistedCaseState {
 
 export type ThreadItem =
   | { role: "user"; message: string; at: number }
+  | { role: "system"; message: string; at: number }
   | { role: "adversary"; turn: AdversaryTurn; streaming?: boolean };
+
+/** Placeholder adversary turn (streaming, or an opening without a stored record). */
+export function blankTurn(patch: Partial<AdversaryTurn> = {}): AdversaryTurn {
+  return { persona: "", message: "", challenge_type: "probe", cites: [], concedes: false, turn_index: -1, rung: 1, ...patch };
+}
+
+/**
+ * Rebuild the chat from `GET /cases/{id}/session`. `thread` is the ordered conversation
+ * (user and adversary messages); adversary entries are enriched with the full
+ * `adversary_turns` record (challenge type, cites, rung) matched by `turn_index`.
+ */
+export function threadFromSession(s: SessionState): ThreadItem[] {
+  const turns = new Map(s.adversary_turns.map((t) => [t.turn_index, t]));
+  const at = (iso: string) => {
+    const t = Date.parse(iso);
+    return Number.isNaN(t) ? 0 : t;
+  };
+  return s.thread.map((m): ThreadItem => {
+    if (m.role === "adversary") {
+      const turn = turns.get(m.turn_index) ?? blankTurn({ persona: m.persona ?? "", message: m.message, turn_index: m.turn_index });
+      return { role: "adversary", turn };
+    }
+    return { role: m.role, message: m.message, at: at(m.created_at) };
+  });
+}
 
 export const DEFAULT_SQL = `-- Quarterly open AR vs revenue. ⌘↵ runs the query.
 WITH inv AS (
@@ -112,10 +139,47 @@ export function defaultModel(c: CasePublic): FinancialModel {
   };
 }
 
+/** True for the demo (mock) schema the hand-written DEFAULT_SQL / DEFAULT_PYTHON target. */
+function isDemoSchema(c: CasePublic): boolean {
+  const names = new Set(c.database.tables.map((t) => t.name));
+  const inv = c.database.tables.find((t) => t.name === "invoices");
+  return names.has("gl_entries") && !!inv?.columns.some((col) => col.name === "issue_date");
+}
+
+/** Starter table: invoices if present, else the largest table. */
+function starterTable(c: CasePublic): string | null {
+  const tables = c.database.tables;
+  if (tables.length === 0) return null;
+  return (tables.find((t) => t.name === "invoices") ?? [...tables].sort((a, b) => b.row_count - a.row_count)[0]).name;
+}
+
+export function starterSql(c: CasePublic): string {
+  if (isDemoSchema(c)) return DEFAULT_SQL;
+  const t = starterTable(c);
+  const list = c.database.tables.map((x) => `--   ${x.name} (${x.row_count.toLocaleString("en-US")} rows)`).join("\n");
+  return `-- ${c.company.name}: ${c.database.tables.length} tables in a read-only DuckDB. ⌘↵ runs the query.\n${list}\n${t ? `SELECT *\nFROM ${t}\nLIMIT 100;\n` : "SHOW TABLES;\n"}`;
+}
+
+export function starterPython(c: CasePublic): string {
+  if (isDemoSchema(c)) return DEFAULT_PYTHON;
+  const t = starterTable(c) ?? "";
+  return `# Every case table is available as a lazily loaded pandas DataFrame: tables["${t}"], ...
+# \`con\` is a read-only DuckDB connection to the case database.
+# Assign a JSON-serialisable value to \`result\`; matplotlib figures are captured automatically.
+import pandas as pd
+
+df = tables["${t}"]
+print(df.shape)
+print(df.head(10).to_string())
+
+result = {"table": "${t}", "rows": int(len(df)), "columns": list(df.columns)}
+`;
+}
+
 export function emptyPersisted(c: CasePublic): PersistedCaseState {
   return {
-    sql: DEFAULT_SQL,
-    python: DEFAULT_PYTHON,
+    sql: starterSql(c),
+    python: starterPython(c),
     design: c.dossier_seed.architecture_mermaid ?? DEFAULT_DESIGN,
     model: defaultModel(c),
     sqlHistory: [],

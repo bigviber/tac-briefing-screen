@@ -46,11 +46,16 @@ export const useSkills = create<SkillsState>((set, get) => ({
   },
 }));
 
-/** Mean p_known per pillar. */
+/** Mean p_known per pillar (the backend's `pillars` summary when present, else computed). */
 export function pillarMastery(graph: SkillGraph | null): Record<Pillar, number> {
   const out = Object.fromEntries(PILLARS.map((p) => [p, 0])) as Record<Pillar, number>;
   if (!graph) return out;
   for (const p of PILLARS) {
+    const summary = graph.pillars[p];
+    if (summary) {
+      out[p] = summary.mean_mastery;
+      continue;
+    }
     const nodes = graph.nodes.filter((n) => n.pillar === p);
     out[p] = nodes.length ? nodes.reduce((s, n) => s + n.mastery, 0) / nodes.length : 0;
   }

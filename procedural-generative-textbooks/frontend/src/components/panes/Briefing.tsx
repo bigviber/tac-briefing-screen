@@ -16,7 +16,7 @@ const TABS: TabDef<BriefTab>[] = [
 ];
 
 function ArchitectureTab() {
-  const arch = useCase((s) => s.caseData?.dossier_seed.architecture_mermaid);
+  const arch = useCase((s) => s.dossier?.architecture_mermaid || s.caseData?.dossier_seed.architecture_mermaid);
   if (!arch) {
     return (
       <EmptyState icon={Network} title="No architecture diagram">

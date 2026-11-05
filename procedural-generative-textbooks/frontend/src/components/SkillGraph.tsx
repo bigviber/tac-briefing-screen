@@ -117,7 +117,10 @@ export const SkillGraph = memo(function SkillGraph({ graph, selected, onToggle }
             <span className="h-2 w-2 rounded-full" style={{ background: PILLAR_COLOR[hovered.node.pillar] }} />
             <span className="font-medium text-fg">{hovered.node.title}</span>
           </div>
-          <div className="mt-0.5 font-mono text-2xs text-muted">{hovered.node.id}</div>
+          <div className="mt-0.5 font-mono text-2xs text-muted">
+            {hovered.node.id}
+            {hovered.node.tier && hovered.node.tier !== "core" && <span className="ml-1.5 uppercase text-warn">{hovered.node.tier}</span>}
+          </div>
           {hovered.node.summary && <p className="mt-1.5 text-muted">{hovered.node.summary}</p>}
           <div className="mt-2 grid grid-cols-3 gap-2 font-mono text-2xs">
             <div>

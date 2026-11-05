@@ -3,7 +3,9 @@ import type { LLMSettingsPublic, LLMUsageSummary, PromptTemplate } from "../../a
 export const LLM_SETTINGS: LLMSettingsPublic = {
   provider: "openrouter",
   base_url: "https://openrouter.ai/api/v1",
-  api_key_masked: "sk-or-…a91f",
+  api_key: "****a91f",
+  api_key_masked: "****a91f",
+  api_key_set: true,
   fast_model: "anthropic/claude-haiku-5.5",
   deep_model: "anthropic/claude-opus-5.5",
   temperature_fast: 0.7,
@@ -14,9 +16,9 @@ export const LLM_SETTINGS: LLMSettingsPublic = {
 
 export const USAGE: LLMUsageSummary = {
   by_model: {
-    "anthropic/claude-opus-5.5": { prompt_tokens: 184_220, completion_tokens: 41_806, calls: 23, cost_usd_est: 1.18 },
-    "anthropic/claude-haiku-5.5": { prompt_tokens: 96_410, completion_tokens: 28_930, calls: 57, cost_usd_est: 0.24 },
-    "openai/gpt-4.1-mini": { prompt_tokens: 12_004, completion_tokens: 3_120, calls: 6, cost_usd_est: 0.01 },
+    "anthropic/claude-opus-5.5": { calls: 23, prompt_tokens: 184_220, completion_tokens: 41_806, total_tokens: 226_026, avg_latency_ms: 8_412, cost_usd_est: 1.18 },
+    "anthropic/claude-haiku-5.5": { calls: 57, prompt_tokens: 96_410, completion_tokens: 28_930, total_tokens: 125_340, avg_latency_ms: 1_906, cost_usd_est: 0.24 },
+    "openai/gpt-4.1-mini": { calls: 6, prompt_tokens: 12_004, completion_tokens: 3_120, total_tokens: 15_124, avg_latency_ms: 1_210, cost_usd_est: 0.01 },
   },
   total_tokens: 366_490,
   total_cost_usd_est: 1.43,

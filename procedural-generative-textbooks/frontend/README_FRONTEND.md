@@ -72,7 +72,8 @@ Routing is hash-based: `#/` is the dashboard, `#/case/:id` is the workbench.
 - `axiom:case:<case_id>:v1` stores per-case drafts: SQL/Python/design sources, financial model, SQL
   history, memo, ask inputs, attached evidence. They are restored when the case is reopened.
 
-Grades, adversary threads and simulation history are not persisted client-side (see contract gaps).
+Grades, the adversary thread (user and adversary messages) and simulation history live in the
+backend; opening a case calls `GET /cases/{id}/session` and restores them.
 
 ## Streaming
 
@@ -81,27 +82,28 @@ Grades, adversary threads and simulation history are not persisted client-side (
 `data: {"done": true, "payload": ...}` resolves the call. If the response is not `text/event-stream`,
 the body is parsed as the plain JSON payload, so a backend without streaming still works.
 
-## Contract gaps (for the backend)
+## Backend contract
 
-1. **Levers before grading.** `Lever`s live in `GroundTruth.decision_levers`, which the public view
-   strips. The UI reads an optional `CasePublic.levers: Lever[]` and shows an empty state without it.
-2. **Fetching a grade again.** There is no `GET /cases/{id}/submissions` or `GET /submissions/{id}`. After a reload
-   the workbench cannot restore the `GradeReport`, `submission_id` (which the adversary and advance
-   calls need), adversary turns, or sim history. Suggested: `GET /cases/{id}/session` →
-   `{latest_submission_id, grade, adversary_turns, sim_history}`.
-3. **SQL column types.** `/sandbox/sql` returns no column types. The grid uses an optional
-   `column_types: string[]` and otherwise infers types from the values.
-4. **Skill node summaries.** `/skills/graph` nodes have no description. The hover card uses an optional
-   `summary`.
-5. **Case status.** `CasePublic` has no `status`. The UI reads an optional `status`, falling back to
-   the `CaseSummary` value.
-6. **Revealed anomaly shape.** §5 types `revealed.anomalies` as `[...]`. The UI expects
-   `{id, kind, pillar, title, mechanism, periods, severity, evidence_trail}` (the `Anomaly` model
-   without `reference_sql`), and `reference_solution` as `{sql?, python?, memo_bullets?, design_mermaid?}`.
-7. **Python `result_json` convention.** The UI tells users to assign to a variable named `result`.
-   The sandbox should follow the same convention.
-8. **Stream errors.** The UI accepts `data: {"error": "..."}` mid-stream and shows it.
-9. **Anthropic sampling params.** Current Claude models reject `temperature`. For
-   `provider == "anthropic"`, the backend should drop `temperature_fast/deep` from requests.
-10. **Station/Cohort fields.** These are not spelled out in §4. `types.ts` assumes the fields named in the
-    inline comments.
+`src/api/types.ts` mirrors `backend/axiom/models.py` and the API views in
+`backend/axiom/api/schemas.py` (`CasePublicView`, `SqlQueryResultView`, `SkillGraphView`,
+`LLMSettingsView`, `GradeReportPublic`, `SessionState`, `ThreadMessage`). The mock fixtures use the
+same shapes, so mock mode and the live backend exercise the same components.
+
+Error statuses with a UI meaning (`backend/axiom/api/errors.py`):
+
+| Status | Meaning | UI |
+|---|---|---|
+| 428 | LLM not configured | User actions (submit, adversary, retry) open Settings → LLM with a toast. Background loads (dossier on open, textbook chapter) show an inline "needs an LLM" state with a Configure button. |
+| 409 on `/textbook` | Principal case: chapters locked until the first submission | Locked empty state; retried automatically after grading. |
+| 409 on `/advance` | Quarter budget for the difficulty is spent | Advance button disabled with the reason. |
+| 503 on `/cases/generate` | World generator unavailable | Toast. |
+| 400 on `/sandbox/sql` | Statement rejected by the read-only allowlist | Shown in the results pane. A failing (but allowed) statement is HTTP 200 with `error`. |
+
+Notes:
+
+- `ReferenceSolution.sql` / `.python` are lists; each item renders as its own code block.
+- `RubricGrade.ceiling_te` is always sent (10 = unconstrained); the grade report notes it only when
+  it is below 10, and says "capped" when the model's raw technical-execution score exceeded it.
+- `Dossier.leak_redacted` / `TextbookChapter.leak_redacted` show a "redacted" badge.
+- The Python sandbox exposes `tables["name"]` (lazy DataFrames), `con` (read-only DuckDB) and
+  returns a top-level `result` as `result_json`.

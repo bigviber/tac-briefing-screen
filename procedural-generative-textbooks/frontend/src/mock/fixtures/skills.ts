@@ -1,4 +1,4 @@
-import type { Pillar, SkillGraph, SkillNode } from "../../api/types";
+import { PILLARS, type Pillar, type PillarSummary, type SkillGraph, type SkillNode } from "../../api/types";
 
 /** [id, title, prereqs, summary] — 12 nodes per pillar, 60 total. */
 type Spec = [string, string, string[], string];
@@ -97,12 +97,28 @@ export function buildSkillGraph(): SkillGraph {
         title,
         prereqs,
         summary,
+        tier: depth >= 3 ? "advanced" : "core",
         mastery: Number(masteryFor(i, depth).toFixed(2)),
         attempts: Math.max(0, 6 - depth * 2 + (i % 3)),
       });
       i += 1;
     }
   }
-  const edges = nodes.flatMap((n) => n.prereqs.map((p) => ({ source: p, target: n.id })));
-  return { nodes, edges };
+  const edges = nodes.flatMap((n) => n.prereqs.map((p) => ({ src: p, dst: n.id, source: p, target: n.id })));
+  return { nodes, edges, pillars: pillarSummary(nodes) };
+}
+
+/** Same shape as the backend's per-pillar `{mean_mastery, nodes, mastered}` (mastered = p_known >= 0.95). */
+export function pillarSummary(nodes: SkillNode[]): Partial<Record<Pillar, PillarSummary>> {
+  const out: Partial<Record<Pillar, PillarSummary>> = {};
+  for (const p of PILLARS) {
+    const ns = nodes.filter((n) => n.pillar === p);
+    if (ns.length === 0) continue;
+    out[p] = {
+      mean_mastery: Number((ns.reduce((s, n) => s + n.mastery, 0) / ns.length).toFixed(6)),
+      nodes: ns.length,
+      mastered: ns.filter((n) => n.mastery >= 0.95).length,
+    };
+  }
+  return out;
 }

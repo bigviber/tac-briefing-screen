@@ -22,6 +22,7 @@ import type {
   PromptTemplate,
   PythonRequest,
   PythonResult,
+  SessionState,
   SimQuarter,
   SkillGraph,
   SqlRequest,
@@ -126,6 +127,7 @@ export const api = {
   listCases: () => request<CaseSummary[]>("GET", "/cases"),
   getCase: (id: string) => request<CasePublic>("GET", `/cases/${enc(id)}`),
   getSchema: (id: string) => request<DatabaseSpec>("GET", `/cases/${enc(id)}/schema`),
+  session: (id: string) => request<SessionState>("GET", `/cases/${enc(id)}/session`),
 
   dossier: (id: string, force = false) => request<Dossier>("POST", `/cases/${enc(id)}/dossier`, { force }),
   dossierStream: (id: string, force: boolean, onDelta?: DeltaHandler) =>
@@ -154,6 +156,20 @@ export const api = {
   usage: () => request<LLMUsageSummary>("GET", "/settings/usage"),
   prompts: () => request<PromptTemplate[]>("GET", "/settings/prompts"),
 };
+
+/** HTTP status of an API error (0 = network failure, null = not an API error). */
+export function apiStatus(e: unknown): number | null {
+  return e instanceof ApiError ? e.status : null;
+}
+
+/**
+ * Error statuses with a product meaning (backend/axiom/api/errors.py):
+ * 428 LLM not configured, 409 state conflict (chapter locked / quarter budget spent),
+ * 503 a backend module (world generator) is unavailable.
+ */
+export const HTTP_LLM_NOT_CONFIGURED = 428;
+export const HTTP_CONFLICT = 409;
+export const HTTP_UNAVAILABLE = 503;
 
 export function errorMessage(e: unknown): string {
   if (e instanceof ApiError) return e.detail;

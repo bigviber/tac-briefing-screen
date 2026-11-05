@@ -1,3 +1,4 @@
+import { ApiError } from "../api/client";
 import type { Cell, JsonValue, SqlRequest, SqlResult, TableSpec } from "../api/types";
 import { TABLES } from "./fixtures/schema";
 import { PERIODS } from "./fixtures/case";
@@ -67,26 +68,23 @@ function aging(): Pick<SqlResult, "columns" | "column_types" | "rows"> {
 export function runSql(req: SqlRequest): SqlResult {
   const sql = req.sql.trim();
   const started = 18 + (sql.length % 40);
-  if (!/\b(select|with)\b/i.test(sql)) {
-    const tok = sql.split(/\s+/)[0] ?? "";
-    return { columns: [], rows: [], row_count: 0, elapsed_ms: 2, truncated: false, error: `Parser Error: syntax error at or near "${tok}"` };
-  }
-  if (/\b(insert|update|delete|drop|create|alter)\b/i.test(sql)) {
-    return { columns: [], rows: [], row_count: 0, elapsed_ms: 1, truncated: false, error: "Invalid Input Error: Cannot execute statement in read-only mode" };
+  // Like the backend allowlist: a non read-only statement is rejected with HTTP 400.
+  if (!/^(--[^\n]*\n|\s)*(select|with|explain|describe|show|pragma\s+table_info)\b/i.test(sql) || /\b(insert|update|delete|drop|create|alter|attach|copy)\b/i.test(sql)) {
+    throw new ApiError(400, "read-only sandbox: statements must start with SELECT, WITH, EXPLAIN, DESCRIBE, SHOW or PRAGMA table_info");
   }
   const refs = [...sql.matchAll(/\b(?:from|join)\s+([a-z_][a-z0-9_]*)/gi)].map((m) => m[1].toLowerCase());
   const ctes = new Set([...sql.matchAll(/\b([a-z_][a-z0-9_]*)\s+as\s*\(/gi)].map((m) => m[1].toLowerCase()));
   const unknown = refs.find((r) => !ctes.has(r) && !TABLES.some((t) => t.name === r));
   if (unknown) {
-    return { columns: [], rows: [], row_count: 0, elapsed_ms: 3, truncated: false, error: `Catalog Error: Table with name ${unknown} does not exist!\nDid you mean "invoices"?` };
+    return { columns: [], column_types: [], rows: [], row_count: 0, elapsed_ms: 3, truncated: false, error: `CatalogException: Catalog Error: Table with name ${unknown} does not exist!\nDid you mean "invoices"?` };
   }
   if (/\bcase\b/i.test(sql) && /due_date|aging|bucket/i.test(sql)) {
     const a = aging();
-    return { ...a, row_count: a.rows.length, elapsed_ms: started + 11, truncated: false };
+    return { ...a, row_count: a.rows.length, elapsed_ms: started + 11, truncated: false, error: null };
   }
   if (/\bgroup\s+by\b/i.test(sql)) {
     const a = aggregateDso();
-    return { ...a, row_count: a.rows.length, elapsed_ms: started + 7, truncated: false };
+    return { ...a, row_count: a.rows.length, elapsed_ms: started + 7, truncated: false, error: null };
   }
   const t = TABLES.find((x) => x.name === refs[0]) ?? TABLES[3];
   const limitMatch = /\blimit\s+(\d+)/i.exec(sql);
@@ -100,5 +98,6 @@ export function runSql(req: SqlRequest): SqlResult {
     row_count: n,
     elapsed_ms: started + Math.round(n / 25),
     truncated: wanted > cap,
+    error: null,
   };
 }

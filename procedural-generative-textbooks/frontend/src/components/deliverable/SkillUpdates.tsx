@@ -21,6 +21,14 @@ export function SkillUpdates({ updates, nextDrill }: { updates: SkillUpdate[]; n
                 <div className="absolute inset-y-0 left-0 rounded-sm opacity-35" style={{ width: `${u.before * 100}%`, background: color }} />
                 <div className="absolute inset-y-0 rounded-sm" style={{ left: `${Math.min(u.before, u.after) * 100}%`, width: `${Math.abs(u.after - u.before) * 100}%`, background: color }} />
               </div>
+              {u.outcome && (
+                <span
+                  className={`w-[62px] shrink-0 text-right font-mono text-2xs ${u.outcome === "correct" ? "text-ok" : u.outcome === "borderline" ? "text-warn" : "text-bad"}`}
+                  title={u.score !== null ? `observation score ${u.score.toFixed(2)}` : undefined}
+                >
+                  {u.outcome}
+                </span>
+              )}
               <span className="num w-[86px] shrink-0 text-right text-muted">
                 {u.before.toFixed(2)} → <span className={up ? "text-ok" : "text-bad"}>{u.after.toFixed(2)}</span>
               </span>

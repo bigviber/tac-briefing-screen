@@ -122,3 +122,15 @@ export function StatusPill({ status }: { status: string }) {
     </span>
   );
 }
+
+/** Small badge shown when the backend's leak filter removed concealed facts from LLM output. */
+export function RedactedBadge() {
+  return (
+    <span
+      className="inline-flex h-5 shrink-0 items-center rounded-sm border border-warn/40 px-1.5 font-mono text-2xs uppercase text-warn"
+      title="The leak filter removed sentences that would have revealed the hidden root cause."
+    >
+      redacted
+    </span>
+  );
+}

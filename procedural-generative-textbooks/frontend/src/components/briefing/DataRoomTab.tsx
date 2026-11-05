@@ -104,8 +104,9 @@ export function DataRoomTab() {
         <span className="ml-auto font-mono text-2xs text-muted">{db.engine} · {db.tables.length} tables · {fmtNum(db.total_rows)} rows</span>
       </div>
       {view === "erd" && (
-        <div className="p-3">
-          <Mermaid code={db.erd_mermaid} />
+        // Large schemas (the generator emits ~14 tables) are unreadable when fit to the pane: scroll instead.
+        <div className="overflow-auto p-3">
+          <Mermaid code={db.erd_mermaid} natural={db.tables.length > 6} />
         </div>
       )}
       {view === "financials" && <FinancialsView />}

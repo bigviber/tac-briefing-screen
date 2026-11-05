@@ -67,14 +67,28 @@ export function FinancialsView() {
           </tbody>
         </table>
       </div>
-      {checks && (
-        <div className="mt-2 flex flex-wrap gap-1">
-          {checks.map((c) => (
-            <span key={c.name} className={`chip ${c.passed ? "text-ok" : "text-bad"}`} title={c.detail}>
-              {c.passed ? "✓" : "✗"} {c.name}
+      {checks && checks.length > 0 && (
+        // The generator emits one check per invariant per period (dozens): summarize, list failures.
+        <details className="group mt-2">
+          <summary className="flex cursor-pointer list-none flex-wrap items-center gap-1 text-xs">
+            <span className={`chip ${checks.every((c) => c.passed) ? "text-ok" : "text-bad"}`}>
+              {checks.every((c) => c.passed) ? "✓" : "✗"} {checks.filter((c) => c.passed).length}/{checks.length} ledger invariants hold
             </span>
-          ))}
-        </div>
+            {checks
+              .filter((c) => !c.passed)
+              .map((c) => (
+                <span key={c.name} className="chip text-bad" title={c.detail}>✗ {c.name}</span>
+              ))}
+            <span className="text-2xs text-muted group-open:hidden">show all</span>
+          </summary>
+          <div className="mt-1 flex flex-wrap gap-1">
+            {checks.map((c) => (
+              <span key={c.name} className={`chip ${c.passed ? "text-ok" : "text-bad"}`} title={c.detail}>
+                {c.passed ? "✓" : "✗"} {c.name}
+              </span>
+            ))}
+          </div>
+        </details>
       )}
     </div>
   );

@@ -21,7 +21,7 @@ export function fmtNum(x: number): string {
   return Math.abs(x) >= 10_000 ? compact.format(x) : two.format(x);
 }
 
-/** Format a value according to a contract unit string ("usd", "pct", "days", "ratio", "x", "count"). */
+/** Format a value according to a contract unit string ("usd", "cents", "pct", "days", "months", "ratio", "bool", "x", "count"). */
 export function fmtUnit(value: number | null | undefined, unit: string): string {
   if (value === null || value === undefined || Number.isNaN(value)) return "—";
   switch (unit) {
@@ -35,6 +35,10 @@ export function fmtUnit(value: number | null | undefined, unit: string): string 
       return `${two.format(value)}d`;
     case "x":
       return `${two.format(value)}×`;
+    case "months":
+      return `${two.format(value)} mo`;
+    case "bool":
+      return value ? "yes (1)" : "no (0)";
     default:
       return fmtNum(value);
   }
