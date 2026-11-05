@@ -8,21 +8,47 @@ from __future__ import annotations
 
 import json
 import logging
+import threading
+import time
 from collections.abc import Iterator
 from pathlib import Path
 from typing import Any
 
+import anyio
 import duckdb
+import httpx
+import numpy as np
 import pytest
+from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 import axiom.services as services_mod
+from axiom.api import build_api_router
+from axiom.api.public_view import (
+    ConcealScanner,
+    build_asks,
+    key_sentence,
+    normalize_database,
+    public_case_data,
+)
 from axiom.config import Settings
 from axiom.engine.llm_client import FakeHTTPError, FakeTransport
-from axiom.models import ArchetypeInfo, CaseWorld
+from axiom.models import (
+    ArchetypeInfo,
+    CaseWorld,
+    ExpectedMetric,
+    InvariantCheck,
+    Stakeholder,
+    Submission,
+)
 from axiom.services import AppServices
 from main import create_app
-from tests.test_pedagogy_offline import NARRATIVE, adversary_reply, chapter_payload, dossier_payload
+from tests.test_pedagogy_offline import (
+    NARRATIVE,
+    adversary_reply,
+    chapter_payload,
+    dossier_payload,
+)
 from tests.world_factory import DAG, load_fixture, make_minimal_world
 
 API = "/api/v1"
@@ -439,3 +465,260 @@ def test_spa_fallback(tmp_path: Path, fixture_benchmarks_dir: Path) -> None:
         assert client.get("/assets/app.js").text == "console.log(1)"
         assert client.get("/api/v1/does-not-exist").status_code == 404
         assert client.get("/api/v1/health").json()["status"] == "ok"
+
+
+# --------------------------------------------------------------------------- regressions (live frontend run)
+
+
+def test_public_case_view_strips_hides_and_concealed_knows(env: Env) -> None:
+    """Bug 1: ``GET /cases/{id}`` returned ``stakeholders[].hides`` (which holds the root cause)."""
+    cid = env.generate()["case_id"]
+    got = env.client.get(f"{API}/cases/{cid}")
+    assert got.status_code == 200
+    case = got.json()
+    for stakeholder in case["dossier_seed"]["stakeholders"]:
+        assert set(stakeholder) == {"name", "role", "agenda", "disposition", "knows"}
+    assert "hides" not in got.text and "she approved the terms change" not in got.text
+    assert case["dossier_seed"]["stakeholders"][0]["knows"] == ["cash is tight"]
+    # simulation internals (lever_effects / anomaly_drag / resolved_if) are not public
+    assert set(case["simulation"]["model"]) <= {"kpis"}
+    for word in ("resolved_if", "anomaly_drag", "lever_effects", "reference_sql", "ground_truth", "conceal"):
+        assert word not in got.text, word
+
+    # knows items that touch a concealed fact are dropped; harmless ones stay
+    world = make_minimal_world()
+    world.dossier_seed.stakeholders = [
+        Stakeholder(name="Ann", role="VP Sales", agenda="hit quota", disposition="combative",
+                    knows=["gave 90-day payment terms to the top accounts", "anomaly A1 is real", "the board meets monthly"],
+                    hides=["The 2024Q3 move to 90-day terms for the top-20 accounts"]),
+    ]
+    data = public_case_data(world)
+    assert data["dossier_seed"]["stakeholders"] == [
+        {"name": "Ann", "role": "VP Sales", "agenda": "hit quota", "disposition": "combative", "knows": ["the board meets monthly"]},
+    ]
+    scanner = ConcealScanner(world)
+    assert scanner.strict("Root cause: the 2024Q3 move to 90-day terms for the top-20 accounts.")
+    assert not scanner.strict("Revenue grew in 2024Q4.")
+
+
+def test_public_view_drops_series_equal_to_expected_metrics() -> None:
+    """Leak audit: a ratio / KPI row whose value equals an expected metric is removed (all periods)."""
+    world = make_minimal_world()
+    world.ground_truth.expected_metrics.append(ExpectedMetric(key="ccc_latest_days", value=144.82297, unit="days"))
+    world.finance.statements.ratios["2024Q4"]["ccc"] = 144.82297
+    world.finance.statements.ratios["2024Q3"]["ccc"] = 120.5
+    world.operations.kpis_by_period["2024Q4"]["ccc_days"] = 144.82297
+    world.simulation.model["kpis"]["ccc_days"] = 144.82297
+    data = public_case_data(world)
+    assert all("ccc" not in row for row in data["finance"]["statements"]["ratios"].values())
+    assert all("dso" in row for row in data["finance"]["statements"]["ratios"].values())
+    assert all("ccc_days" not in row for row in data["operations"]["kpis_by_period"].values())
+    assert data["simulation"]["model"] == {"kpis": {"dso": 68.0, "cash_cents": 120_000_000.0, "revenue_cents": 2_100_000_000.0}}
+
+
+def test_adversary_and_advance_validate_before_llm(env: Env) -> None:
+    """Bug 2: an unconfigured LLM (428) masked 404/409 on ``/adversary`` and ``/advance``."""
+    cid = env.generate()["case_id"]
+    missing = {"submission_id": "sub_missing", "message": "hi"}
+    assert env.client.post(f"{API}/cases/nope/adversary", json=missing).status_code == 404
+    assert env.client.post(f"{API}/cases/nope/advance", json={"submission_id": "sub_missing", "decisions": {}}).status_code == 404
+    for stream in ("", "?stream=1"):
+        r = env.client.post(f"{API}/cases/{cid}/adversary{stream}", json=missing)
+        assert r.status_code == 404 and "sub_missing" in r.json()["detail"], r.text
+    r = env.client.post(f"{API}/cases/{cid}/advance", json={"submission_id": "sub_missing", "decisions": {}})
+    assert r.status_code == 404, r.text
+
+    fx = load_fixture("good_submission_working_capital")
+    env.services.persistence.save_submission("sub_ungraded", Submission.model_validate({**fx["submission"], "case_id": cid}))
+    ungraded = env.client.post(f"{API}/cases/{cid}/adversary", json={"submission_id": "sub_ungraded", "message": "hi"})
+    assert ungraded.status_code == 409 and "graded" in ungraded.json()["detail"]
+    lever = env.client.post(f"{API}/cases/{cid}/advance", json={"submission_id": "sub_ungraded", "decisions": {"bogus": 1}})
+    assert lever.status_code == 409 and "bogus" in lever.json()["detail"]
+    other = env.generate(seed=8)["case_id"]
+    cross = env.client.post(f"{API}/cases/{other}/adversary", json={"submission_id": "sub_ungraded", "message": "hi"})
+    assert cross.status_code == 404
+    # everything valid: only now does the missing LLM configuration surface
+    ok_body = {"submission_id": "sub_ungraded", "decisions": {"terms_days": 45}}
+    assert env.client.post(f"{API}/cases/{cid}/advance", json=ok_body).status_code == 428
+    assert env.transport.requests == []
+
+
+def test_ask_hints_use_metric_hint_label_or_key_sentence() -> None:
+    """Bug 3: ``asks[].hint`` was ``"unit: days"``."""
+    world = make_minimal_world()
+    world.ground_truth.expected_metrics = [
+        ExpectedMetric(key="dso_2024q4", value=68.4, unit="days", derivation="open AR / revenue x 92"),
+        ExpectedMetric(key="ccc_p8_days", value=144.8, unit="days", label="Cash conversion cycle, latest quarter"),
+        ExpectedMetric(key="cash_trapped_in_ar_cents", value=570_000_000, unit="cents", label="Cash trapped",
+                       hint="Revenue per day times the DSO increase"),
+    ]
+    asks = [a.model_dump() for a in build_asks(world)]
+    assert asks[0] == {"key": "dso_2024q4", "label": "DSO 2024Q4", "unit": "days", "hint": "Days sales outstanding for 2024Q4"}
+    assert asks[1]["label"] == asks[1]["hint"] == "Cash conversion cycle, latest quarter"
+    assert asks[2]["label"] == "Cash trapped" and asks[2]["hint"] == "Revenue per day times the DSO increase"
+    text = json.dumps(asks)
+    assert "68.4" not in text and "570000000" not in text and "open AR" not in text and "unit:" not in text
+    assert key_sentence("delta_wc_cash_drag_p6_p8_cents") == "Change in working capital cash drag for period 6 to period 8, in cents"
+    assert key_sentence("revolver_utilization_p8") == "Revolver utilization for period 8"
+
+
+def test_asks_in_case_view_have_sentence_hints(env: Env) -> None:
+    case = env.generate()
+    hints = {a["key"]: a["hint"] for a in case["asks"]}
+    assert hints["dso_latest"] == "Days sales outstanding latest"
+    assert hints["cash_trapped_in_ar_cents"] == "Cash trapped in accounts receivable, in cents"
+    assert not any(h.startswith("unit:") for h in hints.values())
+
+
+def test_timestamps_iso_in_sql_rows_and_schema_samples(env: Env) -> None:
+    """Bug 4: ``/sandbox/sql`` gave ``2021-07-01T00:00:00`` but schema samples ``2021-07-07 00:00:00``."""
+    cid = env.generate()["case_id"]
+    q = env.client.post(f"{API}/sandbox/sql", json={"case_id": cid, "sql": (
+        "SELECT TIMESTAMP '2021-07-01 00:00:00' AS ts, TIMESTAMP_NS '2021-07-01 01:02:03.123456789' AS ns, "
+        "DATE '2021-07-07' AS d")}).json()
+    assert q["error"] is None and q["rows"] == [["2021-07-01T00:00:00", "2021-07-01T01:02:03.123456", "2021-07-07"]]
+
+    ws = env.services.world_service
+    world = ws.load(cid)
+    table = world.database.tables[0]
+    table.columns[2].type = "TIMESTAMP"  # issued_at
+    table.columns[6].type = "DATE"  # updated_at
+    table.sample_rows = [{**table.sample_rows[0], "issued_at": "2021-07-07 13:46:24", "updated_at": "2021-07-07 00:00:00",
+                          "customer_id": "2021-07-07 00:00:00"}]  # VARCHAR: dirty data stays as-is
+    ws._write_world(world, ws.world_path(cid))
+    for got in (env.client.get(f"{API}/cases/{cid}/schema").json(), env.client.get(f"{API}/cases/{cid}").json()["database"]):
+        row = got["tables"][0]["sample_rows"][0]
+        assert row["issued_at"] == "2021-07-07T13:46:24" and row["updated_at"] == "2021-07-07"
+        assert row["customer_id"] == "2021-07-07 00:00:00"
+
+    spec = {"tables": [{"columns": [{"name": "n", "type": "BIGINT"}, {"name": "t", "type": "TIMESTAMP_NS"}, {"name": "f", "type": "DOUBLE"}],
+                        "sample_rows": [{"n": np.int64(3), "t": np.datetime64("2021-07-01T01:02:03.500000000"), "f": np.float32(1.5),
+                                         "x": np.datetime64("NaT", "ns")}]}]}
+    assert normalize_database(spec)["tables"][0]["sample_rows"] == [{"n": 3, "t": "2021-07-01T01:02:03.500000", "f": 1.5, "x": None}]
+
+
+def test_session_restored_after_restart(env: Env, tmp_path: Path, fixture_benchmarks_dir: Path) -> None:
+    """Bug 5: the session (thread + status) is rebuilt from persisted turns by a fresh process."""
+    env.configure_llm()
+    cid = env.generate()["case_id"]
+    sid = env.submit(cid)["submission_id"]
+    env.replies["adversary"] = adversary_reply("And what about the second shift?")
+    assert env.client.post(f"{API}/cases/{cid}/adversary", json={"submission_id": sid, "message": "Inventory is flat."}).status_code == 200
+    before = env.client.get(f"{API}/cases/{cid}/session").json()
+    assert [m["role"] for m in before["thread"]] == ["adversary", "user", "adversary"]
+
+    settings = env.services.settings
+    restarted = AppServices(Settings(data_dir=settings.data_dir, benchmarks_dir=fixture_benchmarks_dir),
+                            llm_transport=FakeTransport({}), llm_sleep=lambda s: None)
+    app = create_app(restarted.settings, services_factory=lambda: restarted, frontend_dist=tmp_path / "no_frontend")
+    with TestClient(app) as client:
+        after = client.get(f"{API}/cases/{cid}/session").json()
+    assert after == before
+    assert after["status"] == "graded" and after["thread"][1]["message"] == "Inventory is flat."
+    assert after["thread"][2]["message"] == "And what about the second shift?" and after["thread"][2]["persona"]
+
+
+class SlowSSETransport(httpx.BaseTransport):
+    """OpenAI-format SSE that emits one small chunk every ``delay`` seconds."""
+
+    def __init__(self, payload: dict[str, Any], *, chunk: int = 8, delay: float = 0.03) -> None:
+        text = json.dumps(payload)
+        self.chunks = [text[i:i + chunk] for i in range(0, len(text), chunk)]
+        self.delay = delay
+        self.sent = 0
+        self.closed = threading.Event()
+
+    def handle_request(self, request: httpx.Request) -> httpx.Response:
+        transport = self
+
+        class _Stream(httpx.SyncByteStream):
+            def __iter__(self) -> Iterator[bytes]:
+                for c in transport.chunks:
+                    time.sleep(transport.delay)
+                    transport.sent += 1
+                    yield ("data: " + json.dumps({"id": "c", "model": "m", "choices": [{"index": 0, "delta": {"content": c}}]}) + "\n\n").encode()
+                yield b"data: [DONE]\n\n"
+
+            def close(self) -> None:
+                transport.closed.set()
+
+        return httpx.Response(200, headers={"content-type": "text/event-stream"}, stream=_Stream())
+
+
+def test_sse_client_disconnect_cancels_worker(env: Env) -> None:
+    """Bug 7: a disconnected SSE client must stop the worker's LLM stream (StreamCancelled)."""
+    env.configure_llm()
+    cid = env.generate()["case_id"]
+    slow = SlowSSETransport(dossier_payload())
+    assert len(slow.chunks) * slow.delay > 3  # the full stream would take seconds
+    env.services.llm_transport = slow
+    app = env.client.app
+    body = json.dumps({"force": True}).encode()
+    path = f"{API}/cases/{cid}/dossier"
+    scope = {
+        "type": "http", "asgi": {"version": "3.0", "spec_version": "2.3"}, "http_version": "1.1", "method": "POST",
+        "scheme": "http", "path": path, "raw_path": path.encode(), "root_path": "", "query_string": b"stream=1",
+        "headers": [(b"content-type", b"application/json"), (b"host", b"testserver")],
+        "client": ("127.0.0.1", 5000), "server": ("testserver", 80), "state": {},
+    }
+    received: list[bytes] = []
+
+    async def drive() -> None:
+        disconnected = anyio.Event()
+        sent_request = False
+
+        async def receive() -> dict[str, Any]:
+            nonlocal sent_request
+            if not sent_request:
+                sent_request = True
+                return {"type": "http.request", "body": body, "more_body": False}
+            await disconnected.wait()
+            return {"type": "http.disconnect"}
+
+        async def send(message: dict[str, Any]) -> None:
+            if message["type"] == "http.response.body" and message.get("body"):
+                received.append(message["body"])
+                if len(received) >= 3:
+                    disconnected.set()
+
+        with anyio.fail_after(15):
+            await app(scope, receive, send)
+
+    t0 = time.monotonic()
+    anyio.run(drive)
+    deadline = time.monotonic() + 5
+    while time.monotonic() < deadline and any(t.name == "axiom-sse-worker" and t.is_alive() for t in threading.enumerate()):
+        time.sleep(0.05)
+    assert not any(t.name == "axiom-sse-worker" and t.is_alive() for t in threading.enumerate()), "worker still running"
+    assert len(received) >= 3 and b'"delta"' in received[0]
+    assert slow.sent < len(slow.chunks), "the LLM stream ran to completion after the client left"
+    assert slow.closed.wait(2), "the upstream LLM response was not closed"
+    assert time.monotonic() - t0 < len(slow.chunks) * slow.delay
+
+
+def test_world_stats_endpoint(env: Env) -> None:
+    """Bug 8: ``GET /cases/{id}/world-stats``."""
+    cid = env.generate()["case_id"]
+    ws = env.services.world_service
+    world = ws.load(cid)
+    world.finance.invariants = [InvariantCheck(name="tb", passed=True), InvariantCheck(name="bs", passed=True),
+                                InvariantCheck(name="cf", passed=False)]
+    ws._write_world(world, ws.world_path(cid))
+    (ws.world_path(cid).parent / "meta.json").write_text(json.dumps({"build_seconds": 1.234}))
+    stats = env.client.get(f"{API}/cases/{cid}/world-stats").json()
+    assert stats == {"tables": 2, "rows": 4510, "periods": world.periods, "invariants_passed": 2, "invariants_total": 3,
+                     "generation_ms": 1234.0}
+    assert env.client.get(f"{API}/cases/nope/world-stats").status_code == 404
+
+
+def test_health_reports_archetypes_available(env: Env, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Bug 8: ``/health`` includes ``archetypes_available`` (router handler; see routes_archetypes)."""
+    import axiom.api.routes_archetypes as ra
+
+    monkeypatch.setattr(ra, "load_archetype_catalog", lambda: [ArchetypeInfo(key="a", title="A"), ArchetypeInfo(key="b", title="B")])
+    app = FastAPI()
+    app.include_router(build_api_router(), prefix=API)
+    app.state.services = env.services
+    with TestClient(app) as client:
+        body = client.get(f"{API}/health").json()
+    assert body["status"] == "ok" and body["llm_configured"] is False and body["archetypes_available"] == 2

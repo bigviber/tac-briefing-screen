@@ -17,6 +17,7 @@ from axiom.models import (
     Anomaly,
     CasePublic,
     GradeReport,
+    HealthResponse,
     Lever,
     LLMSettings,
     LLMSettingsPublic,
@@ -26,13 +27,18 @@ from axiom.models import (
     SkillGraphEdge,
     SkillGraphNode,
     SqlQueryResult,
+    TimelineEvent,
     _Api,
 )
 
 __all__ = [
     "CaseStatus",
     "Ask",
+    "StakeholderPublic",
+    "DossierSeedPublicView",
     "CasePublicView",
+    "WorldStats",
+    "HealthView",
     "SqlQueryResultView",
     "SkillGraphNodeView",
     "SkillGraphEdgeView",
@@ -58,9 +64,35 @@ class Ask(_Api):
     hint: str = ""
 
 
-class CasePublicView(CasePublic):
-    """``CasePublic`` + section 12.1/12.2 (``levers``, ``status``) + section 11 ``asks``."""
+class StakeholderPublic(_Api):
+    """A stakeholder as the learner sees it: no ``hides``; ``knows`` filtered against the
+    concealed facts (see :mod:`axiom.api.public_view`)."""
 
+    name: str
+    role: str
+    agenda: str = ""
+    disposition: str = ""
+    knows: list[str] = Field(default_factory=list)
+
+
+class DossierSeedPublicView(_Api):
+    """``DossierSeedPublic`` with :class:`StakeholderPublic` stakeholders."""
+
+    reveal: list[str] = Field(default_factory=list)
+    stakeholders: list[StakeholderPublic] = Field(default_factory=list)
+    timeline: list[TimelineEvent] = Field(default_factory=list)
+    artifacts: list[str] = Field(default_factory=list)
+    architecture_mermaid: str | None = None
+
+
+class CasePublicView(CasePublic):
+    """``CasePublic`` + section 12.1/12.2 (``levers``, ``status``) + section 11 ``asks``.
+
+    Built by :func:`axiom.api.public_view.public_case_data`, which strips every known leak path
+    (stakeholder ``hides``, simulation internals, ratios equal to an expected metric, ...).
+    """
+
+    dossier_seed: DossierSeedPublicView  # type: ignore[assignment]
     asks: list[Ask] = Field(default_factory=list)
     levers: list[Lever] = Field(default_factory=list)
     status: CaseStatus = "generated"
@@ -170,3 +202,20 @@ class SessionState(_Api):
     sim_history: list[SimQuarter] = Field(default_factory=list)
     thread: list[ThreadMessage] = Field(default_factory=list)
     status: CaseStatus = "generated"
+
+
+class WorldStats(_Api):
+    """``GET /cases/{id}/world-stats``: size and health of the generated world (top bar)."""
+
+    tables: int
+    rows: int
+    periods: list[str] = Field(default_factory=list)
+    invariants_passed: int
+    invariants_total: int
+    generation_ms: float | None = None
+
+
+class HealthView(HealthResponse):
+    """``GET /health`` + the number of registered archetypes."""
+
+    archetypes_available: int = 0

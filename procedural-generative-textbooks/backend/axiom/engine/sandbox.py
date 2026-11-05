@@ -12,6 +12,17 @@
   ``result`` variable is serialized to JSON and open matplotlib figures are returned as base64
   PNGs. The child is killed (whole process group) on timeout.
 
+  Before user code runs, the runner's prelude also: replaces ``os.system``/``os.popen``/
+  ``os.exec*``/``os.spawn*``/``os.posix_spawn*``/``os.fork`` (and ``_posixsubprocess.fork_exec``)
+  with raisers and installs a ``sys.addaudithook`` hook (not removable from Python) that raises
+  ``PermissionError`` on ``subprocess.Popen``/``os.exec``/``os.spawn``/``os.fork``/signals to other
+  processes and on any write-mode ``open``/``os.remove``/``os.rename``/... under the case folder
+  or other ``protected_paths`` (the API passes the app data dir). ``subprocess`` stays importable
+  (matplotlib imports it), it just cannot start anything. ``duckdb.connect`` is wrapped so the case
+  database only opens read-only and new connections have external (file) access disabled; the
+  module-level default connection is locked the same way. A ``MemoryError`` is reported with the
+  memory budget so the learner knows what happened.
+
 The Python sandbox is a guard rail for a local, single-user tool, not a security boundary
 against a hostile local user: it prevents accidents (runaway memory, infinite loops, writes to
 the case DB, network calls), not determined escapes.
@@ -34,6 +45,7 @@ import tempfile
 import threading
 import time
 import uuid
+from collections.abc import Sequence
 from decimal import Decimal
 from pathlib import Path
 from typing import Any
@@ -47,6 +59,7 @@ __all__ = [
     "PythonSandbox",
     "validate_sql",
     "json_safe",
+    "normalize_cell",
     "truncate_text",
     "OUTPUT_LIMIT_BYTES",
 ]
@@ -89,22 +102,47 @@ def truncate_text(text: str, limit: int = OUTPUT_LIMIT_BYTES) -> str:
     return head + f"\n... [output truncated: {len(raw) - limit} more bytes]"
 
 
-def json_safe(value: Any) -> Any:
-    """Convert a DuckDB/Python cell into a JSON-serializable value.
+def _is_nat(value: Any) -> bool:
+    """True for ``pandas.NaT`` / ``numpy.datetime64('NaT')`` (without importing pandas)."""
+    name = type(value).__name__
+    if name == "NaTType":
+        return True
+    if name in ("datetime64", "timedelta64"):
+        return str(value) == "NaT"
+    return False
 
-    ``Decimal`` -> float, date/datetime/time -> ISO string, timedelta -> seconds (float),
-    bytes -> base64, NaN/inf -> ``None``, UUID -> str, containers recursively, anything else
-    unknown -> ``str``.
+
+def _numpy_temporal(value: Any) -> Any:
+    """``numpy.datetime64`` -> ISO string (``.item()`` would give int nanoseconds)."""
+    text = str(value)  # numpy prints ISO 8601 with a ``T`` separator, e.g. 2021-07-01T00:00:00.000000000
+    if "T" in text:
+        head, _, frac = text.partition(".")
+        frac = frac[:6].rstrip("0")
+        text = head + (f".{frac.ljust(6, '0')}" if frac else "")  # as datetime.isoformat()
+    return text  # day precision prints as YYYY-MM-DD
+
+
+def json_safe(value: Any) -> Any:
+    """Convert a DuckDB/Python/numpy/pandas cell into a JSON-serializable value.
+
+    ``Decimal`` -> float, datetime -> ISO 8601 with a ``T`` separator, date -> ``YYYY-MM-DD``,
+    time -> ``HH:MM:SS``, timedelta -> seconds (float), bytes -> base64, NaN/inf/NaT -> ``None``,
+    UUID -> str, numpy/pandas scalars -> their Python value, containers recursively, anything
+    else unknown -> ``str``.
     """
     if value is None or isinstance(value, (bool, int, str)):
         return value
     if isinstance(value, float):
         return value if math.isfinite(value) else None
+    if _is_nat(value):
+        return None
     if isinstance(value, Decimal):
         f = float(value)
         return f if math.isfinite(f) else None
-    if isinstance(value, (dt.datetime, dt.date, dt.time)):
+    if isinstance(value, (dt.datetime, dt.date, dt.time)):  # pandas.Timestamp is a datetime
         return value.isoformat()
+    if type(value).__name__ == "datetime64":
+        return _numpy_temporal(value)
     if isinstance(value, dt.timedelta):
         return value.total_seconds()
     if isinstance(value, (bytes, bytearray, memoryview)):
@@ -122,6 +160,39 @@ def json_safe(value: Any) -> Any:
         except (TypeError, ValueError):
             pass
     return str(value)
+
+
+_TS_TEXT = re.compile(r"^(\d{4}-\d{2}-\d{2})[ T](\d{2}:\d{2}:\d{2})(\.\d+)?$")
+_TEMPORAL_TYPES = ("TIMESTAMP", "DATETIME", "DATE")
+
+
+def normalize_cell(value: Any, column_type: str | None = None) -> Any:
+    """JSON-safe cell with timestamps in the same format :meth:`SQLSandbox.run` returns.
+
+    Used for ``TableSpec.sample_rows`` (stored by the generator as ``str(pandas.Timestamp)``,
+    i.e. ``2021-07-07 00:00:00``): text in a ``DATE``/``TIMESTAMP*`` column (or a column of
+    unknown type) that looks like ``YYYY-MM-DD HH:MM:SS[.f]`` becomes ISO 8601
+    (``2021-07-07T00:00:00``, fractions trimmed to microseconds); a ``DATE`` column at midnight
+    becomes ``YYYY-MM-DD``. ``VARCHAR`` columns are left alone (their mixed formats are
+    deliberate dirty data). numpy/pandas scalars are converted by :func:`json_safe`.
+    """
+    ctype = (column_type or "").upper()
+    if isinstance(value, str):
+        if ctype and not ctype.startswith(_TEMPORAL_TYPES):
+            return value
+        m = _TS_TEXT.match(value.strip())
+        if m is None:
+            return value
+        day, clock, frac = m.group(1), m.group(2), (m.group(3) or "")
+        digits = frac[1:7].rstrip("0")
+        frac = f".{digits.ljust(6, '0')}" if digits else ""  # microseconds, as datetime.isoformat()
+        if ctype == "DATE" and clock == "00:00:00" and not frac:
+            return day
+        return f"{day}T{clock}{frac}"
+    out = json_safe(value)
+    if ctype == "DATE" and isinstance(out, str) and out.endswith("T00:00:00"):
+        return out[:10]
+    return out
 
 
 def _strip_comments_and_literals(sql: str) -> str:
@@ -299,11 +370,11 @@ def _main(cfg_path):
     except ImportError:
         scipy = None
 
+    _RO_CONFIG = {"enable_external_access": False, "lock_configuration": True, "threads": 1}
     con = None
     names = []
     if cfg.get("db_path") and os.path.isfile(cfg["db_path"]):
-        con = duckdb.connect(cfg["db_path"], read_only=True,
-                             config={"enable_external_access": False, "lock_configuration": True, "threads": 1})
+        con = duckdb.connect(cfg["db_path"], read_only=True, config=dict(_RO_CONFIG))
         names = [r[0] for r in con.execute(
             "SELECT table_name FROM information_schema.tables WHERE table_schema = 'main' ORDER BY table_name").fetchall()]
 
@@ -353,6 +424,15 @@ def _main(cfg_path):
 
     tables = LazyTables(con, names)
 
+    # the module-level default connection (duckdb.sql / duckdb.execute) gets no file access;
+    # created before the rlimits because a DuckDB instance reserves a lot of address space
+    try:
+        _default = duckdb.default_connection() if callable(duckdb.default_connection) else duckdb.default_connection
+        _default.execute("SET enable_external_access = false")
+        _default.execute("SET lock_configuration = true")
+    except Exception:
+        pass
+
     # ---- limits (after library imports so the interpreter baseline is not counted)
     def _vm_bytes():
         try:
@@ -394,6 +474,95 @@ def _main(cfg_path):
     with open(cfg["code_path"], "r", encoding="utf-8") as fh:
         source = fh.read()
 
+    # ---- no child processes: os-level spawners become raisers (clear messages) and an audit
+    # hook (which Python code cannot remove) blocks subprocess.Popen, os.exec*/spawn*/fork too.
+    # ``subprocess`` itself stays importable because matplotlib imports it at import time.
+    def _no_process(*a, **k):
+        raise PermissionError("starting processes is disabled in the Axiom sandbox")
+
+    for _name in ("system", "popen", "fork", "forkpty", "posix_spawn", "posix_spawnp", "execv", "execve",
+                  "execl", "execle", "execlp", "execlpe", "execvp", "execvpe", "spawnv", "spawnve", "spawnl",
+                  "spawnle", "spawnlp", "spawnlpe", "spawnvp", "spawnvpe"):
+        if hasattr(os, _name):
+            setattr(os, _name, _no_process)
+    try:
+        import _posixsubprocess
+        _posixsubprocess.fork_exec = _no_process
+    except ImportError:
+        pass
+    if "subprocess" in sys.modules:
+        sys.modules["subprocess"]._fork_exec = _no_process
+
+    # ---- the case folder (and the app data dir) are read-only for user code
+    _sep = os.sep
+    _realpath = os.path.realpath
+    _allowed = tuple(_realpath(p) for p in cfg.get("writable") or [])
+    _protected = tuple(_realpath(p) for p in cfg.get("protected") or [])
+    _write_flags = os.O_WRONLY | os.O_RDWR | os.O_CREAT | os.O_TRUNC | os.O_APPEND
+    _own_pid = os.getpid()
+    _process_events = {"subprocess.Popen", "os.system", "os.exec", "os.posix_spawn", "os.spawn", "os.fork",
+                       "os.forkpty", "pty.spawn", "os.startfile"}
+    _path_events = {"os.remove": (0,), "os.rmdir": (0,), "os.mkdir": (0,), "os.rename": (0, 1),
+                    "os.chmod": (0,), "os.chown": (0,), "os.truncate": (0,), "os.link": (0, 1),
+                    "os.symlink": (1,), "os.utime": (0,), "shutil.rmtree": (0,), "os.setxattr": (0,),
+                    "os.removexattr": (0,), "os.chflags": (0,), "os.lchflags": (0,), "os.lchmod": (0,)}
+    _in_hook = [False]
+
+    def _is_protected(path):
+        if isinstance(path, int) or path is None:
+            return False
+        try:
+            path = os.fsdecode(path)
+            real = _realpath(path)
+        except (TypeError, ValueError, OSError):
+            return False
+        def under(root):
+            return real == root or real.startswith(root.rstrip(_sep) + _sep)
+        if any(under(r) for r in _allowed):
+            return False
+        return any(under(r) for r in _protected)
+
+    def _audit(event, args):
+        if _in_hook[0]:
+            return
+        if event in _process_events:
+            raise PermissionError("starting processes is disabled in the Axiom sandbox")
+        if event in ("os.kill", "os.killpg") and args and args[0] not in (0, _own_pid):
+            raise PermissionError("signalling other processes is disabled in the Axiom sandbox")
+        if event == "open":
+            if len(args) < 3 or not isinstance(args[2], int) or not (args[2] & _write_flags):
+                return
+            idx = (0,)
+        else:
+            idx = _path_events.get(event)
+            if idx is None:
+                return
+        _in_hook[0] = True
+        try:
+            for i in idx:
+                if i < len(args) and _is_protected(args[i]):
+                    raise PermissionError(f"the case folder is read-only in the Axiom sandbox ({event}: {args[i]!r})")
+        finally:
+            _in_hook[0] = False
+
+    # ---- DuckDB: the case database is only reachable read-only; new connections get no file access
+    _orig_connect = duckdb.connect
+    _db_real = _realpath(cfg["db_path"]) if cfg.get("db_path") else None
+
+    def _guarded_connect(database=":memory:", read_only=False, config=None, **kwargs):
+        target = os.fsdecode(database) if isinstance(database, (str, bytes, os.PathLike)) else database
+        if isinstance(target, str) and target not in ("", ":memory:") and not target.startswith(":memory:"):
+            if (_db_real is not None and _realpath(target) == _db_real) or _is_protected(target):
+                # same config as ``con`` so DuckDB reuses the open read-only instance
+                return _orig_connect(target, read_only=True, config=dict(_RO_CONFIG))
+        merged = dict(config or {})
+        merged["enable_external_access"] = False
+        return _orig_connect(database, read_only=read_only, config=merged, **kwargs)
+
+    duckdb.connect = _guarded_connect
+
+    sys.addaudithook(_audit)
+
     ns = {"__name__": "__main__", "__builtins__": __builtins__, "pd": pd, "np": np, "duckdb": duckdb,
           "con": con, "tables": tables, "CASE_DIR": cfg.get("case_dir")}
     if scipy is not None:
@@ -410,7 +579,11 @@ def _main(cfg_path):
             lines = traceback.format_list(user) if user else []
             sys.stderr.write("Traceback (most recent call last):\n" + "".join(lines)
                              + "".join(traceback.format_exception_only(type(exc), exc)))
-            envelope["error"] = (f"{type(exc).__name__}: {exc}" if str(exc) else type(exc).__name__)[:2000]
+            if isinstance(exc, MemoryError):
+                envelope["error"] = (f"MemoryError: the code exceeded the sandbox memory limit "
+                                     f"({int(cfg['memory_mb'])} MB); work on a subset or aggregate in SQL first")
+            else:
+                envelope["error"] = (f"{type(exc).__name__}: {exc}" if str(exc) else type(exc).__name__)[:2000]
 
     def _to_json(obj, depth=0):
         if depth > 20:
@@ -491,14 +664,17 @@ class PythonSandbox:
         timeout_s: default wall-clock budget per run (the child is killed after it).
         memory_mb: address-space budget on top of the interpreter + library baseline.
         db_path: override for the DuckDB file (default ``case_dir / "company.duckdb"``).
+        protected_paths: extra folders user code may not write to (the case folder always is;
+            the API adds the app data dir so the app DB and other cases are covered too).
     """
 
     def __init__(self, case_dir: str | Path, *, timeout_s: float = 20.0, memory_mb: int = 512,
-                 db_path: str | Path | None = None) -> None:
+                 db_path: str | Path | None = None, protected_paths: Sequence[str | Path] = ()) -> None:
         self.case_dir = Path(case_dir)
         self.timeout_s = float(timeout_s)
         self.memory_mb = int(memory_mb)
         self.db_path = Path(db_path) if db_path is not None else self.case_dir / "company.duckdb"
+        self.protected_paths = [Path(p) for p in protected_paths]
 
     @staticmethod
     def _env(home: Path) -> dict[str, str]:
@@ -549,6 +725,8 @@ class PythonSandbox:
             cfg_path.write_text(json.dumps({
                 "db_path": str(self.db_path.resolve()) if self.db_path.is_file() else None,
                 "case_dir": str(self.case_dir.resolve()),
+                "protected": [str(self.case_dir.resolve()), *(str(Path(p).resolve()) for p in self.protected_paths)],
+                "writable": [str(work.resolve()), str(control.resolve())],
                 "code_path": str(code_path),
                 "out_path": str(out_path),
                 "memory_mb": self.memory_mb,

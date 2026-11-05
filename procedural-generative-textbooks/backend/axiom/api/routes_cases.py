@@ -10,30 +10,40 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Request
 from fastapi.concurrency import run_in_threadpool
 
 from axiom.api.deps import get_services
 from axiom.api.errors import CaseStateError
-from axiom.api.schemas import CasePublicView, GradeReportPublic, SessionState, ThreadMessage, public_grade
+from axiom.api.schemas import (
+    CasePublicView,
+    GradeReportPublic,
+    SessionState,
+    ThreadMessage,
+    WorldStats,
+    public_grade,
+)
 from axiom.api.streaming import DeltaCallback, stream_or_call
+from axiom.engine.pedagogy import QUARTERS_BY_DIFFICULTY, SimulationLimitError
 from axiom.models import (
     AdvanceRequest,
     AdversaryRequest,
     AdversaryTurn,
     CaseSummary,
+    CaseWorld,
     DatabaseSpec,
     Dossier,
     DossierRequest,
     GenerateCaseRequest,
     SimQuarter,
     Submission,
+    SubmissionRecord,
     TextbookChapter,
     TextbookRequest,
 )
 from axiom.services import AppServices
 
-__all__ = ["router", "build_session"]
+__all__ = ["router", "build_session", "require_submission", "check_advance"]
 
 logger = logging.getLogger("axiom.api.cases")
 
@@ -69,9 +79,15 @@ async def get_case(case_id: str, services: AppServices = Depends(get_services)) 
 
 @router.get("/{case_id}/schema", response_model=DatabaseSpec)
 async def get_schema(case_id: str, services: AppServices = Depends(get_services)) -> DatabaseSpec:
-    """The case database spec (tables, columns, dirt, sample rows, ERD)."""
-    world = await run_in_threadpool(services.world_service.load, case_id)
-    return world.database
+    """The case database spec (tables, columns, dirt, sample rows, ERD); sample-row timestamps
+    use the same ISO 8601 format as ``/sandbox/sql`` rows."""
+    return await run_in_threadpool(services.world_service.schema, case_id)
+
+
+@router.get("/{case_id}/world-stats", response_model=WorldStats)
+async def world_stats(case_id: str, services: AppServices = Depends(get_services)) -> WorldStats:
+    """Tables, rows, periods, invariants passed/total and generation time of the world."""
+    return await run_in_threadpool(services.world_service.world_stats, case_id)
 
 
 # --------------------------------------------------------------------------- LLM artifacts
@@ -80,6 +96,7 @@ async def get_schema(case_id: str, services: AppServices = Depends(get_services)
 @router.post("/{case_id}/dossier", response_model=Dossier)
 async def dossier(
     case_id: str,
+    request: Request,
     body: DossierRequest | None = None,
     stream: bool = Query(False, description="1 = text/event-stream"),
     services: AppServices = Depends(get_services),
@@ -92,12 +109,13 @@ async def dossier(
         with services.pedagogy() as ped:
             return ped.synthesize_dossier(world, stream=on_delta is not None, force=force, on_delta=on_delta)
 
-    return await stream_or_call(work, stream)
+    return await stream_or_call(work, stream, request)
 
 
 @router.post("/{case_id}/textbook", response_model=TextbookChapter)
 async def textbook(
     case_id: str,
+    request: Request,
     body: TextbookRequest,
     stream: bool = Query(False, description="1 = text/event-stream"),
     services: AppServices = Depends(get_services),
@@ -109,7 +127,7 @@ async def textbook(
         with services.pedagogy() as ped:
             return ped.textbook_chapter(world, body.skill_node, stream=on_delta is not None, on_delta=on_delta)
 
-    return await stream_or_call(work, stream)
+    return await stream_or_call(work, stream, request)
 
 
 # --------------------------------------------------------------------------- session
@@ -180,15 +198,59 @@ async def submit(case_id: str, body: Submission, services: AppServices = Depends
     return await run_in_threadpool(_grade)
 
 
+def require_submission(services: AppServices, case_id: str, submission_id: str, *, graded: bool) -> SubmissionRecord:
+    """The submission ``submission_id`` of ``case_id``.
+
+    Raises:
+        KeyError: unknown submission or one of another case (404).
+        CaseStateError: ``graded`` is required and the submission has no grade yet (409).
+    """
+    record = services.persistence.get_submission(submission_id)
+    if record is None or record.case_id != case_id:
+        raise KeyError(f"unknown submission {submission_id!r} for case {case_id!r}")
+    if graded and not record.grade:
+        raise CaseStateError("submission has not been graded yet")
+    return record
+
+
+def check_advance(world: CaseWorld, decisions: dict[str, float]) -> None:
+    """Validate a quarter-advance request before any LLM work (mirrors ``simulate_transition``).
+
+    Raises:
+        CaseStateError: unknown lever keys (409: the request does not fit this case).
+        SimulationLimitError: every simulated quarter of this difficulty is used up (409).
+    """
+    known = {lv.key for lv in world.ground_truth.decision_levers}
+    unknown = sorted(k for k in decisions if k not in known)
+    if unknown:
+        raise CaseStateError(f"unknown decision levers: {unknown}")
+    limit = (world.simulation.model or {}).get("max_quarters", QUARTERS_BY_DIFFICULTY.get(world.difficulty))
+    actual = set(world.periods)
+    simulated = [q for q in world.simulation.history if q.period not in actual]
+    if limit is not None and len(simulated) >= int(limit):
+        raise SimulationLimitError(f"simulation already ran {len(simulated)} of {limit} quarters")
+
+
 @router.post("/{case_id}/adversary", response_model=AdversaryTurn)
 async def adversary(
     case_id: str,
+    request: Request,
     body: AdversaryRequest,
     stream: bool = Query(False, description="1 = text/event-stream"),
     services: AppServices = Depends(get_services),
 ) -> Any:
-    """Next Socratic adversary turn. With ``?stream=1`` the message is streamed in chunks."""
-    world = await run_in_threadpool(services.world_service.load, case_id)
+    """Next Socratic adversary turn. With ``?stream=1`` the message is streamed in chunks.
+
+    The case (404), the submission (404) and its graded state (409) are validated before the
+    LLM client is built, so an unconfigured LLM (428) never masks them.
+    """
+
+    def _validate() -> CaseWorld:
+        world = services.world_service.load(case_id)
+        require_submission(services, case_id, body.submission_id, graded=True)
+        return world
+
+    world = await run_in_threadpool(_validate)
 
     def work(on_delta: DeltaCallback | None) -> AdversaryTurn:
         with services.pedagogy() as ped:
@@ -201,18 +263,24 @@ async def adversary(
                 on_delta(turn.message[i:i + _STREAM_CHUNK])
         return turn
 
-    return await stream_or_call(work, stream)
+    return await stream_or_call(work, stream, request)
 
 
 @router.post("/{case_id}/advance", response_model=SimQuarter)
 async def advance(case_id: str, body: AdvanceRequest, services: AppServices = Depends(get_services)) -> SimQuarter:
-    """Simulate the next quarter from lever decisions; ``world.json`` gets the new simulation."""
+    """Simulate the next quarter from lever decisions; ``world.json`` gets the new simulation.
+
+    Case (404), submission (404), lever keys and the quarter limit (409) are checked before the
+    LLM client is built (428).
+    """
 
     def _advance() -> SimQuarter:
         ws = services.world_service
         ws.record(case_id)
         with services.case_lock(case_id):
             world = ws.load(case_id)
+            require_submission(services, case_id, body.submission_id, graded=False)
+            check_advance(world, dict(body.decisions))
             with services.pedagogy() as ped:
                 result = ped.advance_quarter(world, body.submission_id, body.decisions)
             ws.save_simulation(case_id, result.simulation)

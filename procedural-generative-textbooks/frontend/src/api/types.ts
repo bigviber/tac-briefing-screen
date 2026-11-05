@@ -230,7 +230,7 @@ export interface Stakeholder {
   agenda: string;
   disposition: string;
   knows: string[];
-  hides: string[];
+  hides?: string[];
 }
 
 export interface TimelineEvent {

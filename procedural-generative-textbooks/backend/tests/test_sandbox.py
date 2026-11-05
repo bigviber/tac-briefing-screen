@@ -239,3 +239,112 @@ def test_python_output_truncated_and_cwd(py: PythonSandbox, case_dir: Path) -> N
 def test_python_rejects_empty(py: PythonSandbox) -> None:
     with pytest.raises(SandboxRejected):
         py.run("   ")
+
+
+# --------------------------------------------------------------------------- hardening review (bug 6)
+
+
+def test_python_cannot_write_into_case_dir(case_dir: Path) -> None:
+    """The case folder is read-only for user code: files, pandas exports, deletes, DuckDB writes."""
+    before = sorted(p.name for p in case_dir.iterdir())
+    db_bytes = (case_dir / "company.duckdb").read_bytes()
+    sb = PythonSandbox(case_dir, timeout_s=30, memory_mb=256)
+    attempts = [
+        "open(CASE_DIR + '/evil.txt', 'w').write('x')",
+        "import os\nos.open(os.path.join(CASE_DIR, 'evil.bin'), os.O_WRONLY | os.O_CREAT)",
+        "tables['y'].to_csv(CASE_DIR + '/y.csv')",
+        "import os\nos.remove(CASE_DIR + '/company.duckdb')",
+        "import os\nos.rename(CASE_DIR + '/company.duckdb', 'stolen.duckdb')",
+        "import shutil\nshutil.rmtree(CASE_DIR)",
+        "open('../' * 30 + CASE_DIR.lstrip('/') + '/evil.txt', 'a').write('x')",
+    ]
+    for code in attempts:
+        out = sb.run(code)
+        assert out["error"] and out["error"].startswith("PermissionError") and "read-only" in out["error"], (code, out)
+    # DuckDB: the open connection is read-only and reopening the file (even after closing `con`)
+    # stays read-only; ATTACH from a new connection has no file access.
+    for code in [
+        "con.execute('CREATE TABLE z (i INT)')",
+        "con.close()\nc2 = duckdb.connect(CASE_DIR + '/company.duckdb')\nc2.execute('CREATE TABLE z (i INT)')",
+        "c2 = duckdb.connect()\nc2.execute(f\"ATTACH '{CASE_DIR}/company.duckdb' AS c\")\nc2.execute('CREATE TABLE c.z (i INT)')",
+        "duckdb.execute(f\"ATTACH '{CASE_DIR}/company.duckdb' AS c2\")",
+    ]:
+        out = sb.run(code)
+        assert out["error"], (code, out)
+    # writing in the temporary working directory is fine
+    ok = sb.run("open('mine.txt', 'w').write('ok')\nresult = open('mine.txt').read()")
+    assert ok["error"] is None and ok["result_json"] == "ok"
+    assert sorted(p.name for p in case_dir.iterdir()) == before
+    assert (case_dir / "company.duckdb").read_bytes() == db_bytes
+
+
+def test_python_protected_paths(tmp_path: Path, case_dir: Path) -> None:
+    """Extra protected folders (the API passes the app data dir) are read-only too."""
+    data = tmp_path / "appdata"
+    data.mkdir()
+    sb = PythonSandbox(case_dir, timeout_s=30, memory_mb=256, protected_paths=[data])
+    out = sb.run(f"open({str(data / 'axiom.db')!r}, 'w').write('x')")
+    assert out["error"] and "read-only" in out["error"]
+    assert not (data / "axiom.db").exists()
+
+
+def test_python_environment_has_no_secrets(case_dir: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    for name in ("OPENAI_API_KEY", "ANTHROPIC_API_KEY", "OPENROUTER_API_KEY", "AXIOM_LLM_API_KEY", "AWS_SECRET_ACCESS_KEY"):
+        monkeypatch.setenv(name, "sk-should-not-leak-0000")
+    sb = PythonSandbox(case_dir, timeout_s=30, memory_mb=256)
+    out = sb.run("import os\nresult = dict(os.environ)")
+    env = out["result_json"]
+    assert out["error"] is None and isinstance(env, dict)
+    assert not [k for k in env if "KEY" in k or "SECRET" in k or "TOKEN" in k or k.startswith("AXIOM_")]
+    assert "sk-should-not-leak" not in str(env)
+    assert set(env) <= {"PATH", "HOME", "PYTHONDONTWRITEBYTECODE", "PYTHONIOENCODING", "MPLBACKEND", "MPLCONFIGDIR",
+                        "OPENBLAS_NUM_THREADS", "OMP_NUM_THREADS", "MKL_NUM_THREADS", "TMPDIR", "LANG", "LC_CTYPE"}
+
+
+@pytest.mark.parametrize(
+    "code",
+    [
+        "import subprocess\nsubprocess.run(['echo', 'pwned'])",
+        "import subprocess\nsubprocess.check_output('echo pwned', shell=True)",
+        "import os\nos.system('echo pwned')",
+        "import os\nos.popen('echo pwned').read()",
+        "import os\nos.execv('/bin/echo', ['echo', 'pwned'])",
+        "import os\nos.fork()",
+        "import os\nos.posix_spawn('/bin/echo', ['echo', 'pwned'], {})",
+        "import multiprocessing as mp\np = mp.Process(target=print)\np.start()",
+        "import importlib, sys\nsys.modules.pop('subprocess', None)\nsp = importlib.import_module('subprocess')\nsp.Popen(['echo', 'pwned'])",
+        "import os\nos.kill(os.getppid(), 0)",
+    ],
+)
+def test_python_cannot_start_processes(py: PythonSandbox, code: str) -> None:
+    """Decision: block (raisers for os.system/popen/exec*/spawn*/fork + an audit hook for
+    subprocess.Popen and friends); ``subprocess`` stays importable because matplotlib needs it."""
+    out = py.run(code)
+    assert out["error"] and out["error"].startswith("PermissionError"), out
+    assert "disabled in the Axiom sandbox" in out["error"]
+    assert "pwned" not in out["stdout"]
+
+
+def test_python_300mb_over_limit_fails_cleanly(py: PythonSandbox) -> None:
+    """A 300 MB allocation with a 256 MB budget is a readable MemoryError, not a crash."""
+    for code in ("blob = bytearray(300 * 1024 * 1024)", "big = np.ones(300 * 1024 * 1024 // 8)"):
+        out = py.run(code + "\nresult = 'unreachable'")
+        assert out["error"] and out["error"].startswith("MemoryError: the code exceeded the sandbox memory limit (256 MB)"), out
+        assert out["result_json"] is None
+    after = py.run("result = len(bytearray(10 * 1024 * 1024))")  # the next run is unaffected
+    assert after["error"] is None and after["result_json"] == 10 * 1024 * 1024
+
+
+def test_python_timeout_kills_process_group(case_dir: Path) -> None:
+    """An infinite loop is killed at the timeout and its process group is gone (no orphan)."""
+    import os
+
+    sb = PythonSandbox(case_dir, timeout_s=30, memory_mb=256)
+    out = sb.run("import os\nprint(os.getpid(), os.getpgid(0), flush=True)\nwhile True:\n    pass\n", timeout_s=1.5)
+    assert out["error"] == "execution timed out after 1.5s and was killed"
+    pid, pgid = (int(x) for x in out["stdout"].split()[:2])
+    assert pid == pgid  # own session / process group
+    with pytest.raises(ProcessLookupError):
+        os.kill(pid, 0)
+    with pytest.raises(ProcessLookupError):
+        os.killpg(pgid, 0)

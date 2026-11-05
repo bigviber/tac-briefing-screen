@@ -12,6 +12,7 @@ this module imports even while Module 2 is absent.
 
 from __future__ import annotations
 
+import json
 import logging
 import os
 import secrets
@@ -25,7 +26,13 @@ from typing import TYPE_CHECKING, Any
 
 import httpx
 
-from axiom.api.schemas import Ask, CasePublicView, CaseStatus
+from axiom.api.public_view import (
+    build_asks,
+    normalize_database,
+    public_case_data,
+    public_levers,
+)
+from axiom.api.schemas import Ask, CasePublicView, CaseStatus, WorldStats
 from axiom.config import Settings, get_settings
 from axiom.engine.llm_client import LLMClient, LLMConfigError
 from axiom.engine.pedagogy import Pedagogy
@@ -35,6 +42,7 @@ from axiom.models import (
     ArchetypeInfo,
     CaseRecord,
     CaseWorld,
+    DatabaseSpec,
     GenerateCaseRequest,
     LLMSettings,
     SimulationState,
@@ -262,13 +270,8 @@ class WorldService:
 
     @staticmethod
     def asks(world: CaseWorld) -> list[Ask]:
-        """Section 11 asks: expected metric keys/units/labels without values."""
-        out: list[Ask] = []
-        for m in world.ground_truth.expected_metrics:
-            label = m.label or m.key.replace("_", " ").strip().capitalize()
-            hint = m.hint or (f"unit: {m.unit}" if m.unit else "")
-            out.append(Ask(key=m.key, label=label, unit=m.unit, hint=hint))
-        return out
+        """Section 11 asks: key, label, unit and hint per expected metric (no value/derivation)."""
+        return build_asks(world)
 
     def status(self, case_id: str) -> CaseStatus:
         """Case status from the app DB (``generated`` when unknown)."""
@@ -277,12 +280,39 @@ class WorldService:
         return value if value in _VALID_STATUS else "generated"  # type: ignore[return-value]
 
     def public(self, world: CaseWorld) -> CasePublicView:
-        """The public case view plus asks, levers and status (no ground truth)."""
-        data: dict[str, Any] = world.public_view()
+        """The public case view plus asks, levers and status: no ground truth and no concealed
+        facts (see :func:`axiom.api.public_view.public_case_data` for every stripped path)."""
+        data: dict[str, Any] = public_case_data(world)
         data["asks"] = [a.model_dump() for a in self.asks(world)]
-        data["levers"] = [lv.model_dump(mode="json") for lv in world.ground_truth.decision_levers]
+        data["levers"] = public_levers(world)
         data["status"] = self.status(world.case_id)
         return CasePublicView.model_validate(data)
+
+    def schema(self, case_id: str) -> DatabaseSpec:
+        """The case's ``DatabaseSpec`` with sample-row timestamps in ISO 8601 (as ``/sandbox/sql``)."""
+        world = self.load(case_id)
+        return DatabaseSpec.model_validate(normalize_database(world.database.model_dump(mode="json")))
+
+    def world_stats(self, case_id: str) -> WorldStats:
+        """Table/row counts, periods, invariant results and generation time of a case."""
+        world = self.load(case_id)
+        checks = world.finance.invariants
+        generation_ms: float | None = None
+        meta = self.world_path(case_id).parent / "meta.json"
+        try:
+            seconds = json.loads(meta.read_text(encoding="utf-8")).get("build_seconds")
+            generation_ms = round(float(seconds) * 1000, 1) if seconds is not None else None
+        except (OSError, ValueError, TypeError, AttributeError):
+            generation_ms = None
+        tables = world.database.tables
+        return WorldStats(
+            tables=len(tables),
+            rows=int(world.database.total_rows or sum(t.row_count for t in tables)),
+            periods=list(world.periods),
+            invariants_passed=sum(1 for c in checks if c.passed),
+            invariants_total=len(checks),
+            generation_ms=generation_ms,
+        )
 
 
 # --------------------------------------------------------------------------- app services
@@ -393,4 +423,5 @@ class AppServices:
         """Python sandbox for a case."""
         db = self.world_service.db_path(case_id)
         return PythonSandbox(db.parent, timeout_s=self.settings.sandbox_timeout_s,
-                             memory_mb=self.settings.sandbox_memory_mb, db_path=db)
+                             memory_mb=self.settings.sandbox_memory_mb, db_path=db,
+                             protected_paths=[self.settings.data_dir])

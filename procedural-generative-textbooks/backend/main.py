@@ -12,7 +12,7 @@ from collections.abc import AsyncIterator, Callable
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException
 from fastapi.concurrency import run_in_threadpool
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
@@ -21,7 +21,6 @@ from axiom import __version__
 from axiom.api import API_PREFIX, build_api_router
 from axiom.api.errors import install_exception_handlers
 from axiom.config import Settings, get_settings
-from axiom.models import HealthResponse
 from axiom.services import AppServices
 
 __all__ = ["create_app", "FRONTEND_DIST"]
@@ -85,13 +84,6 @@ def create_app(
         allow_headers=["*"],
     )
     install_exception_handlers(app)
-
-    @app.get(f"{API_PREFIX}/health", response_model=HealthResponse, tags=["health"])
-    async def health(request: Request) -> HealthResponse:
-        """Liveness plus whether an LLM is configured."""
-        services: AppServices | None = getattr(request.app.state, "services", None)
-        configured = bool(services is not None and await run_in_threadpool(services.llm_configured))
-        return HealthResponse(status="ok", version=__version__, llm_configured=configured)
 
     app.include_router(build_api_router(), prefix=API_PREFIX)
 

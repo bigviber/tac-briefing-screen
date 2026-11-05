@@ -6,6 +6,8 @@ Skipped while Module 2 (``axiom.engine.procedural_world``) is not installed.
 
 from __future__ import annotations
 
+import json
+import re
 from collections.abc import Iterator
 from pathlib import Path
 from typing import Any
@@ -91,3 +93,86 @@ def test_generate_schema_sql_submit(e2e: tuple[TestClient, AppServices]) -> None
     assert grade["deterministic"]["accuracy"] == 1.0
     assert grade["revealed"]["root_cause"] and "reference_sql" not in grade["revealed"]["anomalies"][0]
     assert client.get(f"{API}/cases/{cid}/session").json()["submission_id"] == grade["submission_id"]
+
+
+# --------------------------------------------------------------------------- leak audit
+
+
+def _walk(obj: Any, path: str = "") -> Iterator[tuple[str, Any]]:
+    """``(json_path, leaf)`` for every key and leaf of a JSON value (keys are yielded too)."""
+    if isinstance(obj, dict):
+        for k, v in obj.items():
+            yield f"{path}/<key>", k
+            yield from _walk(v, f"{path}/{k}")
+    elif isinstance(obj, list):
+        for i, v in enumerate(obj):
+            yield from _walk(v, f"{path}[{i}]")
+    else:
+        yield path, obj
+
+
+def _number_forms(value: float, unit: str) -> set[str]:
+    """Ways an expected metric could be printed; only forms with >= 4 significant digits (shorter
+    ones collide with unrelated data such as benchmark percentiles)."""
+    forms = {repr(value), f"{value:.4f}", f"{value:.3f}", f"{value:.2f}", f"{value:.1f}", f"{value:,.2f}", f"{value:,.0f}", f"{value:.0f}"}
+    if unit == "cents":
+        d = value / 100
+        forms |= {f"{d:,.0f}", f"{d:.0f}", f"{d:,.2f}", f"{d:.2f}", f"{d / 1e6:.2f}M", f"{d / 1e3:,.0f}k"}
+    if unit in ("ratio", "pct"):
+        forms |= {f"{value * 100:.2f}%", f"{value * 100:.1f}%", f"{value * 100:.2f}", f"{value:.4f}"}
+    return {f for f in forms if sum(c.isdigit() for c in f.lstrip("-0.")) >= 4}
+
+
+def test_public_case_view_has_no_answer_key(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Bug 1 audit: the serialized ``CasePublicView`` of a real working_capital_crunch world (seed 42,
+    foundation) contains no concealed string, anomaly id, 5-word root-cause fragment or expected
+    metric value (as a number or formatted several ways), except inside ``asks`` keys/labels."""
+    procedural_world = pytest.importorskip("axiom.engine.procedural_world")
+    monkeypatch.setenv("AXIOM_DATA_DIR", str(tmp_path / "data"))
+    get_settings.cache_clear()
+    try:
+        settings = Settings(data_dir=tmp_path / "data")
+        settings.ensure_dirs()
+        world = procedural_world.generate_world("working_capital_crunch", 42, difficulty="foundation", out_dir=tmp_path / "w")
+        services = AppServices(settings, llm_transport=FakeTransport({}), llm_sleep=lambda s: None)
+        try:
+            public = services.world_service.public(world).model_dump(mode="json")
+        finally:
+            services.close()
+    finally:
+        get_settings.cache_clear()
+
+    assert world.dossier_seed.conceal and world.ground_truth.anomalies and world.ground_truth.expected_metrics
+    asks = public.pop("asks")
+    assert all(set(a) == {"key", "label", "unit", "hint"} for a in asks)
+    for stakeholder in public["dossier_seed"]["stakeholders"]:
+        assert "hides" not in stakeholder
+    text = json.dumps(public)
+    for word in ("ground_truth", "conceal", "hides", "reference_sql", "resolved_if", "anomaly_drag", "lever_effects",
+                 "derivation", "root_cause", "red_herrings"):
+        assert f'"{word}"' not in text, word
+
+    leaks: list[str] = []
+    ids = {a.id for a in world.ground_truth.anomalies} | {c for c in world.dossier_seed.conceal if re.fullmatch(r"[A-Z]{1,3}\d{1,3}", c)}
+    phrases = [c.lower() for c in world.dossier_seed.conceal if c not in ids]
+    words = re.findall(r"[a-z0-9]+(?:[-'.,%][a-z0-9]+)*", world.ground_truth.root_cause.lower())
+    shingles = {" ".join(words[i:i + 5]) for i in range(len(words) - 4)}
+    metrics = [m for m in world.ground_truth.expected_metrics if m.unit != "bool" and not float(m.value).is_integer()]
+    for path, leaf in _walk(public):
+        if isinstance(leaf, str):
+            low = leaf.lower()
+            norm = " ".join(re.findall(r"[a-z0-9]+(?:[-'.,%][a-z0-9]+)*", low))
+            leaks += [f"{path}: conceal {p!r}" for p in phrases if p in low]
+            leaks += [f"{path}: anomaly id {i!r}" for i in ids if re.search(rf"\b{re.escape(i)}\b", leaf)]
+            leaks += [f"{path}: root-cause fragment {sh!r}" for sh in shingles if sh in norm]
+        elif isinstance(leaf, (int, float)) and not isinstance(leaf, bool):
+            leaks += [f"{path}: value of {m.key}" for m in metrics
+                      if abs(float(leaf) - m.value) <= 1e-6 * max(1.0, abs(m.value))]
+    for m in metrics:
+        for form in _number_forms(m.value, m.unit):
+            hit = re.search(rf"(?<![\d.]){re.escape(form)}(?!\d)", text)
+            if hit:
+                leaks.append(f"{m.key} printed as {form!r}: ...{text[max(0, hit.start() - 60):hit.end() + 10]}...")
+    assert not leaks, "\n".join(leaks)
+    # the levers stay public (section 12.1), with their effect texts
+    assert [lv["key"] for lv in public["levers"]] == [lv.key for lv in world.ground_truth.decision_levers]

@@ -70,16 +70,18 @@ corpus JSON files. If the network fails, the corpus values stay in effect.
 
 Code: `main.py` (app factory, CORS, lifespan, health, SPA), `axiom/services.py` (`AppServices`,
 `WorldService`), `axiom/api/routes_*.py`, `axiom/api/schemas.py` (section 12 response views),
-`axiom/api/streaming.py` (SSE bridge), `axiom/api/errors.py` (status mapping).
+`axiom/api/public_view.py` (leak-free case projection and asks), `axiom/api/streaming.py` (SSE
+bridge), `axiom/api/errors.py` (status mapping).
 
 | Method | Path | Body | Response |
 |---|---|---|---|
-| GET | `/health` | | `{status, version, llm_configured}` |
+| GET | `/health` | | `{status, version, llm_configured, archetypes_available}` (*) |
 | GET | `/archetypes` | | `[ArchetypeInfo]` (`[]` while Module 2 is absent) |
 | POST | `/cases/generate` | `{archetype?, seed?, difficulty?, target_skills?}` | `CasePublic` + `asks`, `levers`, `status` |
 | GET | `/cases` | | `[CaseSummary]` newest first |
 | GET | `/cases/{id}` | | `CasePublic` + `asks`, `levers`, `status` |
-| GET | `/cases/{id}/schema` | | `DatabaseSpec` |
+| GET | `/cases/{id}/schema` | | `DatabaseSpec` (sample-row timestamps ISO 8601, like `/sandbox/sql`) |
+| GET | `/cases/{id}/world-stats` | | `{tables, rows, periods, invariants_passed, invariants_total, generation_ms}` |
 | POST | `/cases/{id}/dossier[?stream=1]` | `{force?}` (optional) | `Dossier` (cached) |
 | POST | `/cases/{id}/textbook[?stream=1]` | `{skill_node}` | `TextbookChapter` (cached; 409 while locked) |
 | GET | `/cases/{id}/session` | | `{submission_id, grade, adversary_turns, sim_history, thread, status}` |
@@ -95,16 +97,32 @@ Code: `main.py` (app factory, CORS, lifespan, health, SPA), `axiom/services.py` 
 | GET | `/settings/usage` | | `{by_model, total_tokens, total_cost_usd_est}` |
 | GET | `/settings/prompts` | | `[{name, template}]` |
 
+(*) `archetypes_available` is served by the `/health` handler in `axiom/api/routes_archetypes.py`;
+`main.py` still registers its own inline `/health` first, which must be removed for the new field
+to appear.
+
 Errors are `{"detail": "..."}`: 400 sandbox rejected the statement/code, 404 unknown case,
-submission or skill node, 409 chapter locked / quarter budget exhausted / submission not graded,
-428 LLM not configured (open Settings), 502 provider error (provider message passed through,
-keys scrubbed), 503 Module 2 not installed.
+submission or skill node, 409 chapter locked / quarter budget exhausted / submission not graded /
+unknown decision lever, 428 LLM not configured (open Settings), 502 provider error (provider
+message passed through, keys scrubbed), 503 Module 2 not installed. `/adversary` and `/advance`
+validate the case, the submission and its state before building the LLM client, so 404/409 are
+never masked by 428.
+
+Public case view (`GET /cases/{id}`, `POST /cases/generate`): besides dropping `ground_truth` and
+`dossier_seed.conceal`, stakeholders carry only `name`, `role`, `agenda`, `disposition` and the
+`knows` items that do not touch a concealed fact (`hides` is never sent); reveal/timeline items
+quoting a concealed phrase, an anomaly id or a 5-word root-cause fragment are dropped;
+`simulation.model` is reduced to its starting `kpis`; statement ratios / `kpis_by_period` rows
+whose value equals an expected metric are removed. `asks[].hint` is `ExpectedMetric.hint`, else
+its `label`, else a sentence from the key (`dso_2024q4` -> "Days sales outstanding for 2024Q4");
+values and derivations are never included.
 
 Streaming (`?stream=1`): `text/event-stream` with `data: {"delta": "..."}` chunks, then
 `data: {"done": true, "payload": {...}}`; a failure after the stream started is
 `data: {"error": "..."}` and the stream closes. 404/409/428 that occur before the first chunk
 are returned as normal HTTP errors. The adversary is not token-streamed by the pedagogy layer,
-so its final message is replayed as deltas.
+so its final message is replayed as deltas. When the client disconnects, the next `on_delta`
+call in the worker raises `StreamCancelled`, which aborts the upstream LLM stream.
 
 All blocking work (LLM calls, generation, sandboxes) runs in the threadpool; the event loop is
 never blocked. The LLM client is rebuilt from the stored settings for every request.
@@ -123,5 +141,15 @@ never blocked. The LLM client is rebuilt from the stored settings for every requ
   `duckdb`, `scipy`, `con` (read-only case DB), `tables` (lazy `dict` of DataFrames, loaded on
   first access), `CASE_DIR`. A top-level `result` becomes `result_json` (DataFrames as
   `{columns, rows<=500, row_count, truncated}`); open figures become base64 PNGs. Output is
-  capped at 20 kB per stream; the process group is killed on timeout. This is a guard rail for
-  a local single-user tool, not a hostile-code jail.
+  capped at 20 kB per stream; the process group is killed on timeout. A `MemoryError` is
+  reported with the memory budget.
+- **Python hardening** (prelude before user code): process creation is blocked, not just
+  discouraged: `os.system`/`os.popen`/`os.exec*`/`os.spawn*`/`os.posix_spawn*`/`os.fork` and
+  `_posixsubprocess.fork_exec` are replaced with raisers, and a `sys.addaudithook` hook (which
+  Python code cannot remove) raises `PermissionError` on `subprocess.Popen`, `os.exec`,
+  `os.spawn`, `os.fork` and signals to other processes. `subprocess` stays importable because
+  matplotlib imports it. The same hook makes the case folder and the app data dir read-only
+  (write-mode `open`, `os.remove`/`rename`/`mkdir`/`chmod`/..., `shutil.rmtree`);
+  `duckdb.connect` reopens the case DB read-only and gives new connections no file access, so
+  `ATTACH` cannot write it either. The child environment is a fixed allowlist (no API keys, no
+  `AXIOM_*`). This is a guard rail for a local single-user tool, not a hostile-code jail.
