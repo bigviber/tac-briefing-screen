@@ -85,6 +85,7 @@ __all__ = [
     "Submission",
     "SubmissionRecord",
     "SkillUpdate",
+    "Observation",
     "RevealedTruth",
     "GradeReport",
     # LLM settings and usage
@@ -112,6 +113,7 @@ __all__ = [
     "OkResponse",
     "LLMTestResult",
     "PromptTemplate",
+    "AdvanceResult",
 ]
 
 Pillar = Literal["accounting_finance", "operations_strategy", "system_design", "sql", "python"]
@@ -674,6 +676,7 @@ class StakeholderMessage(_Api):
     from_name: str
     role: str
     channel: str = "email"
+    subject: str = ""
     body: str
 
 
@@ -687,6 +690,9 @@ class Dossier(_Api):
     the_ask: str
     deliverables: list[str] = Field(default_factory=list)
     data_room_index: list[str] = Field(default_factory=list)
+    timeline: list[dict[str, Any]] = Field(default_factory=list)
+    architecture_mermaid: str | None = None
+    leak_redacted: bool = False
 
 
 class SelfCheck(_Api):
@@ -703,6 +709,8 @@ class TextbookChapter(_Api):
     title: str
     markdown: str
     self_checks: list[SelfCheck] = Field(default_factory=list)
+    snippets: list[dict[str, Any]] = Field(default_factory=list)
+    leak_redacted: bool = False
 
 
 class RubricDimension(_Api):
@@ -722,6 +730,11 @@ class RubricGrade(_Api):
     strongest_point: str = ""
     weakest_point: str = ""
     next_drill_nodes: list[str] = Field(default_factory=list)
+    stated_root_cause: str = ""
+    raw_scores: dict[str, float] = Field(default_factory=dict)
+    ceiling_te: float | None = None
+    llm_overall: float | None = None
+    clamps: list[str] = Field(default_factory=list)
 
 
 class MetricResult(_Api):
@@ -734,6 +747,9 @@ class MetricResult(_Api):
     within_tolerance: bool = False
     tolerance_abs: float | None = None
     tolerance_rel: float | None = None
+    derivation: str = ""
+    pillar: Pillar | None = None
+    anomaly_ids: list[str] = Field(default_factory=list)
 
 
 class QuerySignatureMatch(_Api):
@@ -742,6 +758,10 @@ class QuerySignatureMatch(_Api):
     name: str
     matched: bool
     detail: str = ""
+    pillar: Pillar | None = None
+    anomaly_id: str | None = None
+    evaluated: bool = True
+    method: Literal["signature", "execution"] = "signature"
 
 
 class DeterministicGrade(_Api):
@@ -750,6 +770,9 @@ class DeterministicGrade(_Api):
     metric_results: list[MetricResult] = Field(default_factory=list)
     query_signature_matches: list[QuerySignatureMatch] = Field(default_factory=list)
     accuracy: float = Field(default=0.0, ge=0, le=1)
+    det_pass: float = Field(default=0.0, ge=0, le=1)
+    items_passed: int = 0
+    items_total: int = 0
 
 
 class AdversaryTurn(_Api):
@@ -761,6 +784,7 @@ class AdversaryTurn(_Api):
     cites: list[str] = Field(default_factory=list)
     concedes: bool = False
     turn_index: int = 0
+    rung: int = 1
 
 
 class AdversaryTurnRecord(_Api):
@@ -822,6 +846,23 @@ class SkillUpdate(_Api):
     node: str
     before: float
     after: float
+    score: float | None = None
+    outcome: Literal["correct", "incorrect", "borderline"] | None = None
+
+
+class Observation(_Api):
+    """A per-node BKT observation derived from a grade (pedagogy.md section 2.2).
+
+    ``outcome == "borderline"`` means ``0.50 <= score < 0.65``: counted as a miss with the slip
+    parameter raised by ``slip_adjust`` for that one update.
+    """
+
+    node: str
+    pillar: Pillar
+    score: float
+    correct: bool
+    outcome: Literal["correct", "incorrect", "borderline"]
+    slip_adjust: float = 0.0
 
 
 class RevealedTruth(_Api):
@@ -841,6 +882,8 @@ class GradeReport(_Api):
     skill_updates: list[SkillUpdate] = Field(default_factory=list)
     revealed: RevealedTruth
     adversary_opening: str = ""
+    observations: list[Observation] = Field(default_factory=list)
+    counted_for_mastery: bool = True
 
 
 # --------------------------------------------------------------------------- LLM settings / usage
@@ -906,6 +949,7 @@ class LLMUsageRecord(_Api):
     completion_tokens: int = 0
     latency_ms: float = 0.0
     cost_usd_est: float = 0.0
+    estimated: bool = True
 
 
 class ModelUsage(_Api):
@@ -1067,6 +1111,18 @@ class PromptTemplate(_Api):
 
     name: str
     template: str
+
+
+class AdvanceResult(_Api):
+    """Result of ``Pedagogy.advance_quarter``: the new quarter plus the updated simulation state
+    (the API rewrites ``world.json`` with ``simulation`` and returns ``quarter``)."""
+
+    quarter: SimQuarter
+    simulation: SimulationState
+    resolved: bool = False
+    shock: dict[str, Any] | None = None
+    watch_items: list[dict[str, Any]] = Field(default_factory=list)
+    stripped_sentences: list[str] = Field(default_factory=list)
 
 
 for _model in list(globals().values()):
