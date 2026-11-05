@@ -18,6 +18,10 @@ Mechanics
   (setup and run minutes, good and scrap quantity), ``quality_events`` (engineering changes /
   inspections) at a family-specific rate per work order; every work order ships to a customer
   (``sales_orders``) the same month and is invoiced at shipment on net-30/45.
+* Shift calendar (``shift_calendar``): crews per work centre re-planned every quarter on the routed load, so
+  utilisation (setup + run minutes / available hours) runs at 45-80% and the constraint (finishing) at 90-96%;
+  each operation queues in front of its centre (Sakasegawa G/G/m wait at that utilisation) after a 30-minute move.
+  ``operations.stations`` / ``queueing`` are measured on the log in the latest quarter (rho, lambda, W, L = lambda W).
 * Standard cost = RM (``bom``) + run hours x labour rate + run hours x plant-wide rate, rate =
   budgeted overhead / budgeted DLH with overhead = ``overhead_pct_of_conversion`` of conversion cost,
   set on the warm-up quarter's volumes ("the standard was last reset before P1").
@@ -86,7 +90,7 @@ from axiom.engine.archetypes.base import (
 from axiom.engine.datagen import GL_BATCH, TableBuilder
 from axiom.engine.finance import SubledgerTie, batch_end_dates, cents, cents_array, split_cents
 from axiom.engine.market_research import BenchmarkPool
-from axiom.engine.operations import build_operations_state, station_network
+from axiom.engine.operations import build_operations_state
 from axiom.engine.rng import SeededRNG
 from axiom.models import (
     Anomaly,
@@ -97,6 +101,7 @@ from axiom.models import (
     OperationsState,
     ReferenceSolution,
     Stakeholder,
+    Station,
     TimelineEvent,
 )
 
@@ -329,14 +334,27 @@ class AbcCostDistortion(Archetype):
         r_arr = r.reset_index(drop=True)
         setup_act = np.round(r_arr["setup_minutes"].to_numpy()[r_idx] * g.lognormal(0, 0.12, len(log_wo)), 1)
         run_act = np.round(r_arr["run_minutes_per_unit"].to_numpy()[r_idx] * started[log_wo] * g.lognormal(0, 0.02, len(log_wo)), 1)
-        # wall-clock: big lots run on parallel machines (at most two days per operation); operations run back to back
-        wall = np.minimum(setup_act + run_act, 2880.0) + 30.0
-        cum = np.cumsum(wall)
+        # wall-clock: big lots run on parallel machines (at most two days per operation); a 30-minute move between
+        # operations and a queue wait in front of each work centre (review P0 #2: the waits follow the centre's
+        # utilisation on the shift calendar below, so Little's Law on the log gives real WIP and cycle times)
+        wc_of = r_arr["work_center_id"].to_numpy()[r_idx]
+        svc = np.minimum(setup_act + run_act, 2880.0)
+        shifts, wait = self._shift_calendar(ctx, state, wc_of, wo_m[log_wo] // 3, setup_act + run_act, svc)
         first = np.r_[True, log_wo[1:] != log_wo[:-1]]
         grp_start = np.maximum.accumulate(np.where(first, np.arange(len(log_wo)), 0))
-        before = cum - wall - (cum[grp_start] - wall[grp_start])
-        start_ts = pd.to_datetime(released[log_wo]) + pd.to_timedelta(before, unit="m")
-        end_ts = start_ts + pd.to_timedelta(wall - 30.0, unit="m")
+        # every order closes at least 30 hours before its month ends (ships and invoices in its production month)
+        m_end = (mstart + pd.offsets.MonthBegin(1)).to_numpy()[wo_m] - np.timedelta64(30, "h")
+        room = (m_end - released) / np.timedelta64(1, "m") - np.bincount(log_wo, weights=svc + 30.0, minlength=W)
+        w_sum = np.bincount(log_wo, weights=wait, minlength=W)
+        shrink = np.where(w_sum > np.maximum(room, 0.0), np.maximum(room, 0.0) / np.maximum(w_sum, 1.0), 1.0)
+        wait = np.floor(wait * shrink[log_wo])
+        step = svc + 30.0 + wait  # this operation's wait + service + the move that follows it
+        cum = np.cumsum(step)
+        before = cum - step - (cum[grp_start] - step[grp_start])  # elapsed before this operation's queue
+        arrive_ts = pd.to_datetime(released[log_wo]) + pd.to_timedelta(before, unit="m")
+        start_ts = arrive_ts + pd.to_timedelta(wait, unit="m")
+        end_ts = start_ts + pd.to_timedelta(svc, unit="m")
+        state.frames["shift_calendar"] = shifts
         last_op = pos == n_ops[log_wo] - 1
         log = pd.DataFrame({
             "log_id": np.arange(1, len(log_wo) + 1, dtype=np.int64), "work_order_id": wo_ids[log_wo], "work_center_id": r_arr["work_center_id"].to_numpy()[r_idx],
@@ -395,6 +413,58 @@ class AbcCostDistortion(Archetype):
                                      periods=list(P[4:]), affected_accounts=["4000"], affected_tables=["routings", "production_log", "work_centers"],
                                      magnitude={}, severity="medium"))
         return anomalies
+
+    def _shift_calendar(self, ctx: BuildContext, state: WorldState, wc_of: np.ndarray, q_of: np.ndarray, busy_min: np.ndarray,
+                        svc_min: np.ndarray) -> tuple[pd.DataFrame, np.ndarray]:
+        """Quarterly shift calendar per work centre and the queue wait (minutes) in front of every logged operation.
+
+        The plant staffs ``crew_shifts`` station-shifts per working day at each centre (re-planned every quarter on the
+        quarter's routed load); ``available_hours = crew_shifts x 7.5 h x working days x availability``. Utilisation
+        (setup + run minutes over available minutes) runs at the centre's planning target, 45-80%; the constraint
+        (finishing) is staffed to run at 90-96% every quarter (never above 98%). Idle support centres keep one
+        station-shift. Waits follow Sakasegawa's G/G/m approximation at the centre's quarterly utilisation and crew,
+        ``Wq = E[S] (1 + cs^2) / 2 * rho^(sqrt(2(m+1)) - 1) / (m (1 - rho))``, drawn exponential.
+        """
+        g = ctx.rng.spawn("shift_calendar").generator
+        cal = state.calendar
+        quarters = cal.all_periods
+        days = np.array([np.busday_count(cal.bounds(q)[0], cal.bounds(q)[1] + dt.timedelta(days=1)) for q in quarters], dtype=float)
+        nq = len(quarters)
+        rows, rho_q, crew_q = [], {}, {}
+        for wcid, _name in state.frames["work_centers"].itertuples(index=False):
+            sel = wc_of == wcid
+            load = np.bincount(q_of[sel], weights=busy_min[sel] / 60.0, minlength=nq)[:nq]  # routed hours by quarter
+            avail = float(g.uniform(0.85, 0.93))
+            target = float(g.uniform(0.45, 0.80))
+            crew, av = np.ones(nq, dtype=np.int64), np.full(nq, avail)
+            if sel.any():
+                for q in range(nq):
+                    if wcid == BOTTLENECK:  # staffed to the constraint target exactly: availability absorbs the rounding
+                        t = float(g.uniform(0.90, 0.96))
+                        crew[q] = max(1, math.ceil(load[q] / (t * 7.5 * days[q] * avail)))
+                        av[q] = load[q] / (t * crew[q] * 7.5 * days[q])
+                    else:
+                        t = float(np.clip(target + g.normal(0, 0.03), 0.40, 0.85))
+                        crew[q] = max(1, math.ceil(load[q] / (t * 7.5 * days[q] * avail)))
+            hours = np.round(crew * 7.5 * days * av, 1)
+            rho_q[wcid] = np.minimum(load / hours, 0.98)
+            crew_q[wcid] = crew
+            for q, per in enumerate(quarters):
+                rows.append({"work_center_id": wcid, "period": per, "working_days": int(days[q]), "crew_shifts_per_day": int(crew[q]),
+                             "hours_per_shift": 7.5, "availability_pct": round(float(av[q]), 4), "available_hours": float(hours[q])})
+        shifts = pd.DataFrame(rows)
+        # queue waits: mean service time and its CV per (centre, quarter) from the operations themselves
+        wait = np.zeros(len(wc_of))
+        for wcid in np.unique(wc_of):
+            sel = wc_of == wcid
+            for q in np.unique(q_of[sel]):
+                idx = np.flatnonzero(sel & (q_of == q))
+                es = float(svc_min[idx].mean())
+                cs2 = float(svc_min[idx].var() / es ** 2) if es > 0 else 1.0
+                rho, m = float(rho_q[wcid][q]), max(1, int(round(crew_q[wcid][q] / 2)))  # ~two shifts: crews on the floor at once
+                wq = es * (1.0 + min(cs2, 4.0)) / 2.0 * rho ** (math.sqrt(2 * (m + 1)) - 1) / (m * (1 - rho))
+                wait[idx] = np.minimum(g.exponential(1.0, len(idx)) * wq, 4320.0)
+        return shifts, np.floor(wait)
 
     def _calibrate(self, state: WorldState) -> None:
         """Solve the complexity pool on the warm-up quarter so the low family's distortion equals the target."""
@@ -638,9 +708,11 @@ class AbcCostDistortion(Archetype):
         g = ctx.rng.spawn("tables").generator
         products = state.extras["products"]
         wc = state.frames["work_centers"].copy()
+        shifts = state.frames["shift_calendar"]
+        cur = shifts[shifts["period"] == state.periods[-1]].set_index("work_center_id")
+        wc["crew_shifts_per_day"] = wc["work_center_id"].map(cur["crew_shifts_per_day"]).astype(np.int64)
+        wc["capacity_hours_per_week"] = wc["work_center_id"].map((cur["available_hours"] / (cur["working_days"] / 5.0)).round(1))
         log = state.frames["production_log"]
-        hours = log.groupby("work_center_id")[["setup_minutes_actual", "run_minutes_actual"]].sum().sum(axis=1) / 60 / (len(state.extras["months"]) * 4.33)
-        wc["capacity_hours_per_week"] = np.round(np.maximum(40, wc["work_center_id"].map(hours).fillna(20) / np.where(wc["work_center_id"] == BOTTLENECK, 0.93, 0.7)), 0)
         wc["hourly_rate_cents"] = int(round(p["labor_rate_usd"] * 100))
         wc["setup_minutes_avg"] = wc["work_center_id"].map(state.extras["routings"].groupby("work_center_id")["setup_minutes"].mean()).round(1)
         prods = pd.DataFrame({
@@ -677,8 +749,15 @@ class AbcCostDistortion(Archetype):
         so = so.assign(created_at=so["ordered_at"])
         money = {c: "BIGINT" for c in ("standard_cost_cents", "list_price_cents", "rm_cost_cents", "dl_cost_cents", "overhead_std_cents", "unit_cost_cents",
                                         "amount_cents", "unit_price_cents", "cost_cents", "hourly_rate_cents")}
-        builder.add_frame("work_centers", wc, primary_key=["work_center_id"], foreign_keys=[], column_types=money,
-                          descriptions={"capacity_hours_per_week": "available hours per week (practical)"})
+        builder.add_frame("work_centers", wc, primary_key=["work_center_id"], foreign_keys=[],
+                          column_types={**money, "crew_shifts_per_day": "INTEGER"},
+                          descriptions={"capacity_hours_per_week": f"available hours per week in {state.periods[-1]} (see shift_calendar for every quarter)",
+                                        "crew_shifts_per_day": f"staffed station-shifts per working day in {state.periods[-1]}"})
+        builder.add_frame("shift_calendar", shifts, primary_key=["work_center_id", "period"], foreign_keys=[("work_center_id", "work_centers", "work_center_id")],
+                          column_types={"working_days": "INTEGER", "crew_shifts_per_day": "INTEGER"},
+                          description="Quarterly staffing plan per work centre (planning re-sets crews every quarter).",
+                          descriptions={"available_hours": "crew_shifts_per_day x hours_per_shift x working_days x availability_pct",
+                                        "availability_pct": "share of staffed hours available after breaks, maintenance and changeover crews"})
         builder.add_frame("products", prods, primary_key=["product_id"], foreign_keys=[], column_types={**money, "annual_volume_plan": "BIGINT"},
                           descriptions={"standard_cost_cents": "RM + direct labour + overhead at the plant-wide DLH rate (last reset before the case period)",
                                         "list_price_cents": "standard cost x family markup"})
@@ -821,27 +900,57 @@ class AbcCostDistortion(Archetype):
 
     # ------------------------------------------------------------------ operations
 
+    def _stations(self, state: WorldState) -> tuple[list[Station], dict[str, float], dict[str, float]]:
+        """Routed work centres in the latest quarter, measured on ``production_log`` and the shift calendar.
+
+        Per centre (flow unit = a work-order visit): ``rho`` = setup + run minutes / available minutes
+(``shift_calendar.available_hours`` of the quarter); ``lambda`` = visits per calendar hour; ``W`` = mean hours from
+        arrival (the previous operation's end + 30 min move, or the release) to the end of the operation; ``L = lambda W``
+        (Little's Law); ``mu = lambda / rho`` (``capacity_per_hour``). ``queueing`` is the constraint's line."""
+        cal = state.calendar
+        log = state.frames["production_log"].sort_values(["work_order_id", "op_seq"], kind="stable")
+        rel = state.frames["work_orders_full"].set_index("work_order_id")["released_at"]
+        prev_end = log.groupby("work_order_id")["end_ts"].shift(1)
+        arrive = (prev_end + pd.Timedelta(minutes=30)).fillna(log["work_order_id"].map(rel))
+        wcal = state.frames["work_centers"].set_index("work_center_id")
+        avail = state.frames["shift_calendar"].set_index(["work_center_id", "period"])["available_hours"]
+        busy = (log["setup_minutes_actual"] + log["run_minutes_actual"]) / 60.0
+        util_by_q: dict[str, float] = {}
+        for per in state.periods:
+            s, e = cal.bounds(per)
+            sel = (log["start_ts"] >= pd.Timestamp(s)) & (log["start_ts"] <= pd.Timestamp(e) + EOD) & (log["work_center_id"] == BOTTLENECK)
+            util_by_q[per] = float(busy[sel].sum() / avail[(BOTTLENECK, per)])
+        s, e = cal.bounds(state.periods[-1])
+        sel = (log["start_ts"] >= pd.Timestamp(s)) & (log["start_ts"] <= pd.Timestamp(e) + EOD)
+        T = ((e - s).days + 1) * 24.0
+        sl = pd.DataFrame({"wc": log["work_center_id"], "busy": busy, "W": (log["end_ts"] - arrive) / pd.Timedelta(hours=1),
+                           "Wq": (log["start_ts"] - arrive) / pd.Timedelta(hours=1)})[sel]
+        stations, rows = [], {}
+        for wcid, r in sl.groupby("wc", sort=True):
+            rho = float(r["busy"].sum() / avail[(wcid, state.periods[-1])])
+            lam = len(r) / T
+            W, Wq = float(r["W"].mean()), float(r["Wq"].mean())
+            rows[wcid] = {"lambda": lam, "mu": lam / rho, "rho": rho, "W": W, "Wq": Wq, "L": lam * W, "Lq": lam * Wq}
+            stations.append(Station(name=str(wcal.loc[wcid, "name"]), capacity_per_hour=lam / rho, utilization=rho, wip=lam * W, cycle_time=W))
+        bn = rows[BOTTLENECK]
+        queueing = {**bn, "throughput_jobs_per_week": bn["lambda"] * 168.0, "total_wip": float(sum(x["L"] for x in rows.values())),
+                    "total_cycle_time": float(sum(x["W"] for x in rows.values()))}
+        return stations, queueing, util_by_q
+
     def build_operations(self, ctx: BuildContext, state: WorldState) -> OperationsState:
         """Work-centre stations (bottleneck = finishing), unit economics by family, KPIs by period."""
         p, cal = state.params, state.calendar
         f = self._facts(state)
-        log = state.frames["production_log"]
-        n_weeks = len(state.extras["months"]) * 4.33
-        load = log.groupby("work_center_id")[["setup_minutes_actual", "run_minutes_actual"]].sum().sum(axis=1) / 60 / n_weeks
-        specs = []
-        for wcid, name in state.frames["work_centers"].itertuples(index=False):
-            cap = max(40.0, float(load.get(wcid, 20.0)) / (0.93 if wcid == BOTTLENECK else 0.7))
-            specs.append({"name": name, "capacity_per_hour": cap / 40.0, "cs": 1.0})
-        lam = float(load.get(BOTTLENECK, 1.0)) / 40.0
-        stations, summary = station_network(lam, specs)
+        stations, queueing, util_by_q = self._stations(state)
         kpis = {}
         for per in state.periods:
             inc = next(i for i in state.statements.income if i.period == per)  # type: ignore[union-attr]
             kpis[per] = {"revenue_cents": float(inc.revenue_cents), "operating_income_cents": float(inc.operating_income_cents),
                          "underabsorbed_overhead_cents": float(f["underabs"][per]), "low_family_revenue_share": float(f["shares"][per]["low"]),
-                         "gross_margin": state.statements.ratios[per]["gross_margin"]}  # type: ignore[union-attr]
+                         "gross_margin": state.statements.ratios[per]["gross_margin"],  # type: ignore[union-attr]
+                         "constraint_utilization": float(util_by_q[per])}
         unit = {"gross_margin": state.statements.ratios[state.periods[-1]]["gross_margin"], "arpa": 0.0, "cac": 0.0, "ltv": 0.0, "payback_months": 0.0, "churn_monthly": 0.0}  # type: ignore[union-attr]
-        return build_operations_state(stations=stations, queueing={"throughput": summary["throughput"]}, unit_economics=unit,
+        return build_operations_state(stations=stations, queueing=queueing, unit_economics=unit,
                                       supply_chain={"lot_sizes_by_family": {k: int(v) for k, v in state.extras["products"].groupby("family_key")["lot_size"].mean().round().items()}},
                                       pricing={"markup_by_family": {"high": p["markup"] + 0.05, "mid": p["markup"] + 0.15, "low": p["markup"] + 0.25},
                                                "elasticity": {"low": p["elasticity_low"], "high": p["elasticity_high"]}},
@@ -985,11 +1094,14 @@ SELECT p.family, SUM(so.revenue - p.rm_cost_cents * so.units) * 1.0 / SUM(so.uni
 FROM so JOIN products p USING (product_id) JOIN bn USING (product_id) GROUP BY 1 ORDER BY 2 DESC"""
             q_tp = run_reference_query(con, "throughput_per_bottleneck_minute", sql_tp, signature=["with", "join", "group by", "sum("],
                                        metric_keys=["throughput_per_bottleneck_min_low_cents"], checks=lambda df: {"best_family": str(df.iloc[0]["family"])})
-            sql_load = """
-SELECT l.work_center_id, w.name, SUM(l.setup_minutes_actual + l.run_minutes_actual) / 60.0 AS hours,
-       SUM(l.setup_minutes_actual + l.run_minutes_actual) / 60.0 / MAX(w.capacity_hours_per_week) AS weeks_of_capacity_used
-FROM production_log l JOIN work_centers w USING (work_center_id) GROUP BY 1, 2 ORDER BY weeks_of_capacity_used DESC"""
-            q_load = run_reference_query(con, "work_center_load", sql_load, signature=["join", "group by", "sum("], metric_keys=["throughput_per_bottleneck_min_low_cents"],
+            sql_load = f"""
+WITH load AS (
+  SELECT work_center_id, period_of(start_ts) AS period, SUM(setup_minutes_actual + run_minutes_actual) / 60.0 AS hours
+  FROM production_log GROUP BY 1, 2)
+SELECT l.work_center_id, w.name, l.hours, c.available_hours, l.hours / c.available_hours AS utilization
+FROM load l JOIN shift_calendar c USING (work_center_id, period) JOIN work_centers w USING (work_center_id)
+WHERE l.period = '{P[-1]}' ORDER BY utilization DESC"""
+            q_load = run_reference_query(con, "work_center_load", sql_load, signature=["with", "join", "group by", "sum("], metric_keys=["throughput_per_bottleneck_min_low_cents"],
                                          checks=lambda df: {"most_loaded": str(df.iloc[0]["work_center_id"])})
             anomalies["A3"] = anomalies["A3"].model_copy(update={
                 "reference_sql": [q_tp, q_load],

@@ -1,7 +1,8 @@
 """``forensic_revenue`` - "Quarter-End Magic" (archetypes.md section 4).
 
 A B2B goods company (a manufacturer, or the wholesale channel of an e-commerce brand) sells to
-small direct accounts (paid by card at checkout) and to 8-25 wholesale distributors on net terms.
+8-25 wholesale distributors on net-45 terms (62-72% of revenue) and to a minority of small direct
+accounts paid by card at checkout, so baseline DSO is ~35 days (review P1 #16).
 Management raised guidance; organic growth is 2-5% a quarter. From the last quarters revenue is
 pulled forward with one of the forensic_patterns.json mechanisms, so the "record quarter" is
 partly borrowed from the next one.
@@ -12,7 +13,7 @@ Mechanics (ordinary journal families; every invariant holds)
   Beneish indices exist for a clean comparison quarter (``P6`` vs ``P2``) as well as for ``P7``/``P8``.
 * Revenue is recognised at shipment: ``invoice_date = ship date`` (``sale_credit`` Dr 1100 / Cr 4000),
   ``cogs_relief`` at shipment, freight accrued (5030 / 2100). Direct invoices are paid the same day by
-  card (2.5% fee to 5050); wholesale invoices on net-30/45 plus a payment delay.
+  card (2.5% fee to 5050); wholesale invoices on net-45 plus a payment delay.
 * Intra-quarter timing: invoice dates are drawn with a weight on the last 7 calendar days (5 business
   days) of every quarter so their baseline share is ``U(0.10, 0.14)`` of quarterly revenue.
 * Returns: ``return_rate_base`` of orders return 20-40 days after shipment (a share of the order);
@@ -38,6 +39,10 @@ Anomalies (mechanism is a seeded choice; principal mixes two plus round-tripping
 * ``round_tripping`` (principal, P5-P8): a "distributor" and a supplier share a tax id / address
   (dirt: case and whitespace); each month the company buys from the supplier and sells the same
   goods to the customer at ~1% margin, ``U(1, 2)%`` of revenue.
+* Slow pay (all mechanisms): the distributors that took pulled-forward orders sit on extra stock (or on
+  goods they never received) and pay their regular invoices due from P7 on ``slow_pay_days`` (15-25) late,
+  so DSO climbs from ~35 to ~55 days by P8; the DSRI and the Beneish M-score of the anomalous quarters
+  clear their thresholds while the clean comparison quarter stays below -1.78.
 * ``understated_allowance`` (all difficulties): from the first anomalous quarter the allowance for
   doubtful accounts is held flat in dollars while receivables balloon (secondary signal).
 * Designed sub-ledger break: ``revenue_vs_shipments`` - invoices recognised in a period whose goods
@@ -198,8 +203,8 @@ class ForensicRevenue(Archetype):
             "gm": float(np.clip(band("gross_margin", 0.4, 0.7), 0.30, 0.42) if ind == "manufacturing" else np.clip(band("gross_margin", 0.3, 0.6), 0.38, 0.52)),
             "growth_qoq": float(rng.uniform(0.02, 0.05)),
             "guidance_qoq": float(rng.uniform(0.06, 0.09)),
-            "direct_share": float(rng.uniform(0.50, 0.60)),
-            "wholesale_terms": 30,
+            "direct_share": float(rng.uniform(0.28, 0.38)),  # review P1 #16: card-paying direct accounts are a minority
+            "wholesale_terms": 45,  # distributors on net-45: baseline DSO ~35 days
             "dating_extra": int(rng.integers(30, 61)),
             "mechanisms": mechs,
             "stuffing_pct": stuffing,
@@ -229,6 +234,7 @@ class ForensicRevenue(Archetype):
             "inventory_cap_months": float(rng.uniform(2.0, 3.0)),
             "n_red_herrings": difficulty_pick(difficulty, 1, 2, 3),
             "difficulty": difficulty,
+            "slow_pay_days": int(rng.integers(15, 26)),  # extra days the over-stocked distributors take to pay from P7
         }
         p["n_products"] = difficulty_pick(difficulty, 24, 40, 60)
         p["n_suppliers"] = difficulty_pick(difficulty, 6, 9, 12)
@@ -601,6 +607,16 @@ class ForensicRevenue(Archetype):
         channel = plan["channel"].to_numpy()
         terms = plan["terms_days"].to_numpy().astype(np.int64)
         delay = np.where(channel == "direct", 0, np.maximum(-3, np.round(g.normal(3, 4, N))))
+        # review P1 #16: distributors that took the pulled-forward orders sit on extra stock (or on goods they never
+        # received) and slow-pay their regular invoices due from P7 on, so DSO climbs from ~35 to ~55 days
+        gs = ctx.rng.spawn("slow_pay").generator
+        pulled_plan = plan["pulled"].to_numpy(dtype=bool)
+        slow_cust = np.isin(plan["customer_idx"].to_numpy(), np.unique(plan["customer_idx"].to_numpy()[pulled_plan]))
+        due = inv_date + pd.to_timedelta(terms, unit="D")
+        slow = slow_cust & ~pulled_plan & (channel == "wholesale") & (plan["kind"] != "round_trip").to_numpy() \
+            & (due >= pd.Timestamp(cal.bounds(state.periods[6])[0])).to_numpy()
+        delay = delay + np.where(slow, gs.integers(p["slow_pay_days"] - 7, p["slow_pay_days"] + 8, N), 0)
+        state.extras["slow_pay_invoices"] = int(slow.sum())
         pay_ts = inv_date + pd.to_timedelta(terms + delay, unit="D") + pd.to_timedelta(g.integers(9 * 3600, 17 * 3600, N), unit="s")
         pay_ts = pay_ts.where(channel != "direct", ship_ts.fillna(inv_date) + pd.Timedelta(minutes=5))
         # --- returns

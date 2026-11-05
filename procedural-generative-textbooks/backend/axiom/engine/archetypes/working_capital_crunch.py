@@ -111,6 +111,24 @@ def _month_index(ts: pd.Series, start: dt.date) -> np.ndarray:
     return ((t.dt.year - start.year) * 12 + (t.dt.month - start.month)).to_numpy()
 
 
+# review P2 #26: order-to-cash (and procure-to-pay) process map for the data room; every label quoted (Mermaid 11)
+ORDER_TO_CASH_MERMAID = "\n".join([
+    "flowchart LR",
+    '  ORD["Customer order (orders, order_items)"] --> CRD{"Credit limit and terms (customers)"}',
+    '  CRD -->|"approved"| SHP["Pick, pack and ship (shipments)"]',
+    '  SHP --> INV["Invoice at shipment (invoices)"]',
+    '  INV --> AR["Accounts receivable (GL 1100)"]',
+    '  AR -->|"due date = invoice date + terms_days"| PAY["Customer payment (payments)"]',
+    '  PAY --> CASH["Cash (GL 1000)"]',
+    '  PO["Replenishment purchase orders (purchase_orders)"] --> STK["Inventory (inventory_movements, GL 1220)"]',
+    '  STK --> SHP',
+    '  PO --> AP["Accounts payable (GL 2000)"]',
+    '  AP -->|"supplier payment_terms_days"| CASH',
+    '  RCF["Revolving credit line (GL 2500)"] -->|"draws"| CASH',
+    '  CASH -->|"repayments"| RCF',
+])
+
+
 @register
 class WorkingCapitalCrunch(Archetype):
     """Profitable and Broke: growth-funded working capital, terms creep and an over-forecast."""
@@ -122,7 +140,8 @@ class WorkingCapitalCrunch(Archetype):
     schema_template = "ecommerce_oms"
     summary = ("A fast-growing goods company posts record revenue and rising profits while its cash drains into "
                "receivables and inventory; the revolver is maxed and a covenant test looms.")
-    root_cause_terms = ("cash conversion cycle", "payment terms", "over-forecast", "excess inventory")
+    # review P2 #25: conceal the *finding* (the cycle lengthened, terms were extended), not the vocabulary a CFO uses
+    root_cause_terms = ("cash conversion cycle lengthened", "payment terms", "over-forecast", "excess inventory")
     stage_options = ("growth",)  # the narrative is a growth story
 
     # ------------------------------------------------------------------ params
@@ -1202,8 +1221,11 @@ FROM purchase_orders WHERE paid_at IS NOT NULL OR status = 'on_hold' GROUP BY 1 
         ]
         if p["decoy_capex_pct"]:
             reveal.append(f"New warehouse racking was installed in {P[6]}.")
+        ccc_delta = f["ratios"][P[7]]["ccc"] - f["ratios"][P[4]]["ccc"]
+        new_terms = int(p["terms_days_base"] + round(p["dso_drift"] / 5) * 5)
         conceal = [
-            "cash conversion cycle", "extended payment terms for the largest customers (payment terms creep)",
+            f"the cash conversion cycle lengthened {ccc_delta:.0f} days ({P[4]} -> {P[7]})", f"CCC lengthened {ccc_delta:.0f} days",
+            f"terms extended to {new_terms} days for top accounts (payment terms creep from net-{p['terms_days_base']})",
             "the over-forecast purchasing rule", "covenant status and covenant test results",
             "excess inventory value", "A1", "A2", "A3", "A4",
         ]
@@ -1231,8 +1253,9 @@ FROM purchase_orders WHERE paid_at IS NOT NULL OR status = 'on_hold' GROUP BY 1 
             tl.append(TimelineEvent(period=P[7], headline="Two suppliers move us to prepayment", detail="Supplier relations escalate."))
         tl.sort(key=lambda e: e.period)
         return DossierSeed(reveal=reveal, conceal=conceal, stakeholders=stakeholders, timeline=tl,
-                           artifacts=["board_deck_excerpt", "bank_covenant_letter_excerpt", "supplier_email", "ar_aging_export"],
-                           architecture_mermaid=None)
+                           artifacts=["board_deck_excerpt", "bank_covenant_letter_excerpt", "supplier_email", "ar_aging_export",
+                                      "order_to_cash_process_map"],
+                           architecture_mermaid=ORDER_TO_CASH_MERMAID)
 
     # ------------------------------------------------------------------ simulation
 

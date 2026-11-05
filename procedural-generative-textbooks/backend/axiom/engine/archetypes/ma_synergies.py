@@ -18,13 +18,19 @@ Mechanics
 * **Deal** (``deal_assumptions``, ``deal_model``, ``purchase_price_allocation``): standalone DCF of the
   target = 5-year FCF (revenue growing from ``target_growth`` linearly down to ``terminal_growth``,
   FCF margin from the target's TTM operating margin to 22% by year 5, after tax) + Gordon terminal
-  value at ``wacc``; claimed synergies = cost ``U(12, 20)%`` of target opex + revenue ``U(8, 15)%`` of
+  value at ``wacc``; claimed synergies = cost (10-35% of target opex) + revenue ``U(8, 15)%`` of
   target revenue at 70% contribution, ramp 25/50/75/100% over four quarters, less a planned
-  integration cost of ``U(1.0, 1.2)x`` the annual cost run-rate; ``premium = PV(claimed) x U(0.9, 1.1)``,
-  ``price = standalone + premium``. Purchase accounting at the last day of P6: Dr 1100 acquired AR,
-  Dr 1500 PPE, Dr 1710 customer relationships ``U(25, 35)%`` + developed technology ``U(10, 15)%`` of price,
-  Dr 1700 goodwill (plug); Cr 2200 acquired contract liabilities, Cr 1000 cash portion ``U(50, 70)%``,
-  Cr 2610 acquisition debt. Intangibles amortise over 7 / 5 years from P7 (6310 / 1720).
+  integration cost of ``U(1.0, 1.2)x`` the annual cost run-rate; ``premium = PV(claimed) x factor``
+  (``U(0.9, 1.1)``), ``price = standalone + premium``. Review P1 #10: the claimed cost synergy (then the
+  factor within 0.6-1.35, then the goodwill share of the price within 0.33-0.75) is sized so the P8
+  impairment exposure is ``impairment_share_target`` (25-45% of goodwill by difficulty; see ``_set_price``).
+  Purchase accounting at the last day of P6: Dr 1100 acquired AR, Dr 1500 PPE, Dr 1710 customer
+  relationships + developed technology (~70/30, ``U(35, 50)%`` of price before sizing), Dr 1700 goodwill
+  (plug); Cr 2200 acquired contract liabilities, Cr 2610 acquisition term debt (``U(30, 40)%`` of the
+  price, ~3x combined EBITDA), Cr 1000 the cash consideration. The acquirer holds ~2-2.5 quarters of
+  revenue in cash before the deal; the cash consideration uses what is above a ~one-quarter reserve and
+  a follow-on equity offering on the close date funds the rest (Dr 1000 / Cr 3000). Intangibles amortise
+  over 7 / 5 years from P7 (6310 / 1720).
 
 Anomalies (the books are right; the break is between the deal model and the realised data)
 -------------------------------------------------------------------------------------------
@@ -130,6 +136,12 @@ def dcf_value(rev0: float, g1: float, gt: float, m0: float, m_lr: float, tax: fl
     return {"value": pv + pv_tv, "pv_fcf": pv, "pv_terminal": pv_tv, "years": years}
 
 
+def _a1_mechanism(p: dict[str, Any]) -> str:
+    return (f"Target opex after close = standalone budget - achievable run-rate x ramp; achievable = "
+            f"{p['cost_synergy_achievable_mult']:.0%} of the claimed {p['cost_synergy_claimed_pct']:.0%} of target opex. Integration "
+            f"costs run at {p['integration_overrun']:.1f}x plan (Dr 6200 / Cr 2100) and are presented as non-recurring.")
+
+
 def synergy_pv(cost_rr: float, rev_rr: float, integration: float, tax: float, wacc: float, gt: float, *, dis_rr: float = 0.0) -> float:
     """PV of synergies: annual cost run-rate + revenue run-rate x contribution margin - dis-synergy, ramped
     25/50/75/100% over the first four quarters (year 1 = 62.5%), after tax, 5 years + Gordon terminal value;
@@ -186,7 +198,7 @@ class MaSynergies(Archetype):
             "integration_overrun": float(rng.uniform(1.1, 1.4)),
             "cust_rel_pct": float(rng.uniform(0.25, 0.35)),
             "tech_pct": float(rng.uniform(0.10, 0.15)),
-            "cash_portion": float(rng.uniform(0.5, 0.7)),
+            "debt_share": float(rng.uniform(0.30, 0.40)),  # acquisition term debt as a share of the price (~3x combined EBITDA)
             "target_margin": float(rng.uniform(-0.12, 0.04)),
             "acquirer_margin": float(rng.uniform(0.08, 0.16)),
             "gm": float(rng.uniform(0.74, 0.82)),
@@ -197,11 +209,15 @@ class MaSynergies(Archetype):
             "services_mislabelled_pct": float(rng.uniform(0.05, 0.10)),
             "n_red_herrings": difficulty_pick(difficulty, 1, 2, 3),
             "difficulty": difficulty,
+            # review P1 #10: the premium is scaled so the P8 impairment exposure is 25-45% of goodwill (critical, not egregious)
+            "impairment_share_target": magnitude(rng, difficulty, 0.25, 0.45),
+            "cash_open_quarters": float(rng.uniform(2.1, 2.7)),  # operating cash ~2-3 quarters of revenue before the deal
+            "cash_reserve_quarters": float(rng.uniform(0.8, 1.1)),  # cash kept on hand after paying the cash consideration
         }
         p["n_acquirer_customers"] = difficulty_pick(difficulty, 230, 560, 2000)
         p["n_target_customers"] = max(40, int(p["n_acquirer_customers"] * difficulty_pick(difficulty, 0.35, 0.35, 0.35)))
         p["description"] = ("B2B SaaS company; acquired a smaller SaaS company at the end of the sixth quarter of the case window, "
-                            "financed with cash and acquisition debt.")
+                            "financed with cash on hand, acquisition debt and a follow-on equity offering.")
         return p
 
     # ------------------------------------------------------------------ helpers: subscription book
@@ -333,9 +349,7 @@ class MaSynergies(Archetype):
                              "t_rev_annual_close": t_rev_annual, "claimed_rev_rr": claimed_rev_rr, "ach_rev_rr": ach_rev_rr})
         anomalies = [
             Anomaly(id="A1", kind="synergy_shortfall", pillar="operations_strategy", title="Cost synergies arrive late and short",
-                    mechanism=(f"Target opex after close = standalone budget - achievable run-rate x ramp; achievable = "
-                               f"{p['cost_synergy_achievable_mult']:.0%} of the claimed {p['cost_synergy_claimed_pct']:.0%} of target opex. Integration "
-                               f"costs run at {p['integration_overrun']:.1f}x plan (Dr 6200 / Cr 2100) and are presented as non-recurring."),
+                    mechanism=_a1_mechanism(p),
                     periods=[P[6], P[7]], affected_accounts=["6000", "6100", "6200"], affected_tables=["opex_by_dept", "deal_model", "gl_lines"],
                     magnitude={"cost_synergy_achievable_mult": round(p["cost_synergy_achievable_mult"], 6),
                                "integration_overrun": round(p["integration_overrun"], 6)}, severity="high"),
@@ -409,14 +423,86 @@ class MaSynergies(Archetype):
         integ_plan = p["integration_plan_mult"] * cost_claimed
         pv_claimed = synergy_pv(cost_claimed, rev_claimed, integ_plan, tax, wacc, gt)
         pv_claimed_gross = synergy_pv(cost_claimed, rev_claimed, 0.0, tax, wacc, gt)
-        premium = pv_claimed * p["premium_factor"]
-        price = int(round((standalone["value"] + premium) / 100_000)) * 100_000
         d = {"rev0": rev0, "opex0": opex0, "m0": m0, "standalone": standalone, "cost_claimed": cost_claimed, "rev_claimed": rev_claimed,
-             "integ_plan": integ_plan, "pv_claimed": pv_claimed, "pv_claimed_gross": pv_claimed_gross, "premium": premium, "price": price,
-             "premium_pct": premium / standalone["value"], "cost_ach": cost_claimed * p["cost_synergy_achievable_mult"],
-             "integ_actual": integ_plan * p["integration_overrun"]}
+             "integ_plan": integ_plan, "pv_claimed": pv_claimed, "pv_claimed_gross": pv_claimed_gross,
+             "cost_ach": cost_claimed * p["cost_synergy_achievable_mult"], "integ_actual": integ_plan * p["integration_overrun"]}
         state.extras["deal"] = d
         return d
+
+    def _implied_fv(self, state: WorldState) -> dict[str, float]:
+        """ASC 350 test at P8: DCF on the P8 TTM revenue with the re-based growth + PV of the achievable synergies still to come.
+
+        The re-based year-1 growth is management's re-forecast: the midpoint of the deal-case growth and the realised
+        post-close run-rate (``P7-P8`` vs ``P5-P6`` revenue, annualised), floored at terminal growth."""
+        p, P = state.params, state.periods
+        deal = self._deal(state)
+        tf = self._target_financials(state).set_index("period")
+        tax, wacc, gt = p["tax_rate"], p["wacc"], p["terminal_growth"]
+        t_cust = state.extras["t_cust"]
+        churn_arr = float(t_cust.loc[state.extras["churned"], "mrr_cents"].sum() * 12)
+        ach_rev = state.extras["ach_rev_rr"] * 100
+        ttm8 = float(tf.loc[P[4:8], "revenue_cents"].sum())
+        opex8 = float(tf.loc[P[4:8], "standalone_opex_cents"].sum())
+        m8 = float((ttm8 - tf.loc[P[4:8], "cogs_cents"].sum() - opex8) / ttm8)
+        h_pre = float(tf.loc[P[4:6], "revenue_cents"].sum())
+        h_post = float(tf.loc[P[6:8], "revenue_cents"].sum())
+        g_real = float(np.clip((h_post / h_pre) ** 2 - 1, -0.2, p["target_growth"])) if h_pre else 0.0  # post-close half vs pre-close half, annualised
+        g_test = float(np.clip((g_real + p["target_growth"]) / 2, gt, p["target_growth"]))
+        fv_stand = dcf_value(ttm8, g_test, gt, m8, LONG_RUN_FCF_MARGIN, tax, wacc)["value"]
+        fv = fv_stand + synergy_pv(deal["cost_ach"], ach_rev, deal["integ_actual"] * 0.4, tax, wacc, gt, dis_rr=churn_arr * CONTRIBUTION_MARGIN)
+        return {"fv": fv, "fv_stand": fv_stand, "g_real": g_real, "g_test": g_test, "churn_arr": churn_arr, "ach_rev": ach_rev}
+
+    def _set_price(self, state: WorldState, net_tangible: int) -> int:
+        """Size the deal (review P1 #10) so the P8 impairment exposure is ``impairment_share_target`` (``s``) of goodwill.
+
+        With identified intangibles at ``c + t`` of the price, amortised for the six post-close months (share ``a``),
+        the carrying amount at P8 (goodwill + intangibles net + acquired net tangible assets) is ``price (1 - a)`` and
+        goodwill ``price k - NTA`` with ``k = 1 - c - t``; exposure share = ``(price (1 - a) - FV) / (price k - NTA)``.
+        The premium stays the bid on the synergy case (``premium = PV(claimed) x premium_factor``), so the model first
+        sizes the *claimed cost synergies* (10-35% of target opex; the claimed revenue synergy is fixed by the data);
+        only if that range cannot reach ``s`` does the premium factor move (0.60-1.35x PV(claimed)), then the PPA's
+        goodwill share of the price (``k`` in 0.33-0.75)."""
+        p = state.params
+        s, c0, t0 = p["impairment_share_target"], p["cust_rel_pct"], p["tech_pct"]
+        n_post = len(state.extras["months"]) - state.extras["close_m"]
+
+        def evaluate(x: float, phi: float, k: float) -> tuple[float, int, float, float]:
+            p["cost_synergy_claimed_pct"] = x
+            state.extras.pop("deal", None)
+            deal = self._deal(state)
+            fv = self._implied_fv(state)["fv"]
+            price = int(round((deal["standalone"]["value"] + phi * deal["pv_claimed"]) / 100_000)) * 100_000
+            a = n_post * (c0 / 84 + t0 / 60) * (1 - k) / (c0 + t0)
+            share = max(0.0, price * (1 - a) - fv) / max(1.0, price * k - net_tangible)
+            return share, price, fv, a
+
+        def solve(lo: float, hi: float, fn: Any) -> float:
+            if fn(hi) < s:
+                return hi
+            if fn(lo) > s:
+                return lo
+            for _ in range(40):
+                mid = (lo + hi) / 2
+                lo, hi = (mid, hi) if fn(mid) < s else (lo, mid)
+            return (lo + hi) / 2
+
+        phi, k = p["premium_factor"], 1 - c0 - t0
+        x = solve(0.10, 0.35, lambda v: evaluate(v, phi, k)[0])
+        if x >= 0.35 or x <= 0.10:
+            phi = solve(0.60, 1.35, lambda v: evaluate(x, v, k)[0])
+        share, price, fv, a = evaluate(x, phi, k)
+        if abs(share - s) > 1e-3:  # last resort: the goodwill share of the price
+            k = float(np.clip((max(0.0, price * (1 - a) - fv) / s + net_tangible) / price, 0.33, 0.75))
+            share, price, fv, a = evaluate(x, phi, k)
+        deal = self._deal(state)
+        sa, pv = deal["standalone"]["value"], deal["pv_claimed"]
+        premium = price - sa
+        deal.update({"price": price, "premium": premium, "premium_pct": premium / sa, "premium_factor": premium / pv,
+                     "cust_rel_pct": c0 * (1 - k) / (c0 + t0), "tech_pct": t0 * (1 - k) / (c0 + t0)})
+        for i, an in enumerate(state.anomalies):
+            if an.id == "A1":
+                state.anomalies[i] = an.model_copy(update={"mechanism": _a1_mechanism(p)})
+        return price
 
     # ------------------------------------------------------------------ ledger
 
@@ -477,20 +563,25 @@ class MaSynergies(Archetype):
         t_open_close = int(t_inv.loc[pre & (t_inv["paid_at"].isna() | (t_inv["paid_at"] > pd.Timestamp(close_date) + EOD)), "amount_cents"].sum())
         t_def_close = int(t_sch[(t_sch["row"].isin(np.flatnonzero(pre))) & (t_sch["m"] >= close_m)]["cents"].sum())
         ppe_t = cents(deal["rev0"] * 0.04)
-        price = deal["price"]
-        cust_rel = cents(price * p["cust_rel_pct"])
-        tech = cents(price * p["tech_pct"])
+        price = self._set_price(state, t_open_close + ppe_t - t_def_close)
+        deal = self._deal(state)  # re-sized claimed cost synergies
+        cust_rel = cents(price * deal["cust_rel_pct"])
+        tech = cents(price * deal["tech_pct"])
         net_tangible = t_open_close + ppe_t - t_def_close
         goodwill = price - cust_rel - tech - net_tangible
-        cash_paid = int(round(price * p["cash_portion"] / 100_000)) * 100_000
-        acq_debt = price - cash_paid
+        # financing (review P1 #10): acquisition term debt at ``debt_share`` of the price, cash on hand above a reserve of
+        # ~one quarter of revenue, and an equity raise priced with the deal for the rest (sized on the close date below)
+        acq_debt = int(round(price * p["debt_share"] / 100_000)) * 100_000
+        cash_paid = price - acq_debt
+        fund: dict[str, int] = {}
         state.extras["ppa"] = {"price": price, "ar": t_open_close, "deferred_revenue": t_def_close, "ppe": ppe_t, "customer_relationships": cust_rel,
                                "developed_technology": tech, "goodwill": goodwill, "cash_paid": cash_paid, "acquisition_debt": acq_debt}
-        # --- opening balances: acquirer with a war chest for the cash portion
+        # --- opening balances: operating cash of ~2-2.5 quarters of revenue (no war chest sitting idle for six quarters)
         R = p["revenue_ttm_cents"]
         ppe = cents(R * 0.05)
         accdep = cents(ppe * 0.4)
-        cash0 = cents(R * 0.25) + cash_paid
+        q_rev = a_sch.groupby("m")["cents"].sum().reindex(range(n_m), fill_value=0).to_numpy()
+        cash0 = cents(q_rev[:3].sum() * p["cash_open_quarters"])
         net = cash0 + ppe - accdep
         cs = cents(0.7 * net)
         L.open_books(cal.opening_date, {"1000": cash0, "1500": ppe, "1510": -accdep, "3000": -cs, "3100": -(net - cs)})
@@ -571,18 +662,28 @@ class MaSynergies(Archetype):
 
                 events.append((me, 11, tax))
             prev = {"payroll": payroll, "opex": other + cogs + integ}
-        # purchase accounting on the close date
+        # purchase accounting on the close date, funded by cash on hand, the term loan and an equity raise
         pa = state.extras["ppa"]
         dim = {"deal": "target_acquisition"}
         lines = [("1100", pa["ar"], 0, dim), ("1500", pa["ppe"], 0, dim), ("1710", pa["customer_relationships"] + pa["developed_technology"], 0, dim),
                  ("1700", pa["goodwill"], 0, dim), ("2200", 0, pa["deferred_revenue"], dim), ("1000", 0, pa["cash_paid"], dim), ("2610", 0, pa["acquisition_debt"], dim)]
-        events.append((close_date, 12, lambda d, ln=lines: L.adjust(d, ln, "Acquisition of target: purchase price allocation (ASC 805)", "acquisition")))
+
+        def close_deal(d: dt.date, ln: list[Any] = lines) -> None:
+            on_hand = L.closing_balances()["1000"]
+            reserve = cents(q_rev[close_m - 3: close_m].sum() * p["cash_reserve_quarters"])
+            equity = max(0, int(math.ceil((pa["cash_paid"] - max(0, on_hand - reserve)) / 100_000)) * 100_000)
+            fund.update({"pre_deal_cash": int(on_hand), "equity_raise": equity, "cash_on_hand_used": pa["cash_paid"] - equity})
+            L.equity_raise(d, equity, memo="Follow-on equity offering to fund the acquisition")
+            L.adjust(d, ln, "Acquisition of target: purchase price allocation (ASC 805)", "acquisition")
+
+        events.append((close_date, 12, close_deal))
         events.sort(key=lambda e: (e[0], e[1]))
         for d, _prio, fn in events:
             if d <= end_date:
                 fn(d)
         state.extras["realized_syn_m"] = realized_syn
         state.extras["integ_m"] = integ_m
+        state.extras["ppa"].update(fund)
 
     # ------------------------------------------------------------------ tables
 
@@ -685,7 +786,8 @@ class MaSynergies(Archetype):
         ppa = pd.DataFrame([("purchase_price", pa["price"]), ("acquired_receivables", pa["ar"]), ("acquired_ppe", pa["ppe"]),
                             ("assumed_contract_liabilities", -pa["deferred_revenue"]), ("customer_relationships_7y", pa["customer_relationships"]),
                             ("developed_technology_5y", pa["developed_technology"]), ("goodwill", pa["goodwill"]), ("cash_paid", pa["cash_paid"]),
-                            ("acquisition_debt", pa["acquisition_debt"])], columns=["line", "amount_cents"])
+                            ("acquisition_debt", pa["acquisition_debt"]), ("equity_raise", pa["equity_raise"]),
+                            ("cash_on_hand_used", pa["cash_on_hand_used"])], columns=["line", "amount_cents"])
         dirt_plan = [
             ("customers", "case_mixed:billing_email"), ("target_customers", "whitespace:billing_email"),
             ("payments", "tz_mixed:paid_at"), ("target_subscriptions", "nulls:plan_id:0.04"),
@@ -764,7 +866,6 @@ class MaSynergies(Archetype):
         P = state.periods
         deal = self._deal(state)
         t_cust = state.extras["t_cust"]
-        tf = self._target_financials(state).set_index("period")
         tax, wacc, gt = p["tax_rate"], p["wacc"], p["terminal_growth"]
         churned = state.extras["churned"]
         churn_arr = float(t_cust.loc[churned, "mrr_cents"].sum() * 12)
@@ -778,16 +879,9 @@ class MaSynergies(Archetype):
         m8 = range(3 * (n_w + 7), 3 * (n_w + 8))
         plan8 = deal["cost_claimed"] / 4 * RAMP[1]
         act8 = sum(rs.get(m, 0) for m in m8)
-        # impairment test at P8: implied fair value = DCF on the P8 TTM revenue (after churn) + PV of achievable synergies (remaining)
-        ttm8 = float(tf.loc[P[4:8], "revenue_cents"].sum())
-        opex8 = float(tf.loc[P[4:8], "standalone_opex_cents"].sum())
-        m8 = float((ttm8 - tf.loc[P[4:8], "cogs_cents"].sum() - opex8) / ttm8)
-        h_pre = float(tf.loc[P[4:6], "revenue_cents"].sum())
-        h_post = float(tf.loc[P[6:8], "revenue_cents"].sum())
-        g_real = float(np.clip((h_post / h_pre) ** 2 - 1, -0.2, p["target_growth"])) if h_pre else 0.0  # post-close half vs pre-close half, annualised
-        g_test = float(np.clip(g_real, gt, p["target_growth"]))  # projections re-based on the realised post-close trajectory
-        fv_stand = dcf_value(ttm8, g_test, gt, m8, LONG_RUN_FCF_MARGIN, tax, wacc)["value"]
-        fv = fv_stand + synergy_pv(deal["cost_ach"], ach_rev, deal["integ_actual"] * 0.4, tax, wacc, gt, dis_rr=churn_arr * CONTRIBUTION_MARGIN)
+        # impairment test at P8: implied fair value = DCF on the P8 TTM revenue (re-based growth) + PV of achievable synergies (remaining)
+        ifv = self._implied_fv(state)
+        fv, g_real, g_test = ifv["fv"], ifv["g_real"], ifv["g_test"]
         tb8 = state.ledger.trial_balance(P[-1])
         pa = state.extras["ppa"]
         carrying = tb8["1700"] + tb8["1710"] + tb8["1720"] + pa["ar"] + pa["ppe"] - pa["deferred_revenue"]
@@ -796,7 +890,7 @@ class MaSynergies(Archetype):
         f = {"standalone": standalone, "pv_claimed": deal["pv_claimed"], "pv_ach": pv_ach, "npv_claimed": standalone + deal["pv_claimed"] - price,
              "npv_ach": standalone + pv_ach - price, "realized_pct_plan": act8 / plan8 if plan8 else 0.0, "churn_arr": churn_arr,
              "goodwill": float(tb8["1700"]), "impairment": impairment, "implied_fv": fv, "carrying": float(carrying), "breakeven": breakeven,
-             "premium_pct": deal["premium_pct"], "price": price, "act8": act8, "plan8": plan8, "g_real": g_real, "g_test": g_test}
+             "premium_pct": deal["premium_pct"], "premium": deal["premium"], "price": price, "act8": act8, "plan8": plan8, "g_real": g_real, "g_test": g_test}
         if p["rev_quality_issue"]:
             close_m = state.extras["close_m"]
             alive = (t_cust["start"] < close_m) & ((t_cust["end"] > close_m) | t_cust.index.isin(churned))
@@ -804,6 +898,18 @@ class MaSynergies(Archetype):
             f["arr_overstated"] = float(t_cust.loc[alive & t_cust["services_mislabelled"], "mrr_cents"].sum() * 12) / stated
         state.extras["facts"] = f
         return f
+
+    def _close_leverage(self, state: WorldState) -> float:
+        """Acquisition debt / combined TTM EBITDA at close (acquirer P3-P6 operating income + D&A, target TTM operating profit)."""
+        P = state.periods
+        L = state.ledger
+        acq = 0
+        for per in P[2:6]:
+            act = L.activity(per)
+            acq += -sum(v for c, v in act.items() if c[0] in "456") + act["6300"] + act["6310"]
+        deal = self._deal(state)
+        ebitda = acq + deal["rev0"] * deal["m0"]
+        return float(state.extras["ppa"]["acquisition_debt"] / ebitda) if ebitda > 0 else 0.0
 
     # ------------------------------------------------------------------ operations
 
@@ -856,8 +962,9 @@ class MaSynergies(Archetype):
                    pillar="accounting_finance", tol_abs=1.0, label="Goodwill"),
             metric("goodwill_impairment_cents", f["impairment"], "cents",
                    f"max(0, carrying amount of the acquired unit at {P[-1]} (goodwill + intangibles net + acquired net tangible assets) - implied fair value), "
-                   f"capped at goodwill. Implied fair value = DCF on the target's TTM revenue at {P[-1]} with year-1 growth re-based on the realised "
-                   f"post-close run-rate ({P[6]}-{P[7]} vs {P[4]}-{P[5]} revenue, annualised: {f['g_real']:.1%}, floored at terminal growth, capped at the plan's {p['target_growth']:.1%}) "
+                   f"capped at goodwill. Implied fair value = DCF on the target's TTM revenue at {P[-1]} with year-1 growth re-based to the midpoint of the "
+                   f"plan's {p['target_growth']:.1%} and the realised post-close run-rate ({P[6]}-{P[7]} vs {P[4]}-{P[5]} revenue, annualised: {f['g_real']:.1%}), "
+                   f"i.e. {f['g_test']:.1%}, floored at terminal growth "
                    "+ PV of achievable synergies (remaining integration cost).",
                    pillar="accounting_finance", tol_rel=0.15,
                    label="Goodwill impairment exposure"),
@@ -956,8 +1063,8 @@ FROM target_invoice_lines tl JOIN target_invoices i USING (invoice_id) GROUP BY 
             "Goodwill is fine because the auditors signed off last quarter - impairment testing is annual or triggered, and the shortfall is a trigger now.",
         ]
         herrings = herrings_all[: p["n_red_herrings"]]
-        root = (f"The purchase premium ({f['premium_pct']:.0%} of a {f['standalone'] / 100:,.0f} USD standalone value) is essentially the PV of the claimed "
-                f"synergies ({f['pv_claimed'] / 100:,.0f} USD): management paid the seller for synergies it still had to deliver. Realised cost synergies run at "
+        root = (f"The purchase premium ({f['premium_pct']:.0%} of a {f['standalone'] / 100:,.0f} USD standalone value) was sized on the PV of the claimed "
+                f"synergies ({f['premium'] / f['pv_claimed']:.0%} of {f['pv_claimed'] / 100:,.0f} USD): management paid the seller for synergies it still had to deliver. Realised cost synergies run at "
                 f"{f['realized_pct_plan']:.0%} of plan, cross-sell lands at {p['revenue_synergy_achievable_mult']:.0%} of the claim, overlapping customers cancelled "
                 f"{f['churn_arr'] / 100:,.0f} USD of ARR (dis-synergy) and integration costs overran. At achievable synergies the PV is {f['pv_ach'] / 100:,.0f} USD "
                 f"and deal NPV {f['npv_ach'] / 100:,.0f} USD (vs {f['npv_claimed'] / 100:,.0f} at claimed); the break-even realisation is {f['breakeven']:.0%}. "
@@ -974,7 +1081,7 @@ FROM target_invoice_lines tl JOIN target_invoices i USING (invoice_id) GROUP BY 
                         "# sensitivity grid: WACC x synergy realisation; Monte Carlo on achievable % (triangular 0.55/0.68/0.80 cost, 0.20/0.30/0.45 revenue)\n"
                         "# impairment test: carrying (goodwill + intangibles + net assets) vs implied fair value at achievable synergies\n"],
                 memo_bullets=[
-                    "The premium equals PV(claimed synergies): the buyer paid the seller for value the buyer must create.",
+                    f"The premium was {f['premium'] / f['pv_claimed']:.0%} of PV(claimed synergies): the buyer paid the seller for value the buyer must create.",
                     f"Realised cost synergies {f['realized_pct_plan']:.0%} of plan; milestone counts are activity, not dollars.",
                     "Dis-synergy is already in the data: overlapping customers consolidate vendors.",
                     f"At achievable synergies the deal NPV is negative; break-even needs {f['breakeven']:.0%} of the claimed synergies.",
@@ -993,10 +1100,17 @@ FROM target_invoice_lines tl JOIN target_invoices i USING (invoice_id) GROUP BY 
         P = state.periods
         f = self._facts(state)
         names = rng.pick_names(4)
+        pa = state.extras["ppa"]
+        lev = self._close_leverage(state)
+        band = "below" if f["premium_pct"] < 0.25 else "within" if f["premium_pct"] <= 0.6 else "above"
+        ambition = "ambitious, but inside" if p["cost_synergy_claimed_pct"] >= 0.25 else "in line with"
         reveal = [
-            f"The acquisition closed at the end of {P[5]} for {f['price'] / 1e8:,.1f}M USD.",
+            f"The acquisition closed at the end of {P[5]} for {f['price'] / 1e8:,.1f}M USD, a {f['premium_pct']:.0%} premium to the target's standalone "
+            f"DCF ({band} the 25-60% range of the bankers' comparable SaaS transactions); the fairness opinion was clean.",
+            f"Financing: {pa['cash_on_hand_used'] / 1e8:,.1f}M USD of cash on hand, a {pa['acquisition_debt'] / 1e8:,.1f}M USD term loan "
+            f"(~{lev:.1f}x combined EBITDA at close) and a {pa['equity_raise'] / 1e8:,.1f}M USD follow-on equity offering.",
             f"The deal announcement promised cost synergies of {p['cost_synergy_claimed_pct']:.0%} of the target's opex and revenue synergies of "
-            f"{p['revenue_synergy_claimed_pct']:.0%} of its revenue.",
+            f"{p['revenue_synergy_claimed_pct']:.0%} of its revenue - {ambition} what comparable SaaS consolidations have announced.",
             "The integration office reports the program 'on track'.",
             "Acquired intangibles are being amortised from the first post-close quarter.",
             f"Consolidated results for {P[6]} and {P[7]} are in the data room.",
@@ -1005,7 +1119,8 @@ FROM target_invoice_lines tl JOIN target_invoices i USING (invoice_id) GROUP BY 
                    "premium equals the claimed synergies", "services mislabelled as recurring", *[a.id for a in state.anomalies]]
         stakeholders = [
             Stakeholder(name=names[0], role="CEO", agenda="Defend the deal thesis.", disposition="confident",
-                        knows=["the strategic rationale"], hides=["the premium was set at the full claimed synergy value"]),
+                        knows=["the strategic rationale", "the premium was benchmarked against comparable deals"],
+                        hides=["the bid was sized on the synergy case, not on the standalone business"]),
             Stakeholder(name=names[1], role="CFO", agenda="Avoid an impairment this year.", disposition="guarded",
                         knows=["the impairment test date"], hides=["the triggering event has occurred"]),
             Stakeholder(name=names[2], role="Head of Integration", agenda="Report milestones.", disposition="upbeat",
@@ -1015,6 +1130,8 @@ FROM target_invoice_lines tl JOIN target_invoices i USING (invoice_id) GROUP BY 
         ]
         tl = [
             TimelineEvent(period=P[4], headline="LOI signed", detail="Exclusivity with the target."),
+            TimelineEvent(period=P[5], headline="Fairness opinion delivered", detail="Price supported by comparable transactions and the synergy case."),
+            TimelineEvent(period=P[5], headline="Term loan and follow-on equity offering priced", detail="The deal is funded without stretching the balance sheet."),
             TimelineEvent(period=P[5], headline=f"Deal closes; goodwill {f['goodwill'] / 1e8:,.1f}M USD", detail="Purchase price allocation completed."),
             TimelineEvent(period=P[6], headline="Integration PMO: 90% of milestones hit", detail="Milestone tracker shared with the board.", is_red_herring=True),
             TimelineEvent(period=P[7], headline="Three overlap customers consolidate vendors", detail="Customer success escalation."),

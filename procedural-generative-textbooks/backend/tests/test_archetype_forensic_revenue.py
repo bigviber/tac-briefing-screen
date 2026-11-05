@@ -99,7 +99,7 @@ def test_sql_recovers_pulled_forward_magnitude(worlds: dict, difficulty: str) ->
                     WITH inv AS ({DEDUPE})
                     SELECT period_of(i.invoice_date) AS period,
                            SUM(CASE WHEN o.notes LIKE 'Q-end promotion%' THEN i.amount_cents ELSE 0 END) AS stuffed,
-                           SUM(CASE WHEN i.terms_days <= 30 THEN i.amount_cents ELSE 0 END) AS base
+                           SUM(CASE WHEN i.terms_days <= 45 THEN i.amount_cents ELSE 0 END) AS base
                     FROM inv i JOIN orders o USING (order_id)
                     WHERE i.customer_id NOT IN (SELECT c.customer_id FROM customers c JOIN suppliers s
                                                 ON UPPER(TRIM(c.tax_id)) = UPPER(TRIM(s.tax_id)))
@@ -221,3 +221,20 @@ def test_allowance_held_flat_while_receivables_grow(worlds: dict) -> None:
         allowance = next(a for a in world.ground_truth.anomalies if a.kind == "understated_allowance")
         assert allowance.magnitude["allowance_pct_ar_p8"] < allowance.magnitude["allowance_pct_ar_before"]
         assert tb[P8]["1110"] == tb[world.periods[6]]["1110"]  # not a cent of provision in the window
+
+
+@pytest.mark.parametrize("difficulty", DIFFICULTIES)
+def test_baseline_dso_is_wholesale_and_anomaly_lifts_it(worlds: dict, difficulty: str) -> None:
+    """Review P1 #16: net-45 distributors with card-paying direct accounts as a minority give a baseline DSO of ~35 days;
+    the pulled-forward quarters (plus slow-paying, over-stocked distributors) lift it to ~55."""
+    for seed in SEEDS:
+        world, _ = worlds[(difficulty, seed)]
+        P = world.periods
+        kp = world.operations.kpis_by_period
+        base = [kp[p]["dso"] for p in P[:6]]
+        assert 28 <= sum(base[:5]) / 5 <= 45, base
+        assert all(24 <= x <= 48 for x in base), base
+        assert 45 <= kp[P[7]]["dso"] <= 70 and kp[P[7]]["dso"] - sum(base[:5]) / 5 >= 10, (base, kp[P[7]]["dso"])
+        m = _m(world)
+        assert 45 <= m["dso_p8_days"] <= 70 and m["dso_p8_days"] > m["dso_p6_days"] + 10  # answer key (gross invoiced basis)
+        assert "net-45" in world.company.description

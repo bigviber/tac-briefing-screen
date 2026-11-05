@@ -134,3 +134,33 @@ def test_discontinue_trap_in_simulation(worlds: dict) -> None:
     assert eff[("discontinue_family_low", "operating_income_cents")]["delta_per_unit"] < 0
     # repricing it up improves operating income at the spec elasticity
     assert eff[("price_change_family_low_pct", "operating_income_cents")]["delta_per_unit"] > 0
+
+
+def test_station_utilization_and_littles_law_from_the_log(worlds: dict) -> None:
+    """Review P0 #2 / P2 #23: stations are measured on production_log and the shift calendar, not constants."""
+    for (d, s), (world, folder) in worlds.items():
+        st = world.operations.stations
+        assert len(st) >= 6
+        for x in st:
+            assert 0 < x.utilization <= 1, (d, s, x)
+            assert x.wip > 0 and x.cycle_time > 0
+            assert x.wip == pytest.approx(x.capacity_per_hour * x.utilization * x.cycle_time, rel=1e-6)  # L = lambda W
+        assert len({round(x.wip, 3) for x in st}) == len(st)  # WIP differs across stations
+        bn = next(x for x in st if x.name == "Finishing")
+        assert 0.85 <= bn.utilization <= 0.98 and bn.utilization == max(x.utilization for x in st)
+        assert all(x.utilization < 0.9 for x in st if x.name != "Finishing")
+        q = world.operations.queueing
+        assert set(q) >= {"lambda", "mu", "rho", "L", "W", "Lq", "Wq"}
+        assert q["rho"] == pytest.approx(q["lambda"] / q["mu"]) and q["L"] == pytest.approx(q["lambda"] * q["W"])
+        assert q["Wq"] > 0 and q["W"] > q["Wq"]
+        assert all(0 < k["constraint_utilization"] <= 0.98 for k in world.operations.kpis_by_period.values())
+        # the utilisation is reproducible from the DB: busy minutes / shift_calendar available hours in the last quarter
+        con = duckdb.connect(str(resolve_db_path(world, folder)), read_only=True)
+        try:
+            u = con.execute("""
+                SELECT SUM(l.setup_minutes_actual + l.run_minutes_actual) / 60.0 / MAX(c.available_hours)
+                FROM production_log l JOIN shift_calendar c ON c.work_center_id = l.work_center_id AND c.period = period_of(l.start_ts)
+                WHERE l.work_center_id = 'WC04' AND c.period = ?""", [world.periods[-1]]).fetchone()[0]
+        finally:
+            con.close()
+        assert u == pytest.approx(bn.utilization, rel=1e-3)

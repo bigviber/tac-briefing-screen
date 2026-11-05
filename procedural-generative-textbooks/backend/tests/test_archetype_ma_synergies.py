@@ -59,14 +59,16 @@ def test_deal_economics_and_goodwill(worlds: dict, difficulty: str, seed: int) -
     dcf = dcf_value(rev0, float(a["target_growth_year1"]), float(a["terminal_growth"]), m0, float(a["long_run_fcf_margin"]), float(a["tax_rate"]), float(a["wacc"]))
     assert dcf["value"] == pytest.approx(m["standalone_target_dcf_cents"], rel=1e-6)
     assert int(a["standalone_value_cents"]) == pytest.approx(m["standalone_target_dcf_cents"], abs=1)
-    # premium ~= PV(claimed synergies) x U(0.9, 1.1): NPV at claimed ~ 0, at achievable clearly negative
+    # the premium is a bid on the synergy case: PV(claimed synergies) x 0.6-1.35 (sized for the impairment exposure, review P1 #10);
+    # NPV at achievable synergies is clearly negative
     premium = ppa["purchase_price"] - m["standalone_target_dcf_cents"]
-    assert 0.85 <= premium / m["pv_claimed_synergies_cents"] <= 1.15
-    assert abs(m["deal_npv_claimed_cents"]) <= 0.12 * m["pv_claimed_synergies_cents"]
+    assert 0.55 <= premium / m["pv_claimed_synergies_cents"] <= 1.4
+    assert abs(m["deal_npv_claimed_cents"]) <= 0.45 * m["pv_claimed_synergies_cents"]
     assert m["deal_npv_achievable_cents"] < 0 < m["pv_achievable_synergies_cents"] < m["pv_claimed_synergies_cents"]
-    assert 0.85 <= m["breakeven_synergy_pct"] <= 1.15
-    # impairment exposure exists and is bounded by goodwill; nothing has been booked
-    assert 0 < m["goodwill_impairment_cents"] <= m["goodwill_cents"]
+    assert 0.55 <= m["breakeven_synergy_pct"] <= 1.4
+    # impairment exposure is critical but not egregious: 20-50% of goodwill; nothing has been booked
+    assert 0.2 <= m["goodwill_impairment_cents"] / m["goodwill_cents"] <= 0.5
+    assert _a(world, "goodwill_impairment_risk").severity == "critical"
     assert world.finance.trial_balance[P[-1]]["1700"] == m["goodwill_cents"]
 
 
@@ -133,3 +135,27 @@ def test_difficulty_ordering_and_revenue_quality(worlds: dict) -> None:
         m = _m(pr)
         sampled = _a(pr, "revenue_quality_mislabel").magnitude["services_mislabelled_pct"]
         assert m["target_arr_overstated_pct"] == pytest.approx(sampled, abs=0.03)
+
+
+@pytest.mark.parametrize("difficulty", DIFFICULTIES)
+@pytest.mark.parametrize("seed", SEEDS)
+def test_pre_deal_cash_and_financing(worlds: dict, difficulty: str, seed: int) -> None:
+    """Review P1 #10: ~2-3 quarters of revenue in cash before the deal; the price is funded by cash on hand, the term loan
+    and a follow-on equity raise on the close date (no war chest idling for six quarters)."""
+    world, folder = worlds[(difficulty, seed)]
+    P = world.periods
+    tb = world.finance.trial_balance
+    inc = {i.period: i for i in world.finance.statements.income}
+    for per in P[:5]:  # every quarter end before the close quarter (the deal closes on the last day of P6)
+        assert 2.0 <= tb[per]["1000"] / inc[per].revenue_cents <= 3.5, (per, tb[per]["1000"] / inc[per].revenue_cents)
+    assert tb[P[-1]]["1000"] > 0.5 * inc[P[-1]].revenue_cents  # a cash reserve remains after the close
+    con = duckdb.connect(str(resolve_db_path(world, folder)), read_only=True)
+    try:
+        ppa = dict(con.execute("SELECT line, amount_cents FROM purchase_price_allocation").fetchall())
+    finally:
+        con.close()
+    assert 0.25 <= ppa["acquisition_debt"] / ppa["purchase_price"] <= 0.45
+    raised = -(tb[P[5]]["3000"] - tb[P[4]]["3000"])
+    assert raised >= 0 and raised == ppa["equity_raise"] and ppa["cash_paid"] - raised == ppa["cash_on_hand_used"]
+    cfs = {c.period: c for c in world.finance.statements.cash_flow}
+    assert cfs[P[5]].financing_cents >= raised + ppa["acquisition_debt"] - 1  # debt and equity show as financing inflows

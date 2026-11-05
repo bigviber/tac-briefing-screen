@@ -38,26 +38,36 @@ def _anomaly(world: CaseWorld, kind: str):
     return next(a for a in world.ground_truth.anomalies if a.kind == kind)
 
 
+def _items(world: CaseWorld) -> dict[str, float]:
+    """Itemised reconciling items (former asks, now ``checks`` on the roll-forward reference query, review P1 #14)."""
+    chk = _q(world, "ar_rollforward_vs_gl_running_totals").expected["checks"]
+    return {k: v for k, v in chk.items() if k.startswith("reconciling_item_")}
+
+
 @pytest.mark.parametrize("difficulty", DIFFICULTIES)
 @pytest.mark.parametrize("seed", SEEDS)
 def test_reconciling_items_net_to_the_difference_and_breaks_are_declared(worlds: dict, difficulty: str, seed: int) -> None:
     world, _ = worlds[(difficulty, seed)]
     m = _m(world)
     P8 = world.periods[-1]
-    items = {k: v for k, v in m.items() if k.startswith("reconciling_item_")}
+    items = _items(world)
+    chk = _q(world, "ar_rollforward_vs_gl_running_totals").expected["checks"]
     assert len(items) == {"foundation": 2, "practitioner": 3, "principal": 4}[difficulty]
     # GL - clean sub-ledger is fully explained by the itemised reconciling items (to the cent)
     assert sum(items.values()) == pytest.approx(m["unexplained_difference_cents"], abs=1)
+    assert chk["reconciling_items_total_cents"] == pytest.approx(m["unexplained_difference_cents"], abs=1)
     assert m["gl_ar_close_p8_cents"] - m["subledger_ar_deduped_cents"] == pytest.approx(m["unexplained_difference_cents"], abs=1)
-    assert m["subledger_ar_naive_cents"] - m["subledger_ar_deduped_cents"] == pytest.approx(m["duplicate_invoice_cents"], abs=1)
+    assert chk["subledger_ar_naive_p8_cents"] - m["subledger_ar_deduped_cents"] == pytest.approx(m["duplicate_invoice_cents"], abs=1)
     # the invariant checker verified each designed break at its declared amount
     for tie, want in (("ar_subledger_deduped_vs_gl", -m["unexplained_difference_cents"]),
                       ("ar_subledger_naive_vs_gl", -m["unexplained_difference_cents"] + m["duplicate_invoice_cents"])):
         c = next(x for x in world.finance.invariants if x.name == f"subledger:{tie}[{P8}]")
         assert c.passed and "designed break" in c.detail and f"(expected {int(round(want))})" in c.detail
-    # suspense holds exactly the GL-side omission
+    # suspense (the interface clearing credit) holds exactly the GL-side omission
     om = next(a for a in world.ground_truth.anomalies if a.kind in ("credit_memo_unposted", "writeoff_one_sided"))
-    assert m["suspense_balance_p8_cents"] == pytest.approx(-m[f"reconciling_item_{om.kind}_cents"], abs=1)
+    assert m["suspense_balance_p8_cents"] > 0
+    assert m["suspense_balance_p8_cents"] == pytest.approx(items[f"reconciling_item_{om.kind}_cents"], abs=1)
+    assert om.reference_sql[0].expected["checks"][f"reconciling_item_{om.kind}_cents"] == pytest.approx(m["suspense_balance_p8_cents"], abs=1)
     assert all(c.passed for c in world.finance.invariants)
 
 
@@ -72,26 +82,32 @@ def test_sql_recovers_each_break(worlds: dict, difficulty: str) -> None:
             dup_rows, dup_cents = con.execute(
                 "SELECT COUNT(*), SUM(amount_cents) FROM (SELECT *, ROW_NUMBER() OVER (PARTITION BY invoice_id ORDER BY ingest_id) AS rn FROM invoices) WHERE rn > 1"
             ).fetchone()
-            assert dup_rows == m["duplicate_invoice_count"] >= 3 and dup_cents == m["duplicate_invoice_cents"]
+            assert dup_rows == _q(world, "duplicate_invoice_loads").expected["checks"]["duplicate_rows"] >= 3 and dup_cents == m["duplicate_invoice_cents"]
             # DISTINCT does not remove the reloaded rows (they differ in ingest_id / created_at) - socratic trap 5
             n_rows = con.execute("SELECT COUNT(*) FROM invoices").fetchone()[0]
             n_distinct = con.execute("SELECT COUNT(*) FROM (SELECT DISTINCT * FROM invoices)").fetchone()[0]
             assert n_distinct == n_rows
             unapplied = con.execute("SELECT SUM(amount_cents) FROM payments WHERE invoice_id IS NULL").fetchone()[0]
-            assert unapplied == m["unapplied_cash_cents"] == -m["reconciling_item_unapplied_cash_cents"]
-            susp = con.execute("SELECT SUM(debit_cents - credit_cents) FROM gl_lines WHERE account_code = '1400'").fetchone()[0]
-            assert susp == m["suspense_balance_p8_cents"] < 0
+            assert unapplied == m["unapplied_cash_cents"] == -_items(world)["reconciling_item_unapplied_cash_cents"]
+            assert _q(world, "unapplied_cash_by_quarter").expected["checks"]["reconciling_item_unapplied_cash_cents"] == -unapplied
+            susp = con.execute("SELECT SUM(credit_cents - debit_cents) FROM gl_lines "
+                               "WHERE account_code = '2100' AND dimensions LIKE '%clearing=billing_interface%'").fetchone()[0]
+            assert susp == m["suspense_balance_p8_cents"] > 0
+            assert con.execute("SELECT COUNT(*) FROM gl_lines WHERE account_code = '1400'").fetchone()[0] == 0
             gl_ar = con.execute("SELECT SUM(debit_cents - credit_cents) FROM gl_lines WHERE account_code = '1100'").fetchone()[0]
             assert gl_ar == m["gl_ar_close_p8_cents"]
         finally:
             con.close()
         roll = _q(world, "ar_rollforward_vs_gl_running_totals").expected["checks"]
         assert roll["difference_p8"] == pytest.approx(m["unexplained_difference_cents"], abs=5)
-        assert roll["subledger_close_p8"] == pytest.approx(m["ar_rollforward_p8_closing_cents"], abs=5)
-        if "cutoff_items_cents" in m:
-            assert _q(world, "invoices_missing_from_gl").expected["checks"]["missing_p8_cents"] == m["cutoff_items_cents"] > 0
+        assert roll["subledger_close_p8"] == pytest.approx(m["subledger_ar_deduped_cents"], abs=5)
+        assert roll["invoiced_p8"] > roll["collected_p8"] * 0.5 > 0
+        if difficulty != "foundation":
+            cut = _q(world, "invoices_missing_from_gl").expected["checks"]
+            assert cut["cutoff_items_cents"] == cut["missing_p8_cents"] == -_items(world)["reconciling_item_cutoff_shift_cents"] > 0
             assert _q(world, "invoice_period_vs_gl_period").expected["checks"]["shifted_invoices"] >= 2
-        if "reconciling_item_fx_rounding_cents" in m:
+        if difficulty == "principal":
+            assert m["reconciling_item_fx_rounding_cents"] == pytest.approx(_items(world)["reconciling_item_fx_rounding_cents"], abs=1)
             assert _q(world, "invoice_totals_by_currency").expected["checks"]["currencies"] >= 2
         assert P8 in {r[0] for r in _q(world, "ar_rollforward_vs_gl_running_totals").expected["rows"]}
 
@@ -147,8 +163,7 @@ def test_timezone_trap_moves_payments_across_quarters(worlds: dict) -> None:
 def test_red_herrings_are_plausible(worlds: dict) -> None:
     for s in SEEDS:
         world, _ = worlds[("principal", s)]
-        m = _m(world)
-        items = {k: abs(v) for k, v in m.items() if k.startswith("reconciling_item_")}
+        items = {k: abs(v) for k, v in _items(world).items()}
         # "FX explains it": FX differences exist but are small next to the structural items
         assert 0 < items["reconciling_item_fx_rounding_cents"] < 0.1 * sum(items.values())
         # "the GL is wrong": GL revenue equals the invoices it received, the breaks sit in the sub-ledger / interface
@@ -160,10 +175,36 @@ def test_red_herrings_are_plausible(worlds: dict) -> None:
 def test_aging_from_clean_open_items(worlds: dict) -> None:
     for (d, s), (world, _) in worlds.items():
         m = _m(world)
-        aging = sum(v for k, v in m.items() if k.startswith("aging_bucket_"))
+        aging = _q(world, "ar_aging_p8_deduplicated").expected["checks"]
         # open (positive) items of the deduplicated sub-ledger; credit balances from memos after payment are excluded
-        assert aging >= m["subledger_ar_deduped_cents"] * 0.98
-        assert m["aging_bucket_90_plus_p8_cents"] > 0 and m["aging_bucket_0_30_p8_cents"] > m["aging_bucket_90_plus_p8_cents"]
+        assert sum(aging.values()) >= m["subledger_ar_deduped_cents"] * 0.98
+        assert aging["aging_90_plus_p8_cents"] == pytest.approx(m["aging_bucket_90_plus_p8_cents"], rel=0.01)
+        assert m["aging_bucket_90_plus_p8_cents"] > 0 and aging["aging_0_30_p8_cents"] > m["aging_bucket_90_plus_p8_cents"]
+
+
+@pytest.mark.parametrize("difficulty", DIFFICULTIES)
+def test_asks_are_few_and_the_rest_are_checks(worlds: dict, difficulty: str) -> None:
+    """Review P1 #14: 7 asks (8 at principal, + the currency difference); the other figures live in reference-query checks."""
+    want = {"gl_ar_close_p8_cents", "subledger_ar_deduped_cents", "unexplained_difference_cents", "duplicate_invoice_cents",
+            "unapplied_cash_cents", "suspense_balance_p8_cents", "aging_bucket_90_plus_p8_cents"}
+    if difficulty == "principal":
+        want.add("reconciling_item_fx_rounding_cents")
+    for seed in SEEDS:
+        world, _ = worlds[(difficulty, seed)]
+        assert set(_m(world)) == want
+        keys = {k for a in world.ground_truth.anomalies for q in a.reference_sql for k in q.expected["metric_keys"]}
+        assert keys == want  # every ask is linked to a reference query (grader signature matching)
+
+
+@pytest.mark.parametrize("difficulty", DIFFICULTIES)
+def test_no_balance_sheet_line_is_negative(worlds: dict, difficulty: str) -> None:
+    """The suspense credit sits in accrued liabilities (2100 clearing lines), not in 1400 inside the prepaid caption."""
+    for seed in SEEDS:
+        world, _ = worlds[(difficulty, seed)]
+        for bs in world.finance.statements.balance:
+            neg = [(ln.caption, ln.cents) for ln in bs.lines if ln.cents < 0 and "earnings" not in ln.caption.lower()]
+            assert not neg, (seed, bs.period, neg)
+        assert all(world.finance.trial_balance[p]["1400"] == 0 for p in world.periods)
 
 
 _TYPED_INVOICE = re.compile(r"\b(?:(\w+)\.)?dimension_invoice_id\b")

@@ -30,9 +30,13 @@ Designed breaks (sub-ledger vs GL; each with an exact signed amount; difficulty 
 * ``unapplied_cash`` (all): P7-P8 wires without remittance (``payments.invoice_id IS NULL``); the GL
   credited 1100 with the customer only, the sub-ledger still shows the invoices open.
 * GL omission through suspense (all; seeded choice): ``credit_memo_unposted`` - the billing-to-GL
-  interface rejected the AR line of some credit memos, posting ``Dr 4100 / Cr 1400 suspense``; or
-  ``writeoff_one_sided`` - write-offs posted ``Dr 1110 / Cr 1400 suspense``. Either way GL 1100 is
-  not relieved and the suspense balance (account 1400, a *credit* balance) is the visible clue.
+  interface rejected the AR line of some credit memos, posting ``Dr 4100 / Cr`` the billing-interface
+  clearing line; or ``writeoff_one_sided`` - write-offs posted ``Dr 1110 / Cr`` clearing. Either way GL
+  1100 is not relieved and the clearing (suspense) credit balance is the visible clue. The canonical
+  chart has no suspense / clearing code and 1400 sits in "Prepaid expenses and other current assets",
+  where a credit balance turned that line negative; the clearing lines are therefore booked to 2100
+  (inside "Accrued liabilities") with ``source = 'interface'`` and the dimension
+  ``clearing=billing_interface`` - the suspense balance is the net of those lines.
 * ``cutoff_shift`` (practitioner+): invoices dated in the last 2 days of P7 were posted to the GL on
   the first day of P8 (visible in the invoice-period vs GL-period join), and those dated in the last
   2 days of P8 had not been posted at close (anti-join) - the latter is a P8 reconciling item.
@@ -43,8 +47,14 @@ Designed breaks (sub-ledger vs GL; each with an exact signed amount; difficulty 
   amount (realised differences on payment go to 7200).
 
 Ties declared (``subledger_ties``): naive and deduplicated sub-ledger AR vs GL 1100 (designed breaks
-with exact expected amounts per period), suspense items vs GL 1400 (hold), and revenue per invoices
+with exact expected amounts per period), suspense items vs the 2100 clearing lines (hold), and revenue per invoices
 vs GL 4000 activity (designed break: cutoff and FX). Statements always balance.
+
+Asks (review P1 #14): 7 expected metrics (8 at principal) - closing GL AR, deduplicated sub-ledger AR, the
+unexplained difference, duplicates $, unapplied cash $, the suspense (clearing) balance, the 90+ aging bucket
+and, at principal, the currency difference at principal. Every other figure (naive sub-ledger, duplicate
+count, roll-forward lines, the other aging buckets, each reconciling item, cutoff items) is a ``checks``
+entry on the reference query that produces it.
 
 Documented simplifications
 * Industries saas / ecommerce / fintech_marketplace share the same B2B monthly-invoicing model
@@ -105,6 +115,10 @@ from axiom.models import (
 logger = logging.getLogger("axiom.archetypes.window_reconciliation")
 
 EOD = pd.Timedelta(hours=23, minutes=59, seconds=59)
+# the canonical chart has no suspense / clearing code (1400 is "other current assets", inside the prepaid caption): interface
+# items rejected by the billing-to-GL interface are parked as a credit in 2100 (accrued liabilities), tagged clearing=billing_interface
+SUSPENSE_ACCOUNT = "2100"
+CLEARING = "billing_interface"
 PAYROLL_SPLIT = {"6000": 0.35, "6100": 0.40, "6200": 0.25}
 OPEX_SPLIT = {"6000": 0.45, "6200": 0.30, "6400": 0.25}
 SEGMENTS = ("smb", "midmarket", "enterprise")
@@ -435,8 +449,8 @@ class WindowReconciliation(Archetype):
             "unapplied_cash": (f"{int(unapplied.sum())} wires in {P[6]}-{P[7]} arrived without remittance: payments.invoice_id is NULL, the GL credited 1100 "
                                "for the customer, the sub-ledger still shows the invoices open."),
             "credit_memo_unposted": ("The billing-to-GL interface rejected the AR line of some credit memos from "
-                                     f"{P[5]}: the GL posted Dr 4100 / Cr 1400 (suspense) so AR in the GL was never relieved."),
-            "writeoff_one_sided": (f"Write-offs approved from {P[5]} were posted Dr 1110 / Cr 1400 (suspense) by the interface instead of Cr 1100, "
+                                     f"{P[5]}: the GL posted Dr 4100 / Cr {SUSPENSE_ACCOUNT} billing-interface clearing (suspense) so AR in the GL was never relieved."),
+            "writeoff_one_sided": (f"Write-offs approved from {P[5]} were posted Dr 1110 / Cr {SUSPENSE_ACCOUNT} clearing (suspense) by the interface instead of Cr 1100, "
                                    "so the GL still carries the receivables."),
             "cutoff_shift": (f"Invoices dated in the last 2 days of {P[6]} were posted to the GL on the first day of {P[7]}; invoices dated in the last "
                              f"2 days of {P[7]} had not been posted at close."),
@@ -452,7 +466,7 @@ class WindowReconciliation(Archetype):
                 id=ids[b], kind=kind, pillar="sql" if b in ("dup_invoices", "unapplied_cash", "cutoff_shift") else "accounting_finance",
                 title=LABEL[kind], mechanism=texts[kind],
                 periods=[P[6]] if b == "dup_invoices" else ([P[5], P[6], P[7]] if gl_side else ([P[6], P[7]] if b != "fx_rounding" else [P[7]])),
-                affected_accounts=["1100", "1400"] + (["4100"] if kind == "credit_memo_unposted" else ["1110"] if kind == "writeoff_one_sided" else []),
+                affected_accounts=["1100", SUSPENSE_ACCOUNT] + (["4100"] if kind == "credit_memo_unposted" else ["1110"] if kind == "writeoff_one_sided" else []),
                 affected_tables={"dup_invoices": ["invoices"], "unapplied_cash": ["payments", "gl_lines"], "credit_memo_unposted": ["credit_memos", "gl_lines", "gl_journal"],
                                  "writeoff_one_sided": ["write_offs", "gl_lines", "gl_journal"], "cutoff_shift": ["invoices", "gl_journal", "gl_lines"],
                                  "fx_rounding": ["invoices", "payments", "fx_rates", "gl_lines"]}[kind],
@@ -513,9 +527,9 @@ class WindowReconciliation(Archetype):
                 lines += [_ar_line("1100", 0, a, c, memo_id=m, invoice_id=i) for a, c, m, i in zip(grp["amount_cents"], grp["customer_id"], grp["memo_id"], grp["invoice_id"], strict=True)]
                 events.append((b.date(), 4, lambda d, ln=lines: L.entry(d, ln, "Credit memos (batch)", "credit_memos")))
             else:
-                dim = {"batch": f"interface_errors:{b.date()}", "rows": str(len(grp)), "interface": "billing_ar", "status": "unmatched"}
-                events.append((b.date(), 4, lambda d, a=total, dm=dim: L.adjust(d, [("4100", a, 0, dm), ("1400", 0, a, dm)],
-                                                                               "Billing interface: AR line rejected - parked in suspense", "interface")))
+                dim = {"batch": f"interface_errors:{b.date()}", "rows": str(len(grp)), "interface": "billing_ar", "status": "unmatched", "clearing": CLEARING}
+                events.append((b.date(), 4, lambda d, a=total, dm=dim: L.adjust(d, [("4100", a, 0, dm), (SUSPENSE_ACCOUNT, 0, a, dm)],
+                                                                               "Billing interface: AR line rejected - parked in clearing (suspense)", "interface")))
         wos = wos.assign(b=batch_end_dates(pd.to_datetime(wos["writeoff_date"]), gran))
         for (b, ok), grp in wos.groupby(["b", "_posted"], sort=True):
             total = int(grp["amount_cents"].sum())
@@ -524,9 +538,9 @@ class WindowReconciliation(Archetype):
                 lines += [_ar_line("1100", 0, a, c, writeoff_id=w, invoice_id=i) for a, c, w, i in zip(grp["amount_cents"], grp["customer_id"], grp["writeoff_id"], grp["invoice_id"], strict=True)]
                 events.append((b.date(), 4, lambda d, ln=lines: L.entry(d, ln, "Receivables written off (batch)", "write_off")))
             else:
-                dim = {"batch": f"interface_errors:{b.date()}", "rows": str(len(grp)), "interface": "billing_ar", "status": "unmatched"}
-                events.append((b.date(), 4, lambda d, a=total, dm=dim: L.adjust(d, [("1110", a, 0, dm), ("1400", 0, a, dm)],
-                                                                               "Billing interface: write-off AR line rejected - parked in suspense", "interface")))
+                dim = {"batch": f"interface_errors:{b.date()}", "rows": str(len(grp)), "interface": "billing_ar", "status": "unmatched", "clearing": CLEARING}
+                events.append((b.date(), 4, lambda d, a=total, dm=dim: L.adjust(d, [("1110", a, 0, dm), (SUSPENSE_ACCOUNT, 0, a, dm)],
+                                                                               "Billing interface: write-off AR line rejected - parked in clearing (suspense)", "interface")))
         # monthly close
         rev_m = np.bincount(_month_index(inv["invoice_date"], cal.start), weights=inv["_sub_usd"], minlength=len(months))
         prev = {"payroll": 0, "opex": 0}
@@ -674,6 +688,20 @@ class WindowReconciliation(Archetype):
         state.extras["brk"] = res
         return res
 
+    @staticmethod
+    def _clearing_balances(state: WorldState) -> dict[str, int]:
+        """Credit balance (positive) of the billing-interface clearing lines in GL 2100 at each period end."""
+        out, run = {}, 0
+        by_p: dict[str, int] = {}
+        for e in state.ledger.entries:
+            if e.source == "interface":
+                by_p[e.period] = by_p.get(e.period, 0) + sum(ln.credit_cents - ln.debit_cents for ln in e.lines
+                                                             if ln.account == SUSPENSE_ACCOUNT and ln.dimension.get("clearing") == CLEARING)
+        for x in [*state.calendar.warmup_periods, *state.periods]:
+            run += by_p.get(x, 0)
+            out[x] = run
+        return {x: out[x] for x in state.periods}
+
     def subledger_ties(self, ctx: BuildContext, state: WorldState) -> list[SubledgerTie]:
         """Naive / deduplicated AR vs GL 1100 (designed breaks), suspense (holds), revenue (designed cutoff / FX break)."""
         b = self._breaks(state)
@@ -692,13 +720,14 @@ class WindowReconciliation(Archetype):
             rev_brk[x] = int(inv.loc[in_p, "_sub_usd"].sum() - inv.loc[gl_p, "_gl_usd"].sum())
         state.extras["expected_breaks"] = {"naive": naive_brk, "dedup": dedup_brk, "revenue": rev_brk}
         acct = state.params["revenue_account"]
-        susp_sub = {x: -b["suspense"][x] for x in P}  # suspense items carry a credit balance on a debit-normal account
+        susp_gl = self._clearing_balances(state)
         return [
             SubledgerTie("ar_subledger_naive_vs_gl", {x: b["naive"][x] for x in P}, ["1100"], expected_break_cents={k: v for k, v in naive_brk.items() if v},
                          description="Sum of invoices (all loaded rows) - applied cash - credit memos - write-offs vs GL 1100 (designed breaks)"),
             SubledgerTie("ar_subledger_deduped_vs_gl", {x: b["dedup"][x] for x in P}, ["1100"], expected_break_cents={k: v for k, v in dedup_brk.items() if v},
                          description="Same with duplicate loads removed (lowest ingest_id) vs GL 1100 (designed breaks)"),
-            SubledgerTie("suspense_items_vs_gl_1400", susp_sub, ["1400"], description="Interface items parked in suspense == GL 1400 (holds)"),
+            SubledgerTie("suspense_items_vs_clearing", {x: b["suspense"][x] for x in P}, [SUSPENSE_ACCOUNT], ledger_cents=susp_gl,
+                         description=f"Interface items parked in suspense == credit balance of the {CLEARING} clearing lines in GL {SUSPENSE_ACCOUNT} (holds)"),
             SubledgerTie("revenue_invoices_vs_gl", {x: b["revenue"][x] for x in P}, [acct], basis="activity",
                          expected_break_cents={k: v for k, v in rev_brk.items() if v}, exclude_sources=(DEFERRAL_SOURCE,),
                          description="Invoices dated in period (USD at month-average) vs GL revenue: cutoff and FX (designed)"),
@@ -758,46 +787,36 @@ class WindowReconciliation(Archetype):
         gl_ar = int(tb8["1100"])
         dup = state.extras["dup_rows"]
         aging = self._aging(state)
-        roll8 = b["roll"][P8]
         unexplained = gl_ar - b["dedup"][P8]
         om = p["omission"]
         recon_items = {k: -it[k][P8] for k in ("unapplied_cash", om, "cutoff_shift", "fx_rounding") if k in p["breaks"] or k == om}
+        susp8 = self._clearing_balances(state)[P8]
+        # review P1 #14: 7 asks (8 at principal); every other figure is a ``checks`` entry on the reference query producing it
         metrics = [
             metric("gl_ar_close_p8_cents", gl_ar, "cents", f"Trial balance 1100 at {P8} end: SUM(debit_cents - credit_cents) on account 1100 through {P8}.",
                    pillar="accounting_finance", tol_abs=1.0, label="GL accounts receivable, latest quarter end"),
-            metric("subledger_ar_naive_cents", b["naive"][P8], "cents",
-                   f"All invoice rows dated <= {cal.bounds(P8)[1]} (USD at the month-average rate) - payments applied to an invoice - credit memos - write-offs.",
-                   pillar="sql", tol_rel=0.01, label="Sub-ledger AR, naive sum"),
             metric("subledger_ar_deduped_cents", b["dedup"][P8], "cents",
-                   "Same after keeping one row per invoice_id (QUALIFY ROW_NUMBER() OVER (PARTITION BY invoice_id ORDER BY ingest_id) = 1).",
+                   f"Invoices dated <= {cal.bounds(P8)[1]} (USD at the month-average rate), one row per invoice_id (QUALIFY ROW_NUMBER() OVER "
+                   "(PARTITION BY invoice_id ORDER BY ingest_id) = 1) - payments applied to an invoice - credit memos - write-offs.",
                    pillar="sql", tol_rel=0.01, label="Sub-ledger AR, deduplicated"),
             metric("unexplained_difference_cents", unexplained, "cents", "GL 1100 minus the deduplicated sub-ledger AR at P8 end; must be fully explained by the reconciling items.",
                    pillar="accounting_finance", tol_abs=1.0, label="Difference to explain (GL - clean sub-ledger)"),
-            metric("duplicate_invoice_count", len(dup), "count", f"Invoice rows with ingest_id > 1 for an invoice_id already loaded (rerun of {P7}).",
-                   pillar="sql", tol_abs=0.0, label="Duplicate invoice rows"),
-            metric("duplicate_invoice_cents", it["dup_invoices"][P8], "cents", "Sum of amount_cents (USD) of those duplicate rows.", pillar="sql", tol_rel=0.02,
+            metric("duplicate_invoice_cents", it["dup_invoices"][P8], "cents",
+                   f"Sum of amount_cents (USD) of invoice rows with ingest_id > 1 for an invoice_id already loaded (rerun of {P7}).", pillar="sql", tol_rel=0.02,
                    label="Duplicate invoice amount"),
             metric("unapplied_cash_cents", it["unapplied_cash"][P8], "cents", "SUM(payments.amount_cents) WHERE invoice_id IS NULL (all USD wires).",
                    pillar="sql", tol_rel=0.02, label="Unapplied cash"),
-            metric("suspense_balance_p8_cents", int(tb8["1400"]), "cents", f"GL 1400 balance at {P8} end (signed debit-positive; a credit balance is negative).",
-                   pillar="accounting_finance", tol_abs=1.0, label="Suspense account balance"),
-            metric("ar_rollforward_p8_invoiced_cents", roll8["invoiced"], "cents", f"Deduplicated invoices dated in {P8} (USD at month-average).",
-                   pillar="sql", tol_rel=0.01, label="AR roll-forward: invoiced in latest quarter"),
-            metric("ar_rollforward_p8_collected_cents", roll8["collected"], "cents", f"Payments applied to invoices with a {P8} value date (UTC), USD at the invoice's rate.",
-                   pillar="sql", tol_rel=0.01, label="AR roll-forward: collected in latest quarter"),
-            metric("ar_rollforward_p8_closing_cents", roll8["closing"], "cents", "Opening + invoiced - collected - credits - write-offs (deduplicated).",
-                   pillar="sql", tol_rel=0.01, label="AR roll-forward: closing"),
+            metric("suspense_balance_p8_cents", susp8, "cents",
+                   f"Credit balance at {P8} end of the billing-interface clearing lines in GL {SUSPENSE_ACCOUNT} (accrued liabilities; source 'interface', "
+                   f"dimension clearing={CLEARING}): SUM(credit_cents - debit_cents).",
+                   pillar="accounting_finance", tol_abs=1.0, label="Suspense (interface clearing) balance"),
+            metric("aging_bucket_90_plus_p8_cents", aging["90_plus"], "cents", f"Open deduplicated invoices at {P8} end more than 90 days past due (USD).",
+                   pillar="sql", tol_rel=0.03, label="Aging 90+ days"),
         ]
-        for k, v in aging.items():
-            metrics.append(metric(f"aging_bucket_{k}_p8_cents", v, "cents", f"Open deduplicated invoices at {P8} end, days past due {k.replace('_', '-').replace('-plus', '+')}.",
-                                  pillar="sql", tol_rel=0.03, label=f"Aging {k.replace('_', '-').replace('-plus', '+')} days"))
-        for k, v in recon_items.items():
-            metrics.append(metric(f"reconciling_item_{k}_cents", v, "cents",
-                                  f"Effect of {LABEL[k].lower()} on GL minus clean sub-ledger at {P8} end (signed).",
-                                  pillar="accounting_finance", tol_rel=0.05, label=f"Reconciling item: {LABEL[k]}"))
-        if "cutoff_shift" in p["breaks"]:
-            metrics.append(metric("cutoff_items_cents", it["cutoff_shift"][P8], "cents", f"Invoices dated in {P8} with no GL posting by {cal.bounds(P8)[1]} (USD).",
-                                  pillar="sql", tol_rel=0.05, label="Cutoff items (invoiced, not yet in the GL)"))
+        if "fx_rounding" in p["breaks"]:
+            metrics.append(metric("reconciling_item_fx_rounding_cents", recon_items["fx_rounding"], "cents",
+                                  f"Currency difference on open EUR/GBP items at {P8} end: GL (daily rate at posting) minus sub-ledger (month-average rate), signed.",
+                                  pillar="accounting_finance", tol_rel=0.05, label="Reconciling item: currency difference"))
         # ---------------- reference SQL
         tz = "tz_mixed:paid_at" in state.extras["dirt"].get("payments", ())
         paid_date = "CAST(CAST(paid_at AS TIMESTAMPTZ) AT TIME ZONE 'UTC' AS DATE)" if tz else "CAST(paid_at AS DATE)"
@@ -837,16 +856,23 @@ FROM roll r JOIN gl g USING (period) ORDER BY r.period"""
 
         def roll_checks(df: pd.DataFrame) -> dict[str, Any]:
             s = df.set_index("period")
-            return {"difference_p8": float(s.loc[P8, "difference"]), "subledger_close_p8": float(s.loc[P8, "subledger_ar_close"]),
-                    "gl_close_p8": float(s.loc[P8, "gl_ar_close"]), "first_period_with_difference": str(s.index[(s["difference"].abs() > 1)][0]) if (s["difference"].abs() > 1).any() else ""}
+            out = {"difference_p8": float(s.loc[P8, "difference"]), "subledger_close_p8": float(s.loc[P8, "subledger_ar_close"]),
+                   "gl_close_p8": float(s.loc[P8, "gl_ar_close"]), "first_period_with_difference": str(s.index[(s["difference"].abs() > 1)][0]) if (s["difference"].abs() > 1).any() else "",
+                   "invoiced_p8": float(s.loc[P8, "invoiced"]), "collected_p8": float(s.loc[P8, "collected"]),
+                   "credits_p8": float(s.loc[P8, "credits"]), "writeoffs_p8": float(s.loc[P8, "writeoffs"]),
+                   # former asks (review P1 #14), kept as checks: naive sub-ledger and the itemised reconciling items (they net to the difference)
+                   "subledger_ar_naive_p8_cents": float(b["naive"][P8]), "duplicate_invoice_count": int(len(dup))}
+            out.update({f"reconciling_item_{k}_cents": float(v) for k, v in recon_items.items()})
+            out["reconciling_items_total_cents"] = float(sum(recon_items.values()))
+            return out
 
         q_roll = run_reference_query(con, "ar_rollforward_vs_gl_running_totals", sql_roll, signature=["over(", "qualify", "union", "join", "group by"],
-                                     metric_keys=["ar_rollforward_p8_closing_cents", "unexplained_difference_cents", "gl_ar_close_p8_cents"], checks=roll_checks)
+                                     metric_keys=["subledger_ar_deduped_cents", "unexplained_difference_cents", "gl_ar_close_p8_cents"], checks=roll_checks)
         sql_dup = """
 SELECT invoice_id, COUNT(*) AS loads, MIN(ingest_id) AS first_ingest, MAX(ingest_id) AS last_ingest,
        MAX(amount_cents) AS amount_cents, MAX(created_at) - MIN(created_at) AS reload_gap
 FROM invoices GROUP BY 1 HAVING COUNT(*) > 1 ORDER BY invoice_id"""
-        q_dup = run_reference_query(con, "duplicate_invoice_loads", sql_dup, signature=["group by", "having", "count("], metric_keys=["duplicate_invoice_count", "duplicate_invoice_cents"],
+        q_dup = run_reference_query(con, "duplicate_invoice_loads", sql_dup, signature=["group by", "having", "count("], metric_keys=["duplicate_invoice_cents"],
                                     checks=lambda df: {"duplicate_rows": int((df["loads"] - 1).sum()), "duplicate_cents": int(df["amount_cents"].sum())})
         sql_naive = """
 WITH ranked AS (SELECT *, ROW_NUMBER() OVER (PARTITION BY invoice_id ORDER BY ingest_id) AS rn FROM invoices WHERE currency = 'USD')
@@ -854,13 +880,14 @@ SELECT SUM(amount_cents) AS naive_invoiced, SUM(amount_cents) FILTER (WHERE rn =
        SUM(amount_cents) FILTER (WHERE rn > 1) AS duplicate_cents, COUNT(*) FILTER (WHERE rn > 1) AS duplicate_rows
 FROM ranked"""
         q_naive = run_reference_query(con, "naive_vs_deduped_invoice_totals", sql_naive, signature=["over(", "partition by", "row_number(", "with", "filter("],
-                                      metric_keys=["subledger_ar_naive_cents", "subledger_ar_deduped_cents"],
+                                      metric_keys=["subledger_ar_deduped_cents", "duplicate_invoice_cents"],
                                       checks=lambda df: {"duplicate_cents": int(df["duplicate_cents"].iloc[0] or 0)})
         sql_unapp = f"""
 SELECT period_of({paid_date}) AS period, COUNT(*) AS payments, SUM(amount_cents) AS unapplied_cents
 FROM payments WHERE invoice_id IS NULL GROUP BY 1 ORDER BY 1"""
         q_unapp = run_reference_query(con, "unapplied_cash_by_quarter", sql_unapp, signature=["group by", "sum("], metric_keys=["unapplied_cash_cents"],
-                                      checks=lambda df: {"unapplied_total": int(df["unapplied_cents"].sum())})
+                                      checks=lambda df: {"unapplied_total": int(df["unapplied_cents"].sum()),
+                                                         "reconciling_item_unapplied_cash_cents": -int(df["unapplied_cents"].sum())})
         sql_unapp_gl = """
 WITH gl AS (
   SELECT regexp_extract(l.dimensions, 'payment_id=([^;]+)', 1) AS payment_id,
@@ -872,10 +899,11 @@ LEFT JOIN invoices i ON i.invoice_id = p.invoice_id
 WHERE p.invoice_id IS NULL AND gl.gl_invoice_id IS NULL ORDER BY p.payment_id"""
         q_unapp_gl = run_reference_query(con, "unapplied_cash_credited_in_gl", sql_unapp_gl, signature=["with", "left join", "join"],
                                          metric_keys=["unapplied_cash_cents"], checks=lambda df: {"gl_credited": int(df["gl_credit_cents"].sum())})
-        sql_susp = """
+        sql_susp = f"""
 WITH s AS (
-  SELECT j.period, j.source, SUM(l.debit_cents - l.credit_cents) AS net
-  FROM gl_lines l JOIN gl_journal j USING (entry_id) WHERE l.account_code = '1400' GROUP BY 1, 2)
+  SELECT j.period, j.source, SUM(l.credit_cents - l.debit_cents) AS net
+  FROM gl_lines l JOIN gl_journal j USING (entry_id)
+  WHERE l.account_code = '{SUSPENSE_ACCOUNT}' AND l.dimensions LIKE '%clearing={CLEARING}%' GROUP BY 1, 2)
 SELECT period, source, net, SUM(net) OVER (ORDER BY period ROWS UNBOUNDED PRECEDING) AS suspense_balance FROM s ORDER BY period"""
         q_susp = run_reference_query(con, "suspense_running_balance", sql_susp, signature=["over(", "with", "join", "group by"], metric_keys=["suspense_balance_p8_cents"],
                                      checks=lambda df: {"suspense_balance_last": int(df["suspense_balance"].iloc[-1])})
@@ -893,9 +921,33 @@ SELECT w.writeoff_id, w.invoice_id, w.writeoff_date, w.amount_cents
 FROM write_offs w LEFT JOIN gl ON gl.writeoff_id = w.writeoff_id
 WHERE gl.writeoff_id IS NULL ORDER BY w.writeoff_id"""
             om_name = "write_offs_missing_from_gl"
-        q_om = run_reference_query(con, om_name, sql_om, signature=["with", "left join"], metric_keys=[f"reconciling_item_{om}_cents", "suspense_balance_p8_cents"],
-                                   checks=lambda df: {"items": int(len(df)), "amount_cents": int(df["amount_cents"].sum())})
-        queries = {"dup_invoices": [q_dup, q_naive, q_roll], "unapplied_cash": [q_unapp, q_unapp_gl], "gl_omission": [q_om, q_susp]}
+        q_om = run_reference_query(con, om_name, sql_om, signature=["with", "left join"], metric_keys=["suspense_balance_p8_cents", "unexplained_difference_cents"],
+                                   checks=lambda df: {"items": int(len(df)), "amount_cents": int(df["amount_cents"].sum()),
+                                                      f"reconciling_item_{om}_cents": int(df["amount_cents"].sum())})
+        sql_aging = f"""
+WITH inv0 AS (
+  SELECT * FROM invoices QUALIFY ROW_NUMBER() OVER (PARTITION BY invoice_id ORDER BY ingest_id) = 1),
+{rate_cte}
+paid AS (SELECT invoice_id, SUM(amount_cents) AS amt FROM payments WHERE invoice_id IS NOT NULL GROUP BY 1),
+cm AS (SELECT invoice_id, SUM(amount_cents) AS amt FROM credit_memos GROUP BY 1),
+wo AS (SELECT invoice_id, SUM(amount_cents) AS amt FROM write_offs GROUP BY 1),
+open_items AS (
+  SELECT i.invoice_id, CAST(i.due_date AS DATE) AS due_date,
+         ROUND((i.amount_cents - COALESCE(p.amt, 0) - COALESCE(c.amt, 0) - COALESCE(w.amt, 0)) * i.usd_cents * 1.0 / i.amount_cents) AS open_usd_cents
+  FROM inv i LEFT JOIN paid p USING (invoice_id) LEFT JOIN cm c USING (invoice_id) LEFT JOIN wo w USING (invoice_id))
+SELECT CASE WHEN date_diff('day', due_date, DATE '{cal.bounds(P8)[1]}') <= 30 THEN '0_30'
+            WHEN date_diff('day', due_date, DATE '{cal.bounds(P8)[1]}') <= 60 THEN '31_60'
+            WHEN date_diff('day', due_date, DATE '{cal.bounds(P8)[1]}') <= 90 THEN '61_90' ELSE '90_plus' END AS bucket,
+       COUNT(*) AS invoices, SUM(open_usd_cents) AS open_usd_cents
+FROM open_items WHERE open_usd_cents > 0 GROUP BY 1 ORDER BY 1"""
+
+        def aging_checks(df: pd.DataFrame) -> dict[str, Any]:
+            got = df.set_index("bucket")["open_usd_cents"]
+            return {f"aging_{k}_p8_cents": float(got.get(k, 0.0)) for k in ("0_30", "31_60", "61_90", "90_plus")}
+
+        q_aging = run_reference_query(con, "ar_aging_p8_deduplicated", sql_aging, signature=["qualify", "with", "left join", "case when", "group by"],
+                                      metric_keys=["aging_bucket_90_plus_p8_cents"], checks=aging_checks)
+        queries = {"dup_invoices": [q_dup, q_naive, q_roll], "unapplied_cash": [q_unapp, q_unapp_gl, q_aging], "gl_omission": [q_om, q_susp]}
         if "cutoff_shift" in p["breaks"]:
             sql_cut = """
 WITH inv AS (SELECT * FROM invoices QUALIFY ROW_NUMBER() OVER (PARTITION BY invoice_id ORDER BY ingest_id) = 1),
@@ -906,15 +958,17 @@ gl AS (
 SELECT i.invoice_id, i.invoice_date, period_of(i.invoice_date) AS invoice_period, gl.entry_date, gl.gl_period, i.amount_cents
 FROM inv i JOIN gl USING (invoice_id)
 WHERE date_trunc('quarter', i.invoice_date) <> date_trunc('quarter', gl.entry_date) ORDER BY i.invoice_date, i.invoice_id"""
-            q_cut = run_reference_query(con, "invoice_period_vs_gl_period", sql_cut, signature=["qualify", "with", "join", "date_trunc("], metric_keys=["cutoff_items_cents"],
+            q_cut = run_reference_query(con, "invoice_period_vs_gl_period", sql_cut, signature=["qualify", "with", "join", "date_trunc("], metric_keys=["unexplained_difference_cents"],
                                         checks=lambda df: {"shifted_invoices": int(len(df))})
             sql_cut2 = """
 WITH inv AS (SELECT * FROM invoices QUALIFY ROW_NUMBER() OVER (PARTITION BY invoice_id ORDER BY ingest_id) = 1),
 gl AS (SELECT DISTINCT dimension_invoice_id AS invoice_id FROM gl_lines WHERE account_code = '1100' AND debit_cents > 0)
 SELECT period_of(i.invoice_date) AS period, COUNT(*) AS invoices_not_in_gl, SUM(i.amount_cents) AS amount_cents
 FROM inv i LEFT JOIN gl USING (invoice_id) WHERE gl.invoice_id IS NULL GROUP BY 1 ORDER BY 1"""
-            q_cut2 = run_reference_query(con, "invoices_missing_from_gl", sql_cut2, signature=["qualify", "left join", "group by", "distinct"], metric_keys=["cutoff_items_cents"],
-                                         checks=lambda df: {"missing_p8_cents": int(df.set_index("period")["amount_cents"].get(P8, 0))})
+            q_cut2 = run_reference_query(con, "invoices_missing_from_gl", sql_cut2, signature=["qualify", "left join", "group by", "distinct"], metric_keys=["unexplained_difference_cents"],
+                                         checks=lambda df: {"missing_p8_cents": int(df.set_index("period")["amount_cents"].get(P8, 0)),
+                                                            "cutoff_items_cents": int(df.set_index("period")["amount_cents"].get(P8, 0)),
+                                                            "reconciling_item_cutoff_shift_cents": -int(df.set_index("period")["amount_cents"].get(P8, 0))})
             queries["cutoff_shift"] = [q_cut, q_cut2]
         if fx:
             sql_fx = """
@@ -943,9 +997,9 @@ WHERE ingest_id = 1 GROUP BY 1 ORDER BY 1"""
                                  f"{len(dup)} invoice_ids were loaded twice (ingest_id 1 and 2, created seconds apart) during the {P7} rerun."],
                 "unapplied_cash": [f"{int(state.extras['payments']['_unapplied'].sum())} payments have no invoice_id; the GL credited AR by customer.",
                                    "Those customers' invoices look open (and aging) in the sub-ledger although they paid."],
-                "credit_memo_unposted": [f"Suspense (1400) carries a credit balance of {-int(tb8['1400']) / 100:,.0f} USD from billing interface errors.",
+                "credit_memo_unposted": [f"The billing-interface clearing lines in {SUSPENSE_ACCOUNT} (accrued liabilities) carry a credit of {susp8 / 100:,.0f} USD.",
                                          "Credit memos with no AR line in the GL (anti-join on memo_id)."],
-                "writeoff_one_sided": [f"Suspense (1400) carries a credit balance of {-int(tb8['1400']) / 100:,.0f} USD from billing interface errors.",
+                "writeoff_one_sided": [f"The billing-interface clearing lines in {SUSPENSE_ACCOUNT} (accrued liabilities) carry a credit of {susp8 / 100:,.0f} USD.",
                                        "Write-offs with no AR line in the GL (anti-join on writeoff_id)."],
                 "cutoff_shift": [f"Invoices dated at the end of {P7} carry a {P8} GL date; {it['cutoff_shift'][P8] / 100:,.0f} USD of {P8} invoices are not in the GL yet."],
                 "fx_rounding": ["EUR/GBP invoices are stored in minor units of their currency; month-average vs daily-rate conversion leaves small differences on open items."],
@@ -990,7 +1044,8 @@ WHERE ingest_id = 1 GROUP BY 1 ORDER BY 1"""
                     "Tie GL 1100 lines to documents on gl_lines.dimension_invoice_id (equivalently regexp_extract(dimensions, "
                     "'invoice_id=([^;]+)', 1)); payment / memo / write-off ids live in gl_lines.dimensions.",
                     "Unapplied cash: apply by amount + customer; until then the aging overstates past-due balances.",
-                    "Suspense is a symptom: post the interface items to AR, then fix the interface mapping.",
+                    f"Suspense is a symptom: the chart has no clearing account, so the interface parked its rejects as a credit inside accrued "
+                    f"liabilities ({SUSPENSE_ACCOUNT}, clearing={CLEARING}); post those items to AR, then fix the interface mapping.",
                     "Normalise payment timestamps to UTC before bucketing by quarter; cutoff items belong to the period of the invoice date.",
                     "Reconciling-items table nets the difference to zero; FX is small relative to the structural items.",
                 ]),
@@ -1005,10 +1060,9 @@ WHERE ingest_id = 1 GROUP BY 1 ORDER BY 1"""
         rng = ctx.rng.spawn("dossier")
         P = state.periods
         names = rng.pick_names(4)
-        tb8 = state.ledger.trial_balance(P[-1])
         reveal = [
             "The external auditor's request list asks for the AR sub-ledger to general-ledger reconciliation as of quarter end.",
-            f"A suspense account balance of {abs(int(tb8['1400'])) / 100:,.0f} USD appears in the trial balance.",
+            f"A billing-interface clearing (suspense) credit of {self._clearing_balances(state)[P[-1]] / 100:,.0f} USD sits inside accrued liabilities.",
             f"The data team reran the billing ingestion job in {P[6]} after an outage.",
         ]
         if "fx_rounding" in p["breaks"]:
@@ -1071,7 +1125,7 @@ WHERE ingest_id = 1 GROUP BY 1 ORDER BY 1"""
         gl_side = float(-(it[om][P[-1]]) - it["cutoff_shift"][P[-1]] - it["fx_rounding"][P[-1]])
         inc8 = next(i for i in state.statements.income if i.period == P[-1])  # type: ignore[union-attr]
         kpis = {
-            "unexplained_difference_cents": float(unexplained), "suspense_balance_cents": float(-tb8["1400"]),
+            "unexplained_difference_cents": float(unexplained), "suspense_balance_cents": float(self._clearing_balances(state)[P[-1]]),
             "duplicate_rows": float(len(state.extras["dup_rows"])), "unapplied_cash_cents": float(it["unapplied_cash"][P[-1]]),
             "ar_over_90_cents": float(aging["90_plus"]), "allowance_cents": float(-tb8["1110"]), "net_income_cents": float(inc8.net_income_cents),
             "audit_finding_severity": 2.0, "close_days": 9.0,
@@ -1112,4 +1166,14 @@ def _with_hints(metrics: list[Any], hints: dict[str, str]) -> list[Any]:
         out.append(m.model_copy(update={"hint": h or f"Compute {m.label.lower()} from the case database ({m.unit})."}))
     return out
 
-_HINTS: dict[str, str] = {'gl_ar_close_p8_cents': 'Sum debit - credit on account 1100 in gl_lines through the latest quarter.', 'subledger_ar_naive_cents': 'Invoices - applied payments - credit memos - write-offs, using every loaded invoice row.', 'subledger_ar_deduped_cents': 'Same roll-forward after keeping one row per invoice_id (lowest ingest_id).', 'unexplained_difference_cents': 'GL 1100 minus the deduplicated sub-ledger balance.', 'duplicate_invoice_count': 'Count invoice rows beyond the first per invoice_id.', 'duplicate_invoice_cents': 'Sum the amounts of those extra rows.', 'unapplied_cash_cents': 'Payments with no invoice reference.', 'suspense_balance_p8_cents': 'Running balance of account 1400 in the GL.', 'ar_rollforward_p8_*': 'Build the AR roll-forward by quarter (opening + invoiced - collected - credits - write-offs = closing); normalise payment timestamps to UTC.', 'aging_bucket_*': 'Age deduplicated open invoices by days past due at quarter end.', 'reconciling_item_*': "Quantify this item's effect on GL minus the clean sub-ledger (signed).", 'cutoff_items_cents': 'Anti-join latest-quarter invoices to their GL lines (invoice_id in gl_lines.dimensions).'}
+_HINTS: dict[str, str] = {
+    'gl_ar_close_p8_cents': 'Sum debit - credit on account 1100 in gl_lines through the latest quarter.',
+    'subledger_ar_deduped_cents': 'Invoices - applied payments - credit memos - write-offs after keeping one row per invoice_id (lowest ingest_id); '
+                                  'build it as a roll-forward by quarter and normalise payment timestamps to UTC.',
+    'unexplained_difference_cents': 'GL 1100 minus the deduplicated sub-ledger balance; itemise it until the reconciling items net to zero.',
+    'duplicate_invoice_cents': 'Sum the amounts of the invoice rows beyond the first per invoice_id.',
+    'unapplied_cash_cents': 'Payments with no invoice reference.',
+    'suspense_balance_p8_cents': 'Find where the billing interface parked what it rejected (gl_journal.source, gl_lines.dimensions) and take the running balance.',
+    'aging_bucket_*': 'Age deduplicated open invoices by days past due at quarter end.',
+    'reconciling_item_*': "Quantify this item's effect on GL minus the clean sub-ledger (signed).",
+}
