@@ -104,7 +104,7 @@ python -m axiom.engine.market_research report                     # benchmark co
 ## Tests
 
 ```bash
-cd procedural-generative-textbooks/backend && python -m pytest -q          # ~7 min, 760+ tests
+cd procedural-generative-textbooks/backend && python -m pytest -q          # ~8 min, 831 tests
 cd procedural-generative-textbooks/backend && python -m pytest -q -m slow  # seed sweep: 14 archetypes x 30 seeds
 cd procedural-generative-textbooks/frontend && npm run build && npm run lint
 ```
