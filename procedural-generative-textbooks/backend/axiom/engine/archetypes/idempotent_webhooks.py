@@ -24,7 +24,7 @@ Model (resolves the spec's "or" variants into one consistent story)
 * Consequences: ``dup_to_dispute_rate`` of duplicate captures become disputes (reason
   ``duplicate_processing``, Visa 12.6.1, always lost) opened 10-45 days later; the rest raise a
   ``duplicate_charge`` support ticket and are refunded 2-7 days after the ticket.
-* GL (settlement batches): ``Dr 1000 net, Dr 5050 fees; Cr 4020 take x unique volume, Cr 2300
+* GL (settlement batches): ``Dr 1000 net (Dr 1100 settlement receivable for captures of a month's last two days, paid T+2), Dr 5050 fees; Cr 4020 take x unique volume, Cr 2300
   seller share, Cr 2450 duplicate volume`` - the GL follows provider settlements and parks
   duplicate cash as a refund liability (the Controller's "unreconciled" line). Duplicate refunds
   and lost duplicate disputes relieve 2450; fees on duplicates stay in 5050; dispute fees ($15)
@@ -64,6 +64,7 @@ import pandas as pd
 from axiom.engine import benchmark_keys as bk
 from axiom.engine.archetypes import register
 from axiom.engine.archetypes.base import (
+    cap_first,
     Archetype,
     BuildContext,
     WorldState,
@@ -100,14 +101,14 @@ FLAWED_MERMAID = """flowchart LR
   R -->|"sync: validate -> write ledger -> credit seller -> call capture"| DB[(Postgres payments_ledger)]
   R -->|"after work, returns 200 (often > {timeout}s)"| P
   R --> Q[Payout Service]
-  DB --> F[Finance Recon job (monthly)]
+  DB --> F["Finance Recon job (monthly)"]
   classDef bad fill:#3b1d1d,stroke:#ff5555,color:#fff
   class R bad"""
 FIXED_MERMAID = """flowchart LR
   P[Payment Provider] -- "POST /webhooks (at-least-once)" --> R[Webhook Receiver]
   R -->|"BEGIN; INSERT INTO processed_events(event_key) ON CONFLICT DO NOTHING; enqueue job; COMMIT"| DB[(Postgres)]
   R -->|"200 immediately"| P
-  W[Async worker] -->|"poll inbox"| DB
+  W["Async worker"] -->|"poll inbox"| DB
   W -->|"capture with Idempotency-Key = payment_intent_id"| P
   W -->|"ledger write + seller credit in the same tx as inbox status"| DB
   note["event_key = payment_intent_id || ':' || type (unique constraint)"] --- DB"""
@@ -125,6 +126,8 @@ class IdempotentWebhooks(Archetype):
     summary = ("Customers are being charged twice after a webhook consumer migration; disputes climb toward the card "
                "network threshold and finance cannot reconcile the payments ledger to the provider.")
     root_cause_terms = ("timeout", "idempotency", "dedupe", "incident windows")
+    bs_caption_exemptions = {"saas:deferred revenue": "revenue is a take rate earned on each captured payment; nothing is billed in advance",
+                             "ecommerce:inventor": "marketplace model: the sellers own the goods"}
 
     # ------------------------------------------------------------------ params
 
@@ -181,7 +184,7 @@ class IdempotentWebhooks(Archetype):
         gl_rows = difficulty_pick(difficulty, 1500, 1500, 5300)
         fixed = (int(p["n_merchants"] * 27 * 0.45) if marketplace else 0) + gl_rows + difficulty_pick(difficulty, 108, 108, 820) + p["n_merchants"] + 70
         p["n_intents"] = int(max(800, (budget * difficulty_pick(difficulty, 0.92, 0.92, 0.86) - fixed) / per_intent))
-        p["description"] = (f"{p['business_model'].capitalize()}; card payments run through a third-party provider whose "
+        p["description"] = (f"{cap_first(p['business_model'])}; card payments run through a third-party provider whose "
                             "webhooks drive the internal payments ledger and seller payouts.")
         return p
 
@@ -189,6 +192,7 @@ class IdempotentWebhooks(Archetype):
 
     def build_baseline(self, ctx: BuildContext, state: WorldState) -> None:
         """Merchants, payment intents (volume, amounts, event types) and the migration date."""
+        self.enable_standard_working_capital(ctx, state, vendor_ap=True)  # base working-capital defaults: vendor AP for part of the accrued-expense run and prepaid expenses
         p, cal = state.params, state.calendar
         rng = ctx.rng.spawn("baseline")
         g = rng.generator
@@ -541,13 +545,21 @@ class IdempotentWebhooks(Archetype):
         events: list[tuple[dt.date, int, Any]] = []
         # settlement batches
         txb = tx.assign(b=batch_end_dates(tx["created_at"], gran), dupc=np.where(tx["_dup"], tx["amount_cents"], 0))
+        # captures of the last two days before a batch closes are still in transit (paid out T+2)
+        month_end_batch = txb["b"].dt.day >= txb["b"].dt.days_in_month - 1  # only month-end batches matter for the balance sheet
+        txb["transit"] = np.where(month_end_batch & (txb["created_at"] >= txb["b"] - pd.Timedelta(days=1)), txb["amount_cents"] - txb["fee_cents"], 0)
         sett = txb.groupby("b", sort=True).agg(gross=("amount_cents", "sum"), fees=("fee_cents", "sum"), take_c=("take_cents", "sum"),
-                                               seller=("seller_cents", "sum"), dupc=("dupc", "sum"), n=("transaction_id", "size"))
+                                               seller=("seller_cents", "sum"), dupc=("dupc", "sum"), n=("transaction_id", "size"),
+                                               transit=("transit", "sum"))
         for b, r in sett.iterrows():
             dim = {"batch": f"settlement:{b.date()}", "settlement_id": f"st_{b:%Y%m%d}", "rows": str(int(r.n))}
-            lines = [("1000", int(r.gross - r.fees), 0, dim), ("5050", int(r.fees), 0, dim), ("4020", 0, int(r.take_c), dim),
-                     ("2300", 0, int(r.seller), dim), ("2450", 0, int(r.dupc), dim)]
+            lines = [("1000", int(r.gross - r.fees - r.transit), 0, dim), ("1100", int(r.transit), 0, dim), ("5050", int(r.fees), 0, dim),
+                     ("4020", 0, int(r.take_c), dim), ("2300", 0, int(r.seller), dim), ("2450", 0, int(r.dupc), dim)]
             events.append((b.date(), 2, lambda d, ln=lines: L.adjust(d, ln, "Provider settlement: captures net of fees", "sales")))
+            # captures of the batch's last two days are paid out T+2: a settlement receivable until then (review P0 #3)
+            if r.transit:
+                events.append(((b + pd.Timedelta(days=2)).date(), 2, lambda d, a=int(r.transit), dm=dim: L.collect_cash(
+                    d, a, memo="Provider settlement funds received", source="settlement_funds", dim=dm)))
         rfb = rf.assign(b=batch_end_dates(rf["created_at"], gran))
         for (b, isdup), grp in rfb.groupby(["b", "_dup"], sort=True):
             dim = {"batch": f"refunds:{b.date()}", "rows": str(len(grp))}
@@ -560,9 +572,14 @@ class IdempotentWebhooks(Archetype):
                 memo = "Customer refunds"
             events.append((b.date(), 3, lambda d, ln=lines, mm=memo: L.adjust(d, ln, mm, "refunds")))
         fee_b = dsp.assign(b=batch_end_dates(dsp["opened_at"], gran)).groupby("b", sort=True).size()
+        # dispute fees are invoiced by the provider monthly in arrears (processor-fee payable, review P0 #3)
         for b, cnt in fee_b.items():
-            events.append((b.date(), 4, lambda d, a=int(cnt) * p["dispute_fee_cents"], c=int(cnt): L.chargeback(
-                d, 0, fee_cents=a, memo="Dispute fees", dim={"rows": str(c)})))
+            events.append((b.date(), 4, lambda d, a=int(cnt) * p["dispute_fee_cents"], c=int(cnt): L.adjust(
+                d, [("6500", a, 0, {"rows": str(c)}), ("2000", 0, a, {"rows": str(c)})], "Dispute fees (provider invoice, monthly in arrears)", "disputes")))
+        fee_m = fee_b.groupby([pd.Timestamp(x).to_period("M") for x in fee_b.index]).sum() * p["dispute_fee_cents"]
+        for mo, a in fee_m.items():
+            events.append(((mo.to_timestamp() + pd.offsets.MonthBegin(1) + pd.Timedelta(days=11)).date(), 1, lambda d, a=int(a): L.pay_ap(
+                d, a, memo="Provider fee invoice paid", source="payables")))
         lost = dsp[dsp["status"] == "lost"]
         lb = lost.assign(b=batch_end_dates(lost["resolved_at"], gran))
         for (b, isdup), grp in lb.groupby(["b", "_dup"], sort=True):
@@ -585,7 +602,7 @@ class IdempotentWebhooks(Archetype):
         for m, ms in enumerate(months):
             me = (pd.Timestamp(ms) + pd.offsets.MonthEnd(0)).date()
             run_rate = float(rev_m.reindex(range(max(0, m - 2), m + 1)).fillna(0).mean()) or R / 12
-            opex = cents(run_rate * opex_pct)
+            opex = cents(run_rate * opex_pct * self.period_noise(ctx, state).ox(ms))  # review C2: opex noise
             payroll = cents(opex * 0.65)
             other = opex - payroll
             support = int(tk_m.get(m, 0)) * p["support_cost_per_ticket_cents"]

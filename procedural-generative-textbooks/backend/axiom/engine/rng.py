@@ -8,10 +8,12 @@ changes another. Nothing in this module reads the wall clock.
 
 from __future__ import annotations
 
+import contextlib
+import contextvars
 import datetime as dt
 import hashlib
 import logging
-from collections.abc import Sequence
+from collections.abc import Iterable, Iterator, Sequence
 from typing import TYPE_CHECKING, TypeVar
 
 import numpy as np
@@ -35,6 +37,8 @@ __all__ = [
     "COMPANY_SUFFIXES",
     "INDUSTRY_SUFFIXES",
     "CITIES",
+    "excluding_name_stems",
+    "excluded_name_stems",
 ]
 
 logger = logging.getLogger("axiom.rng")
@@ -178,6 +182,26 @@ COMPANY_STEMS: tuple[str, ...] = (
     "Quarry", "Redwood", "Ridgeline", "Saffron", "Sequoia", "Silverline", "Summit", "Tamarack", "Tidewater", "Vantage",
     "Verdant", "Willow", "Zephyr", "Quill", "Nimbus", "Solstice", "Tessera", "Corvid", "Marigold", "Obsidian",
 )
+
+# Name stems that ``SeededRNG.company_name`` must not produce (the world's own company stem while a
+# world is being built, so customer / supplier pools never contain "Quarry Components" for "Quarry Co.").
+_EXCLUDED_STEMS: contextvars.ContextVar[frozenset[str]] = contextvars.ContextVar("axiom_excluded_name_stems", default=frozenset())
+
+
+@contextlib.contextmanager
+def excluding_name_stems(stems: Iterable[str]) -> Iterator[None]:
+    """Within the block, :meth:`SeededRNG.company_name` redraws any name whose stem is in ``stems``."""
+    token = _EXCLUDED_STEMS.set(frozenset(_EXCLUDED_STEMS.get()) | frozenset(stems))
+    try:
+        yield
+    finally:
+        _EXCLUDED_STEMS.reset(token)
+
+
+def excluded_name_stems() -> frozenset[str]:
+    """Stems currently excluded by :func:`excluding_name_stems` (for archetypes with their own name pools)."""
+    return _EXCLUDED_STEMS.get()
+
 
 COMPANY_SUFFIXES: tuple[str, ...] = (
     "Inc.", "Co.", "Corp.", "Holdings", "Group", "Partners", "Labs", "Works", "Industries", "Systems",
@@ -350,9 +374,19 @@ class SeededRNG:
                 out.append(name)
         return out
 
-    def company_name(self, industry: str | None = None) -> str:
-        """A fictional company name, e.g. ``"Kestrel Logistics"`` or ``"Halcyon Labs"``."""
+    def company_name(self, industry: str | None = None, *, exclude: Iterable[str] | None = None) -> str:
+        """A fictional company name, e.g. ``"Kestrel Logistics"`` or ``"Halcyon Labs"``.
+
+        Stems in ``exclude`` (default: the stems set by :func:`excluding_name_stems`, i.e. the world's
+        own company while it is being built) are redrawn; pass ``exclude=()`` to disable."""
+        banned = frozenset(exclude) if exclude is not None else _EXCLUDED_STEMS.get()
         stem = self.choice(COMPANY_STEMS)
+        if stem in banned:
+            # redraw from a side stream so this stream's draw sequence is unchanged by the exclusion
+            self._redraws = getattr(self, "_redraws", 0) + 1
+            side = SeededRNG(derive_seed(self.seed, f"stem-redraw:{self._redraws}"))
+            allowed = [s for s in COMPANY_STEMS if s not in banned]
+            stem = side.choice(allowed) if allowed else stem
         pool = INDUSTRY_SUFFIXES.get(industry or "any", INDUSTRY_SUFFIXES["any"])
         if self._gen.random() < 0.7:
             return f"{stem} {self.choice(pool)}"

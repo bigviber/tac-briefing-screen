@@ -32,4 +32,7 @@ axiom = ["schema.sql", "*.json", "engine/benchmarks/*.json"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."]
-addopts = "-ra"
+addopts = "-ra -m 'not slow'"
+markers = [
+    "slow: long-running sweeps (seed sweep); excluded by default, run with -m slow",
+]

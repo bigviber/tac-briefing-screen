@@ -75,6 +75,7 @@ __all__ = [
     "quarter_bounds",
     "Ledger",
     "LedgerError",
+    "WorkingCapitalPolicy",
     "OpeningBalanceInputs",
     "opening_balances",
     "build_statements",
@@ -419,6 +420,33 @@ def batch_end_dates(dates: pd.Series, granularity: Literal["daily", "weekly", "m
 # --------------------------------------------------------------------------- ledger
 
 
+@dataclass
+class WorkingCapitalPolicy:
+    """Opt-in settlement policy for accrued expenses (review P0 #3 / C1), applied by :meth:`Ledger.pay_ap`.
+
+    When the ledger carries a policy, every settlement of an accrual account in ``accrual_accounts``
+    (``pay_ap(payable_account="2100")``, the monthly "accrued opex paid" run every archetype posts) is split:
+
+    * ``vendor_ap_share`` of it is converted into vendor invoices on terms (``Cr 2000``) and paid
+      ``vendor_dpo_days`` later by a scheduled ``Dr 2000 / Cr 1000`` entry (posted in date order as later
+      entries arrive; payments falling after the books close stay in AP);
+    * a monthly draw-down of prepayments (insurance and software licences billed in advance) relieves the accrual
+      (``Cr 1300``); the prepayment (``Dr 1300 / Cr 1000``, ``prepaid_months`` x the draw-down, the draw-down
+      being ``prepaid_share`` of the first settlement) is renewed when the balance would run out, so prepaid
+      expenses never reach zero at a period end;
+    * the rest is paid in cash, as before.
+
+    The income statement is unchanged (the archetype's accruals are untouched) and cash at any date is never
+    lower than without the policy (payments only move later or were made in advance from the same run).
+    """
+
+    vendor_ap_share: float = 0.0
+    vendor_dpo_days: int = 45
+    prepaid_share: float = 0.0
+    prepaid_months: int = 4
+    accrual_accounts: tuple[str, ...] = ("2100",)
+
+
 class LedgerError(ValueError):
     """An entry could not be posted (unbalanced, unknown account, negative amount...)."""
 
@@ -439,6 +467,11 @@ class Ledger:
         self.entries: list[JournalEntry] = []
         self._activity: dict[str, dict[str, int]] = defaultdict(lambda: defaultdict(int))
         self._seq = 0
+        self.wc_policy: WorkingCapitalPolicy | None = None
+        self._scheduled: list[tuple[dt.date, int, int, str, str]] = []  # (due, order, amount, memo, source)
+        self._flushing = False
+        self._prepaid_step = 0
+        self._prepaid_balance = 0
 
     # ------------------------------------------------------------------ core
 
@@ -486,6 +519,8 @@ class Ledger:
         coerced = [ln for ln in (self._coerce_line(s) for s in lines) if ln.debit_cents or ln.credit_cents]
         if not coerced:
             return None
+        if self._scheduled and not self._flushing:
+            self.flush_scheduled(date, inclusive=False)
         for ln in coerced:
             if ln.debit_cents < 0 or ln.credit_cents < 0:
                 raise LedgerError(f"negative amount on {ln.account}")
@@ -575,8 +610,45 @@ class Ledger:
 
     def pay_ap(self, date: dt.date, amount: int, *, payable_account: str = "2000", memo: str = "Vendor payment",
                source: str = "payables", dim: Mapping[str, str] | None = None) -> JournalEntry | None:
-        """``vendor_payment`` (any liability settlement): Dr 2000/2100/2110; Cr 1000."""
-        return self._two(date, payable_account, "1000", amount, memo, source, dim)
+        """``vendor_payment`` (any liability settlement): Dr 2000/2100/2110; Cr 1000. With a
+        :class:`WorkingCapitalPolicy`, settlements of accrual accounts are split (vendor AP / prepaid / cash)."""
+        pol = self.wc_policy
+        if pol is None or payable_account not in pol.accrual_accounts or int(amount) <= 0:
+            return self._two(date, payable_account, "1000", amount, memo, source, dim)
+        amount = int(amount)
+        d = dict(dim or {})
+        ap = cents(amount * pol.vendor_ap_share)
+        prepaid = 0
+        if pol.prepaid_share > 0:
+            if self._prepaid_step == 0:
+                self._prepaid_step = max(1, cents(amount * pol.prepaid_share))
+            step = self._prepaid_step
+            if self._prepaid_balance <= step:
+                buy = step * pol.prepaid_months
+                self._two(date, "1300", "1000", buy, "Insurance and software subscriptions prepaid", "prepaid")
+                self._prepaid_balance += buy
+            prepaid = max(0, min(step, self._prepaid_balance, amount - ap))
+            self._prepaid_balance -= prepaid
+        cash = amount - ap - prepaid
+        je = self.entry(date, [(payable_account, amount, 0, d), ("2000", 0, ap, d), ("1300", 0, prepaid, d), ("1000", 0, cash, d)], memo, source)
+        if ap:
+            self._scheduled.append((date + dt.timedelta(days=int(pol.vendor_dpo_days)), len(self._scheduled), ap,
+                                    "Vendor invoices paid on terms", "payables"))
+        return je
+
+    def flush_scheduled(self, until: dt.date, *, inclusive: bool = True) -> None:
+        """Post scheduled vendor payments due before ``until`` (on or before when ``inclusive``), in due order.
+        Called automatically before each new entry and by the archetype base after ``post_ledger``."""
+        due = sorted(x for x in self._scheduled if (x[0] <= until if inclusive else x[0] < until))
+        if not due:
+            return
+        self._scheduled = [x for x in self._scheduled if x not in due]
+        self._flushing = True
+        try:
+            for when, _o, amt, memo, source in due:
+                self._two(when, "2000", "1000", amt, memo, source)
+        finally:
+            self._flushing = False
 
     def capex(self, date: dt.date, amount: int, *, asset_account: str = "1500", funding_account: str = "1000",
               memo: str = "Capital expenditure", source: str = "capex", dim: Mapping[str, str] | None = None) -> JournalEntry | None:
@@ -998,25 +1070,36 @@ def _cash_flow(f: _PeriodFigures) -> CashFlowStatement:
                              net_change_cents=f.net_change, beginning_cash_cents=f.begin_cash, ending_cash_cents=f.cash, lines=lines)
 
 
-def _ratios(figs: list[_PeriodFigures]) -> dict[str, dict[str, float]]:
-    """Ratios per period (common section 5.4 plus Beneish indices vs the previous period)."""
-    out: dict[str, dict[str, float]] = {}
+def _ratio_or_none(num: float, den: float, *, positive_den: bool = False) -> float | None:
+    """``num / den``, or ``None`` when the ratio is undefined (zero - or, with ``positive_den``, non-positive -
+    denominator): no sentinel such as 999 ever reaches the public view (review C5); the UI shows "n/m"."""
+    if den == 0 or (positive_den and den <= 0) or not math.isfinite(num) or not math.isfinite(den):
+        return None
+    v = num / den
+    return v if math.isfinite(v) else None
+
+
+def _ratios(figs: list[_PeriodFigures]) -> dict[str, dict[str, float | None]]:
+    """Ratios per period (common section 5.4 plus Beneish indices vs the previous period). Ratios that are undefined
+    for the period (``current_ratio`` / ``quick_ratio`` without current liabilities, ``interest_coverage`` without
+    interest expense, ``debt_to_ebitda`` with debt but non-positive TTM EBITDA) are ``None``."""
+    out: dict[str, dict[str, float | None]] = {}
     for i, f in enumerate(figs):
         prev = figs[i - 1] if i > 0 else None
         yoy = figs[i - 4] if i >= 4 else None
         ttm = figs[max(0, i - 3): i + 1]
         ebitda_ttm = sum(x.operating_income + x.da for x in ttm) * 4.0 / len(ttm)
-        r: dict[str, float] = {
+        r: dict[str, float | None] = {
             "gross_margin": _safe_div(f.gross_profit, f.revenue),
             "operating_margin": _safe_div(f.operating_income, f.revenue),
             "net_margin": _safe_div(f.net_income, f.revenue),
             "dso": _safe_div(f.ar_net, f.revenue) * f.days,
             "dio": _safe_div(f.inventory, f.cogs) * f.days,
             "dpo": _safe_div(f.ap, f.cogs) * f.days,
-            "current_ratio": _clip(_safe_div(f.tca, f.tcl, 999.0)),
-            "quick_ratio": _clip(_safe_div(f.cash + f.ar_net, f.tcl, 999.0)),
-            "debt_to_ebitda": _clip(_safe_div(f.debt, ebitda_ttm, 99.0) if ebitda_ttm > 0 else (0.0 if f.debt == 0 else 99.0)),
-            "interest_coverage": _clip(_safe_div(f.operating_income, f.act["7000"], 999.0)),
+            "current_ratio": _ratio_or_none(f.tca, f.tcl),
+            "quick_ratio": _ratio_or_none(f.cash + f.ar_net, f.tcl),
+            "debt_to_ebitda": 0.0 if f.debt == 0 else _ratio_or_none(f.debt, ebitda_ttm, positive_den=True),
+            "interest_coverage": _ratio_or_none(f.operating_income, f.act["7000"], positive_den=True),
             "accrual_ratio_sloan": _safe_div(f.net_income - f.cfo, ((prev.total_assets if prev else f.total_assets) + f.total_assets) / 2),
             "allowance_pct_ar": _safe_div(-f.tb["1110"], f.ar_gross),
             "unbilled_pct_ar": _safe_div(f.tb["1150"], f.ar_net),
@@ -1035,7 +1118,7 @@ def _ratios(figs: list[_PeriodFigures]) -> dict[str, dict[str, float]]:
             r.update(_beneish(f, prev))
         else:
             r["ar_growth_vs_revenue_growth"] = 0.0
-        out[f.period] = {k: round(float(v), 10) for k, v in r.items()}
+        out[f.period] = {k: (None if v is None else round(float(v), 10)) for k, v in r.items()}
     return out
 
 
@@ -1135,6 +1218,7 @@ class SubledgerTie:
     expected_break_cents: dict[str, int] = field(default_factory=dict)
     tolerance_cents: int = 1
     description: str = ""
+    exclude_sources: tuple[str, ...] = ()  # GL entries with these sources are left out (e.g. quarter-end revenue deferrals)
 
     def ledger_side(self, ledger: Ledger, period: str) -> int:
         """GL amount for ``period`` in normal-balance terms."""
@@ -1142,6 +1226,11 @@ class SubledgerTie:
             return int(self.ledger_cents.get(period, 0))
         src = ledger.trial_balance(period) if self.basis == "balance" else ledger.activity(period)
         raw = _sum(src, self.accounts)
+        if self.exclude_sources:
+            accts = set(self.accounts)
+            raw -= sum(ln.debit_cents - ln.credit_cents for e in ledger.entries
+                       if e.source in self.exclude_sources and (e.period == period if self.basis == "activity" else e.period <= period)
+                       for ln in e.lines if ln.account in accts)
         if self.accounts and ledger.accounts[self.accounts[0]].normal_balance == "credit":
             raw = -raw
         return raw

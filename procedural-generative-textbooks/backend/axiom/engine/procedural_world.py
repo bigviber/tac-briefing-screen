@@ -147,7 +147,10 @@ def render_statements(world: CaseWorld) -> str:
         return [(("  " if stmts[0].lines[i].level == 0 else "") + cap, [_money(s.lines[i].cents) for s in stmts]) for i, cap in enumerate(caps)]
 
     ratio_keys = ["gross_margin", "operating_margin", "dso", "dio", "dpo", "ccc", "current_ratio", "debt_to_ebitda", "m_score"]
-    ratios = [(k, [f"{st.ratios[p].get(k, float('nan')):.2f}" for p in periods]) for k in ratio_keys]
+    def fmt(v: float | None) -> str:
+        return "n/m" if v is None else f"{v:.2f}"
+
+    ratios = [(k, [fmt(st.ratios[p].get(k, float("nan"))) for p in periods]) for k in ratio_keys]
     return "\n\n".join([
         _table("INCOME STATEMENT ($k)", periods, rows_for(st.income)),
         _table("BALANCE SHEET ($k)", periods, rows_for(st.balance)),

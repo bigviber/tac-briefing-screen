@@ -22,6 +22,7 @@ from axiom.engine.finance import (
     check_invariants,
     dollars_to_cents,
     opening_balances,
+    quarter_bounds,
     split_cents,
 )
 from axiom.engine.rng import SeededRNG
@@ -169,8 +170,27 @@ def test_ratios_present() -> None:
     r = build_statements(L, cal.periods).ratios[cal.periods[-1]]
     for k in ("dso", "dpo", "dio", "ccc", "gross_margin", "operating_margin", "net_margin", "current_ratio", "quick_ratio",
               "debt_to_ebitda", "interest_coverage", "accrual_ratio_sloan", "ar_growth_vs_revenue_growth", "allowance_pct_ar"):
-        assert k in r and np.isfinite(r[k])
+        assert k in r and (r[k] is None or np.isfinite(r[k]))
     assert r["ccc"] == pytest.approx(r["dso"] + r["dio"] - r["dpo"])
+
+
+def test_undefined_ratios_are_none_not_sentinels() -> None:
+    """Review C5: no 999 / 99 sentinel; undefined ratios are None (the UI shows n/m)."""
+    L, cal = _healthy_ledger(5)
+    st = build_statements(L, cal.periods)
+    for p in cal.periods:
+        r = st.ratios[p]
+        has_interest = L.activity(p)["7000"] > 0
+        assert (r["interest_coverage"] is None) == (not has_interest)
+        for k, v in r.items():
+            assert k.endswith("_cents") or v is None or abs(v) < 999.0, (k, v)
+    L2 = Ledger()
+    q = cal.periods[0]
+    d = quarter_bounds(q)[1]
+    L2.open_books(quarter_bounds(q)[0], {"1000": 1_000, "3000": -1_000})
+    L2.sell_for_cash(d, 500)
+    r = build_statements(L2, [q]).ratios[q]
+    assert r["interest_coverage"] is None and r["current_ratio"] is None and r["quick_ratio"] is None and r["debt_to_ebitda"] == 0.0
 
 
 def test_subledger_tie_designed_break() -> None:

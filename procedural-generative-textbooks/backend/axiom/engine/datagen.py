@@ -447,6 +447,25 @@ class TableBuilder:
                                      "dimensions": "all line dimensions as key=value;... (batch ids, row counts)"},
                        description="General-ledger lines; signed balance = SUM(debit_cents - credit_cents).")
 
+    def add_dirt(self, name: str, rules: Sequence[str]) -> None:
+        """Append dirt ``rules`` to a registered table (re-materialised on the next :meth:`materialize`). Each rule
+        draws from its own ``dirt:<table>:<rule>`` stream, so earlier rules are unaffected."""
+        for rule in rules:
+            parse_rule(rule)
+        self.tables[name].dirt.extend(rules)
+        self._materialized = None
+
+    def remove_dirt(self, name: str, rules: Sequence[str]) -> None:
+        """Remove previously added ``rules`` from a table."""
+        td = self.tables[name]
+        td.dirt = [r for r in td.dirt if r not in set(rules)]
+        self._materialized = None
+
+    def clean_frame(self, name: str) -> pd.DataFrame:
+        """The clean (pre-dirt) frame of a registered table."""
+        td = self.tables[name]
+        return td.frame if td.frame is not None else td.generator(self.rng.spawn(f"table:{name}"))  # type: ignore[misc]
+
     # ------------------------------------------------------------------ build
 
     def materialize(self) -> dict[str, pd.DataFrame]:

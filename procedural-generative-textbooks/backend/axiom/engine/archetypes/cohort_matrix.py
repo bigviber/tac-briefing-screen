@@ -27,8 +27,10 @@ Model
   calendar month M if some subscription covers the end of M (``started_at < first day of M+1`` and
   ``ended_at IS NULL OR ended_at >= first day of M+1``); retention(cohort, k) = active customers in
   month cohort+k / cohort size, for months up to the as-of month only (lower triangle).
-* GL: card-paid monthly charges on each billing anniversary - ``Dr 1000 net, Dr 5050 fee, Dr 4110
-  promo discount; Cr 4000 list price`` - in monthly batches; hosting / fulfilment in 5000; usual close.
+* GL: card-paid monthly charges on each billing anniversary - ``Dr 1000 net (Dr 1100 for charges of the
+  last two days of the month, settled T+2), Dr 5050 fee, Dr 4110 promo discount; Cr 4000 list price`` - in
+  monthly batches; the unearned part of each month billed in advance is deferred to 2200 at quarter end
+  (auto-reversing, source ``revenue_deferral``); hosting / fulfilment in 5000; usual close.
   Sub-ledger: charges generated from the subscription intervals == GL net revenue (holds; no designed
   break - the anomaly is analytical).
 
@@ -51,6 +53,8 @@ import pandas as pd
 from axiom.engine import benchmark_keys as bk
 from axiom.engine.archetypes import register
 from axiom.engine.archetypes.base import (
+    DEFERRAL_SOURCE,
+    post_deferred_revenue_trueups,
     Archetype,
     BuildContext,
     WorldState,
@@ -123,6 +127,8 @@ class CohortMatrix(Archetype):
     summary = ("The growth team says retention is improving; the board wants a proper cohort view built from the "
                "subscription data - duplicates, reactivations, time zones and all.")
     root_cause_terms = ("promo cohort", "right-censoring", "reactivation", "deduplicat")
+    bs_caption_exemptions = {"ecommerce:inventor": "subscription boxes are fulfilled by a partner billed per box; no owned stock is modelled"}
+    stage_options = ("seed", "growth")  # the narrative is a growth story
 
     # ------------------------------------------------------------------ params
 
@@ -169,6 +175,7 @@ class CohortMatrix(Archetype):
 
     def build_baseline(self, ctx: BuildContext, state: WorldState) -> None:
         """Acquisition by month, segment, plan and first-subscription lifetimes (sBG)."""
+        self.enable_standard_working_capital(ctx, state, vendor_ap=False)  # base working-capital defaults: prepaid expenses (AP already comes from the purchasing / cost sub-ledger)
         p, cal = state.params, state.calendar
         rng = ctx.rng.spawn("baseline")
         g = rng.generator
@@ -373,7 +380,12 @@ class CohortMatrix(Archetype):
         L = state.ledger
         months = state.extras["months"]
         ch = state.extras["charges"]
-        ch_m = ch.groupby(_midx(ch["billed_at"], cal.start)).agg(g=("gross_cents", "sum"), d=("discount_cents", "sum"), f=("fee_cents", "sum"), n=("_s", "size"))
+        # card charges of the last two days of a month settle in the next month (T+2): settlement receivable at month end
+        bat = pd.to_datetime(ch["billed_at"])
+        transit = (bat.dt.day > bat.dt.days_in_month - 2).to_numpy()
+        ch_t = ch.assign(tr=np.where(transit, ch["net_cents"] - ch["fee_cents"], 0))
+        ch_m = ch_t.groupby(_midx(ch["billed_at"], cal.start)).agg(g=("gross_cents", "sum"), d=("discount_cents", "sum"), f=("fee_cents", "sum"),
+                                                                   n=("_s", "size"), tr=("tr", "sum"))
         state.extras["charges_by_month"] = ch_m
         rev_ttm = float((ch_m["g"] - ch_m["d"]).iloc[-12:].sum()) or 1.0
         cash0 = cents(rev_ttm * 0.35) + 25_000_000
@@ -389,11 +401,14 @@ class CohortMatrix(Archetype):
             net = int(r.g - r.d) if r is not None else 0
             if r is not None:
                 dim = {"batch": f"card_charges:{ms:%Y-%m}", "rows": str(int(r.n))}
-                events.append((me, 3, lambda d, a=int(r.g), x=int(r.d), f=int(r.f), dm=dim: L.adjust(
-                    d, [("1000", a - x - f, 0, dm), ("5050", f, 0, dm), ("4110", x, 0, dm), ("4000", 0, a, dm)], "Subscription card charges (monthly batch)", "sales")))
+                events.append((me, 3, lambda d, a=int(r.g), x=int(r.d), f=int(r.f), t=int(r.tr), dm=dim: L.adjust(
+                    d, [("1000", a - x - f - t, 0, dm), ("1100", t, 0, dm), ("5050", f, 0, dm), ("4110", x, 0, dm), ("4000", 0, a, dm)],
+                    "Subscription card charges (monthly batch)", "sales")))
+                events.append((me + dt.timedelta(days=2), 2, lambda d, t=int(r.tr), dm=dim: L.collect_cash(
+                    d, t, memo="Card settlements in transit received", source="settlement_funds", dim=dm)))
             run = float(np.mean([int(ch_m.loc[j].g - ch_m.loc[j].d) if j in ch_m.index else 0 for j in range(max(0, m - 2), m + 1)])) or rev_ttm / 12
-            cogs = cents(net * (1 - p["gm"]))
-            opex = cents(run * max(0.1, p["gm"] - 0.03 - p["op_margin"]))
+            cogs = cents(net * (1 - p["gm"] - self.period_noise(ctx, state).gm(ms)))  # review C2: quarterly GM / opex noise
+            opex = cents(run * max(0.1, p["gm"] - 0.03 - p["op_margin"]) * self.period_noise(ctx, state).ox(ms))
             payroll = cents(opex * 0.62)
             other = opex - payroll
             if m > 0:
@@ -420,6 +435,11 @@ class CohortMatrix(Archetype):
         for d, _prio, fn in events:
             if d <= cal.end:
                 fn(d)
+        # monthly charges are billed in advance for the next month of service: quarter-end deferral (review P0 #3)
+        bill = pd.to_datetime(ch["billed_at"])
+        docs = pd.DataFrame({"posted": bill.dt.to_period("M").dt.to_timestamp(how="end").dt.normalize(), "service_start": bill,
+                             "service_end": bill + pd.DateOffset(months=1), "amount_cents": ch["net_cents"]})
+        state.extras["deferral_effect"] = post_deferred_revenue_trueups(state, docs, revenue_account="4000")
 
     # ------------------------------------------------------------------ tables
 
@@ -479,7 +499,7 @@ class CohortMatrix(Archetype):
         ch = state.extras["charges"]
         per = cal.labels(ch["billed_at"])
         rev = {x: int(ch.loc[per == x, "net_cents"].sum()) for x in state.periods}
-        return [SubledgerTie("subscription_charges_vs_revenue", rev, ["4000", "4110"], basis="activity",
+        return [SubledgerTie("subscription_charges_vs_revenue", rev, ["4000", "4110"], basis="activity", exclude_sources=(DEFERRAL_SOURCE,),
                              description="Monthly charges on billing anniversaries (list - promo discount) == GL net revenue")]
 
     # ------------------------------------------------------------------ the triangle (ground truth)

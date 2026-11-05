@@ -142,6 +142,7 @@ class AbcCostDistortion(Archetype):
     summary = ("A manufacturer's 'premium' product line shows the best margins and record sales, yet operating income keeps "
                "falling and a manufacturing variance nobody can explain grows every quarter.")
     root_cause_terms = ("activity-based", "allocation base", "direct labor hours", "setup", "abc cost")
+    capital_events = True  # mature manufacturers return surplus cash (review P1 #7: cash was a straight line)
 
     # ------------------------------------------------------------------ params
 
@@ -196,6 +197,7 @@ class AbcCostDistortion(Archetype):
 
     def build_baseline(self, ctx: BuildContext, state: WorldState) -> None:
         """Work centres, products (BOM, routings, standard cost), demand by SKU-month and the TDABC calibration."""
+        self.enable_standard_working_capital(ctx, state, vendor_ap=False)  # base working-capital defaults: prepaid expenses (AP already comes from the purchasing / cost sub-ledger)
         p, cal = state.params, state.calendar
         rng = ctx.rng.spawn("baseline")
         g = rng.generator
@@ -260,7 +262,8 @@ class AbcCostDistortion(Archetype):
         share_m[:, 2] = rev_share0[2] + drift
         share_m[:, 1] = rev_share0[1]
         share_m[:, 0] = 1 - share_m[:, 1] - share_m[:, 2]
-        trend = (1 + p["growth_qoq"]) ** (np.arange(n_m) / 3) * g.lognormal(0, 0.02, n_m)
+        # review C2: manufacturing seasonality (Q1 dip) and +-4% quarterly volume noise on top of the trend
+        trend = (1 + p["growth_qoq"]) ** (np.arange(n_m) / 3) * g.lognormal(0, 0.02, n_m) * self.period_noise(ctx, state).vol_array(months)
         R = p["revenue_ttm_cents"] / 100
         total_m = trend * R / trend[-12:].sum()
         demand = np.zeros((len(products), n_m))
@@ -583,7 +586,7 @@ class AbcCostDistortion(Archetype):
             if ms.month in (1, 4, 7, 10) and m > 0:
                 events.append((ms + dt.timedelta(days=14), 1, lambda d: L.pay_tax(d, -L.closing_balances()["2400"])))
             # SG&A sized on the warm-up revenue (cost base does not follow the mix); commissions on reported margin
-            sga = cents(R0 * (sga_pct - p["commission_rate"] * 0.3) * (1 + p["growth_qoq"]) ** (m / 3))
+            sga = cents(R0 * (sga_pct - p["commission_rate"] * 0.3) * (1 + p["growth_qoq"]) ** (m / 3) * self.period_noise(ctx, state).ox(ms))
             payroll = cents(sga * 0.6)
             other = sga - payroll
             comm = cents(margin_m[m] * p["commission_rate"])

@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import logging
+import shutil
 import threading
 import time
 from collections.abc import Iterator
@@ -727,3 +728,31 @@ def test_health_reports_archetypes_available(env: Env, monkeypatch: pytest.Monke
     with TestClient(app) as client:
         body = client.get(f"{API}/health").json()
     assert body["status"] == "ok" and body["llm_configured"] is False and body["archetypes_available"] == 2
+
+
+def test_world_json_byte_identical_through_api(env: Env, monkeypatch: pytest.MonkeyPatch) -> None:
+    """QA F2: generating through the API keeps the generator's world.json bytes (generated_at blank in the
+    file); the timestamp is in meta.json and in the API response."""
+    from axiom.engine.market_research import get_default_pool
+    from axiom.engine.procedural_world import generate_world, world_json_bytes
+
+    pool = get_default_pool()  # the fixture corpus has no fintech industry
+    monkeypatch.setattr(services_mod, "load_generate_world", lambda: generate_world)
+    monkeypatch.setattr(type(env.services), "pool", property(lambda self: pool))
+    first = env.generate("idempotent_webhooks", 99, "foundation")
+    cid = first["case_id"]
+    folder = env.services.settings.cases_dir / cid
+    b1 = (folder / "world.json").read_bytes()
+    assert json.loads(b1)["generated_at"] == ""
+    stamp = json.loads((folder / "meta.json").read_text())["generated_at"]
+    assert stamp and first.get("generated_at", stamp) == stamp
+    shutil.rmtree(folder)
+    again = env.generate("idempotent_webhooks", 99, "foundation")
+    assert again["case_id"] == cid
+    b2 = (folder / "world.json").read_bytes()
+    assert b1 == b2
+    reference = generate_world("idempotent_webhooks", 99, difficulty="foundation", out_dir=env.services.settings.data_dir / "ref",
+                               pool=pool)
+    assert world_json_bytes(reference) == b1
+    loaded = env.services.world_service.load(cid)
+    assert loaded.generated_at  # restored from meta.json

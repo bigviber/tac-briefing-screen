@@ -48,7 +48,10 @@ Documented simplifications
   ``vendor_terms_days`` moves DPO 1:1 and AP/cash by COGS/day, stockouts +0.4pt/day (lag 1);
   ``revolver_draw_cents`` / ``equity_raise_cents`` add cash 1:1 (revolver interest at rate/4).
   ``anomaly_drag`` = the average quarterly P6-P8 drift (cash, DSO, DIO, CCC) while unresolved;
-  ``resolved_if`` requires liquidating >= 20% of excess inventory and an early-pay discount >= 1%.
+  ``resolved_if`` names the root-cause reductions (``<=`` conditions): customer terms back to within a quarter of the
+  drift above the base terms, and purchasing cover back to about the pre-window DIO (both must hold: Module 3 has
+  no OR-groups, so liquidation / early-pay discounts relieve cash but do not resolve the anomaly). ``bounds`` keep
+  days in [0, 365], balances non-negative and the revolver within its limit.
 """
 
 from __future__ import annotations
@@ -65,6 +68,8 @@ import pandas as pd
 from axiom.engine import benchmark_keys as bk
 from axiom.engine.archetypes import register
 from axiom.engine.archetypes.base import (
+    at_most,
+    cap_first,
     Archetype,
     BuildContext,
     WorldState,
@@ -118,6 +123,7 @@ class WorkingCapitalCrunch(Archetype):
     summary = ("A fast-growing goods company posts record revenue and rising profits while its cash drains into "
                "receivables and inventory; the revolver is maxed and a covenant test looms.")
     root_cause_terms = ("cash conversion cycle", "payment terms", "over-forecast", "excess inventory")
+    stage_options = ("growth",)  # the narrative is a growth story
 
     # ------------------------------------------------------------------ params
 
@@ -189,7 +195,7 @@ class WorkingCapitalCrunch(Archetype):
         gl_rows = difficulty_pick(difficulty, 2700, 2900, 11000)
         fixed = p["n_skus"] * 21 + p["n_customers"] + p["n_suppliers"] + gl_rows + 120
         p["n_orders"] = int(max(500, (budget * difficulty_pick(difficulty, 0.93, 0.93, 0.86) - fixed) / 8.7))
-        p["description"] = (f"{p['business_model'].capitalize()} growing roughly {p['growth_qoq'] * 100:.0f}% a quarter; "
+        p["description"] = (f"{cap_first(p['business_model'])} growing roughly {p['growth_qoq'] * 100:.0f}% a quarter; "
                             f"sells to retailers and distributors on net-{p['terms_days_base']} terms.")
         return p
 
@@ -197,6 +203,7 @@ class WorkingCapitalCrunch(Archetype):
 
     def build_baseline(self, ctx: BuildContext, state: WorldState) -> None:
         """Master data and demand: customers, suppliers, products, orders and order lines (no anomaly)."""
+        self.enable_standard_working_capital(ctx, state, vendor_ap=False)  # base working-capital defaults: prepaid expenses (AP already comes from the purchasing / cost sub-ledger)
         p, cal = state.params, state.calendar
         rng = ctx.rng.spawn("baseline")
         g = rng.generator
@@ -570,7 +577,7 @@ class WorkingCapitalCrunch(Archetype):
     def _run_books(self, ctx: BuildContext, state: WorldState, cash_shift: int) -> dict[str, Any]:
         """Post every entry from P0 to P8 into a fresh ledger; returns facts used downstream."""
         p, cal = state.params, state.calendar
-        L = Ledger()
+        L = self.fresh_ledger(state)
         state.ledger = L
         gran = GL_BATCH[p["difficulty"]]
         months = state.extras["months"]
@@ -611,6 +618,7 @@ class WorkingCapitalCrunch(Archetype):
         revolver_hist: list[int] = []
         cash_hist: list[int] = []
         opex_hist: list[int] = []
+        nz = self.period_noise(ctx, state)  # review C2: seasonal + idiosyncratic quarter noise
         term_bal = debt
         amort_q = cents(debt * 0.05)
         for m, ms in enumerate(months):
@@ -618,7 +626,7 @@ class WorkingCapitalCrunch(Archetype):
             quarter_end = ms.month % 3 == 0
             run_rate = float(month_rev[max(0, m - 2): m + 1].mean()) if m > 0 else float(month_rev[0])
             run_rate = max(run_rate, R / 12 * 0.5)
-            opex_total = cents(run_rate * (p["gm"] - p["freight_pct"] - p["op_margin"] - 0.015))
+            opex_total = cents(run_rate * (p["gm"] - p["freight_pct"] - p["op_margin"] - 0.015) * nz.ox(ms))
             opex_hist.append(opex_total)
             cash_start = L.closing_balances()["1000"]
             if p["payables_stretch"] and m >= a3_start and not stretched and (cash_start < 1.5 * opex_total or m >= n_m - 3):
@@ -627,7 +635,9 @@ class WorkingCapitalCrunch(Archetype):
             # schedule vendor payments for this month's receipts
             sel = po_month == m
             lag = p["dpo_base"] + po["_noise"].to_numpy()[sel] + (p["dpo_drift"] if stretched else 0.0)
-            pay_dates[sel] = (po["received_at"].to_numpy()[sel] + pd.to_timedelta(np.maximum(5, lag), unit="D").to_numpy()).astype("datetime64[ns]")
+            # whole seconds, so the GL month cut-off (< next day) and the sub-ledger cut-off (<= 23:59:59) agree (seed sweep:
+            # seed 18 had a payment at 23:59:30 on the last day that the GL paid and the sub-ledger left open)
+            pay_dates[sel] = (po["received_at"].to_numpy()[sel] + pd.to_timedelta(np.maximum(5, lag), unit="D").to_numpy()).astype("datetime64[s]").astype("datetime64[ns]")
             events: list[tuple[dt.date, int, Any]] = []
             if m > 0:
                 pp, pa = prev_payroll, prev_accrued
@@ -713,7 +723,7 @@ class WorkingCapitalCrunch(Archetype):
                     revolver -= rep
             revolver_hist.append(revolver)
             cash_hist.append(L.closing_balances()["1000"])
-        po = po.assign(paid_at=pd.Series(pay_dates).where(pd.Series(pay_dates) <= pd.Timestamp(end_date) + pd.Timedelta(hours=23, minutes=59)).to_numpy())
+        po = po.assign(paid_at=pd.Series(pay_dates).where(pd.Series(pay_dates) < pd.Timestamp(end_date) + pd.Timedelta(days=1)).to_numpy())
         state.extras["po_paid"] = po
         return {"revolver_end": revolver, "revolver_hist": revolver_hist, "cash_hist": cash_hist, "opex_hist": opex_hist,
                 "opening_cash": cash0, "trigger_month": trigger_month, "inv0": inv0}
@@ -880,15 +890,18 @@ class WorkingCapitalCrunch(Archetype):
     def _covenant(self, state: WorldState) -> dict[str, Any]:
         p = state.params
         r8 = state.statements.ratios[state.periods[-1]]  # type: ignore[union-attr]
-        cr_breach = r8["current_ratio"] < p["covenant_min_current_ratio"]
-        de_breach = r8["debt_to_ebitda"] > p["covenant_max_debt_ebitda"]
+        # undefined ratios (None: no current liabilities / non-positive EBITDA with debt) -> covenant terms
+        cr_v = r8["current_ratio"] if r8["current_ratio"] is not None else 99.0
+        de_v = r8["debt_to_ebitda"] if r8["debt_to_ebitda"] is not None else 99.0
+        cr_breach = cr_v < p["covenant_min_current_ratio"]
+        de_breach = de_v > p["covenant_max_debt_ebitda"]
         kind = p["covenant_pref"]
         if kind == "current_ratio" and not cr_breach and de_breach:
             kind = "debt_to_ebitda"
         elif kind == "debt_to_ebitda" and not de_breach and cr_breach:
             kind = "current_ratio"
         breached = cr_breach if kind == "current_ratio" else de_breach
-        value = r8["current_ratio"] if kind == "current_ratio" else r8["debt_to_ebitda"]
+        value = cr_v if kind == "current_ratio" else de_v
         threshold = p["covenant_min_current_ratio"] if kind == "current_ratio" else p["covenant_max_debt_ebitda"]
         return {"type": kind, "breached": bool(breached), "value": float(value), "threshold": float(threshold)}
 
@@ -1277,7 +1290,8 @@ FROM purchase_orders WHERE paid_at IS NOT NULL OR status = 'on_hold' GROUP BY 1 
             "revenue_cents": rev, "net_income_cents": float(inc8.net_income_cents), "cash_cents": float(tb8["1000"]),
             "ar_cents": ar, "inventory_cents": inventory, "ap_cents": float(-tb8["2000"]), "revolver_cents": rv["drawn"],
             "dso_days": r8["dso"], "dio_days": r8["dio"], "dpo_days": r8["dpo"], "ccc_days": r8["ccc"],
-            "current_ratio": r8["current_ratio"], "debt_to_ebitda": r8["debt_to_ebitda"], "stockout_rate": stockout,
+            "current_ratio": r8["current_ratio"] if r8["current_ratio"] is not None else 99.0,
+            "debt_to_ebitda": r8["debt_to_ebitda"] if r8["debt_to_ebitda"] is not None else 10.0, "stockout_rate": stockout,
             "operating_cash_flow_cents": float(f["cf"][P8].operating_cents),
         }
         rev_day, cogs_day = rev / days, cogs / days
@@ -1317,8 +1331,19 @@ FROM purchase_orders WHERE paid_at IS NOT NULL OR status = 'on_hold' GROUP BY 1 
             "dio_days": (r8["dio"] - f["ratios"][P[4]]["dio"]) / n,
             "ccc_days": (r8["ccc"] - f["ratios"][P[4]]["ccc"]) / n,
         }
+        # root-cause fixes are reductions (review P1 #8): tighten customer terms back toward the base and cut the
+        # purchasing cover back toward the pre-window DIO. Module 3 has no OR-groups, so both must hold.
+        lv = {x.key: x for x in self.levers(ctx, state)}
+        terms_now = float(lv["credit_terms_days"].default)
+        terms_thr = float(min(terms_now - 1, p["terms_days_base"] + max(2.0, 0.25 * (terms_now - p["terms_days_base"]))))
+        dio_pre = float(np.mean([f["ratios"][x]["dio"] for x in P if x < P[-p["window_periods"]]]))
+        cover_now = float(lv["purchase_cover_months"].default)
+        cover_thr = float(np.clip(min(cover_now - 0.25, dio_pre / 30.4 + 0.25), 0.5, 3.0))
         return {"kpis": kpis, "lever_effects": effects, "anomaly_drag": drag,
-                "resolved_if": {"inventory_liquidation_pct": 20.0, "early_pay_discount_pct": 1.0}}
+                "resolved_if": {"credit_terms_days": at_most(round(terms_thr)), "purchase_cover_months": at_most(round(cover_thr, 2))},
+                "bounds": {"dso_days": [0.0, 365.0], "dio_days": [0.0, 365.0], "dpo_days": [0.0, 365.0], "stockout_rate": [0.0, 1.0],
+                           "ar_cents": [0.0, None], "inventory_cents": [0.0, None], "ap_cents": [0.0, None],
+                           "revolver_cents": [0.0, float(self._revolver(state)["limit"])]}}
 
 
 def _split(total: int, weights: list[float]) -> list[int]:

@@ -344,6 +344,9 @@ class MonteCarloCash(Archetype):
     summary = ("The CFO's 13-week cash plan is positive every week; the treasurer is nervous about payroll weeks. "
                "Quantify the probability of a shortfall and of a covenant breach from the company's own data.")
     root_cause_terms = ("flaw of averages", "key customer", "monte carlo", "covenant")
+    bs_caption_exemptions = {"manufacturing:inventor": "simplification of the cash model: materials are bought to order and billed on delivery "
+                                                   "(payables are tracked, stock is not)",
+                             "ecommerce:inventor": "the distributor cross-docks to order (bought and billed per delivery); no stock is held"}
 
     # ------------------------------------------------------------------ params
 
@@ -697,7 +700,13 @@ class MonteCarloCash(Archetype):
             ev.append((b.date(), 4, lambda d, a=int(r.a), dm={"batch": f"vendor_payments:{b.date()}", "rows": str(int(r.n))}: L.pay_ap(d, a, memo="Supplier payments (batch)", dim=dm)))
         for r in hist(payroll, "pay_date").itertuples(index=False):
             split = dict(zip(("5010", "6000", "6200"), split_cents(int(r.amount_cents), [0.7, 0.12, 0.18]), strict=True))
-            ev.append((r.pay_date.date(), 5, lambda d, s=split, a=int(r.amount_cents): (L.payroll(d, s), L.pay_ap(d, a, payable_account="2110", memo="Payroll paid", source="payroll"))))
+            # employer payroll taxes and benefits (8%) are remitted on the 10th of the following month: accrued payroll
+            # liabilities exist at every month end (review P0 #3); expense and net pay are unchanged
+            tax = cents(int(r.amount_cents) * 0.08)
+            ev.append((r.pay_date.date(), 5, lambda d, s=split, a=int(r.amount_cents), t=tax: (
+                L.payroll(d, s), L.pay_ap(d, a - t, payable_account="2110", memo="Payroll paid", source="payroll"))))
+            remit = (r.pay_date + pd.offsets.MonthBegin(1) + pd.Timedelta(days=9)).date()
+            ev.append((remit, 5, lambda d, t=tax: L.pay_ap(d, t, payable_account="2110", memo="Payroll taxes and benefits remitted", source="payroll")))
         acct = {"rent": "6400", "software_and_utilities": "6200", "insurance": "6200"}
         for r in hist(fixed, "due_date").itertuples(index=False):
             if r.category == "income_tax":

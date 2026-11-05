@@ -77,6 +77,10 @@ class LineItem(BaseModel):
     caption: str
     statement: Literal["income_statement", "balance_sheet", "cash_flow"]
     typical_pct_of_revenue: dict[str, float] | None = None
+    basis: str | None = None  # pct_of_revenue | pct_of_assets | share_of_inventory
+    p25: float | None = None
+    p50: float | None = None
+    p75: float | None = None
 
 
 class TemplateTable(BaseModel):

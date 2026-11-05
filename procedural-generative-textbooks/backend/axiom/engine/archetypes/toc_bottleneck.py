@@ -75,6 +75,7 @@ import pandas as pd
 from axiom.engine import benchmark_keys as bk
 from axiom.engine.archetypes import register
 from axiom.engine.archetypes.base import (
+    cap_first,
     Archetype,
     BuildContext,
     WorldState,
@@ -225,7 +226,7 @@ class TocBottleneck(Archetype):
         per_wo = n_st + 3.0  # production_log ops + work order + sales order + quality event (most WOs scrap something)
         p["n_work_orders"] = int(max(400, (budget * difficulty_pick(difficulty, 0.90, 0.90, 0.88) - gl_rows - 400) / per_wo))
         p["n_customers"] = difficulty_pick(difficulty, 25, 40, 60)
-        p["description"] = (f"{p['business_model'].capitalize()} running a {n_st}-step serial line on two shifts; "
+        p["description"] = (f"{cap_first(p['business_model'])} running a {n_st}-step serial line on two shifts; "
                             "work centers are measured on local utilization and work is released as orders arrive.")
         return p
 
@@ -233,6 +234,7 @@ class TocBottleneck(Archetype):
 
     def build_baseline(self, ctx: BuildContext, state: WorldState) -> None:
         """Stations, rated capacities, product families, routings and customers."""
+        self.enable_standard_working_capital(ctx, state, vendor_ap=False)  # base working-capital defaults: prepaid expenses (AP already comes from the purchasing / cost sub-ledger)
         p = state.params
         rng = ctx.rng.spawn("baseline")
         g = rng.generator
@@ -642,7 +644,7 @@ class TocBottleneck(Archetype):
         p, cal = state.params, state.calendar
         g = ctx.rng.spawn("books").generator
         E = state.extras
-        L = Ledger()
+        L = self.fresh_ledger(state)
         state.ledger = L
         gran = GL_BATCH[p["difficulty"]]
         months = E["months"]
@@ -740,6 +742,7 @@ class TocBottleneck(Archetype):
         ot_month = labor.groupby("month", sort=False)["overtime_premium_cents"].sum()
         opex0 = int(E["opex_month_cents"])
         freight_m = comp.assign(mo=pd.to_datetime(comp["b"]).dt.strftime("%Y-%m")).groupby("mo")[["freight", "expedite"]].sum().sum(axis=1)
+        nz = self.period_noise(ctx, state)  # review C2: seasonal + idiosyncratic quarter noise
         prev = {"payroll": 0, "accr": 0}
         for m, ms in enumerate(months):
             me = (pd.Timestamp(ms) + pd.offsets.MonthEnd(0)).date()
@@ -750,7 +753,7 @@ class TocBottleneck(Archetype):
                 add(ms + dt.timedelta(days=14), 1, lambda d: L.pay_tax(d, -L.closing_balances()["2400"]))
             ot = int(ot_month.get(f"{ms:%Y-%m}", 0))
             infl = (1 + p["wage_inflation_month"]) ** m
-            direct, overhead, opex_m = cents(direct0 * infl), cents(overhead0 * infl), cents(opex0 * infl)
+            direct, overhead, opex_m = cents(direct0 * infl), cents(overhead0 * infl), cents(opex0 * infl * nz.ox(ms))
             sga_pay = cents(opex_m * 0.55)
             other = opex_m - sga_pay
             add(me, 7, lambda d, a=direct, s=sga_pay: L.payroll(d, {"5010": a, **dict(zip(("6000", "6200"), split_cents(s, [0.4, 0.6]), strict=True))},

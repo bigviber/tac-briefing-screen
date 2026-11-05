@@ -8,8 +8,9 @@ anti-joins, and produce a reconciling-items table that nets to zero.
 
 Mechanics
 ---------
-* Customers join over time and churn; each active customer gets one invoice a month (``Dr 1100 /
-  Cr 4000``, recognised in the service month - no deferred revenue), net-30; payments arrive with
+* Customers join over time and churn; each active customer gets one invoice a month in advance (``Dr 1100 /
+  Cr 4000``; the unearned part of the service month is deferred to 2200 at each quarter end by an
+  auto-reversing close entry, source ``revenue_deferral``), net-30; payments arrive with
   a realistic delay mixture (on time, late tail, ~1.5% never - written off after ~6 months against
   the allowance). Credit memos (partial, before payment) reduce the invoice; the customer pays the
   net amount.
@@ -72,6 +73,9 @@ import pandas as pd
 from axiom.engine import benchmark_keys as bk
 from axiom.engine.archetypes import register
 from axiom.engine.archetypes.base import (
+    DEFERRAL_SOURCE,
+    post_deferred_revenue_trueups,
+    cap_first,
     Archetype,
     BuildContext,
     WorldState,
@@ -134,6 +138,7 @@ class WindowReconciliation(Archetype):
     summary = ("Audit fieldwork starts and the receivables sub-ledger does not tie to the general ledger; a suspense balance "
                "has appeared and the controller needs an itemised tie-out by Friday.")
     root_cause_terms = ("duplicate", "unapplied cash", "ingest_id", "cutoff", "interface")
+    bs_caption_exemptions = {"ecommerce:inventor": "platform-fee business: the merchants own the goods"}
 
     # ------------------------------------------------------------------ params
 
@@ -180,13 +185,14 @@ class WindowReconciliation(Archetype):
         budget = ROW_BUDGET[difficulty]
         gl_overhead = difficulty_pick(difficulty, 1300, 1300, 4500)
         p["n_invoices"] = int((budget * difficulty_pick(difficulty, 0.93, 0.9, 0.87) - gl_overhead - (1700 if difficulty == "principal" else 0)) / 3.25)
-        p["description"] = f"{p['business_model'].capitalize()}; customers on net-{p['terms_days']} terms, invoiced on their billing anniversary."
+        p["description"] = f"{cap_first(p['business_model'])}; customers on net-{p['terms_days']} terms, invoiced on their billing anniversary."
         return p
 
     # ------------------------------------------------------------------ baseline
 
     def build_baseline(self, ctx: BuildContext, state: WorldState) -> None:
         """Customers, subscriptions and the monthly invoice schedule (USD), sized to the row budget."""
+        self.enable_standard_working_capital(ctx, state, vendor_ap=True)  # base working-capital defaults: vendor AP for part of the accrued-expense run and prepaid expenses
         p, cal = state.params, state.calendar
         rng = ctx.rng.spawn("baseline")
         g = rng.generator
@@ -527,8 +533,8 @@ class WindowReconciliation(Archetype):
         for m, ms in enumerate(months):
             me = (pd.Timestamp(ms) + pd.offsets.MonthEnd(0)).date()
             run = float(rev_m[max(0, m - 2): m + 1].mean())
-            cogs = cents(run * (1 - p["gm"]))
-            opex = cents(run * (p["gm"] - p["op_margin"] - 0.55 * p["capex_pct"]))
+            cogs = cents(run * (1 - p["gm"] - self.period_noise(ctx, state).gm(ms)))  # review C2: quarterly GM / opex noise
+            opex = cents(run * (p["gm"] - p["op_margin"] - 0.55 * p["capex_pct"]) * self.period_noise(ctx, state).ox(ms))
             payroll = cents(opex * 0.65)
             other = opex - payroll
             if m > 0:
@@ -560,6 +566,10 @@ class WindowReconciliation(Archetype):
         for d, _prio, fn in events:
             if d <= end_date:
                 fn(d)
+        # billed monthly in advance: the unearned part of each invoice is deferred at quarter end (review P0 #3)
+        docs = pd.DataFrame({"posted": posted["_gl_date"], "service_start": posted["invoice_date"],
+                             "service_end": posted["invoice_date"] + pd.DateOffset(months=1), "amount_cents": posted["_gl_usd"]})
+        state.extras["deferral_effect"] = post_deferred_revenue_trueups(state, docs, revenue_account=rev_acct)
 
     # ------------------------------------------------------------------ tables
 
@@ -690,7 +700,7 @@ class WindowReconciliation(Archetype):
                          description="Same with duplicate loads removed (lowest ingest_id) vs GL 1100 (designed breaks)"),
             SubledgerTie("suspense_items_vs_gl_1400", susp_sub, ["1400"], description="Interface items parked in suspense == GL 1400 (holds)"),
             SubledgerTie("revenue_invoices_vs_gl", {x: b["revenue"][x] for x in P}, [acct], basis="activity",
-                         expected_break_cents={k: v for k, v in rev_brk.items() if v},
+                         expected_break_cents={k: v for k, v in rev_brk.items() if v}, exclude_sources=(DEFERRAL_SOURCE,),
                          description="Invoices dated in period (USD at month-average) vs GL revenue: cutoff and FX (designed)"),
         ]
 

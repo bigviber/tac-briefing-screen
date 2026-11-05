@@ -64,6 +64,7 @@ import pandas as pd
 from axiom.engine import benchmark_keys as bk
 from axiom.engine.archetypes import register
 from axiom.engine.archetypes.base import (
+    cap_first,
     Archetype,
     BuildContext,
     WorldState,
@@ -187,7 +188,7 @@ class Bullwhip(Archetype):
             "band_t3": BANDS[difficulty][1],
             "difficulty": difficulty,
         }
-        p["description"] = (f"{p['business_model'].capitalize()}: {S} SKUs replenished weekly from one key supplier and shipped to "
+        p["description"] = (f"{cap_first(p['business_model'])}: {S} SKUs replenished weekly from one key supplier and shipped to "
                             f"{R} retail chains, which share weekly point-of-sale data.")
         return p
 
@@ -195,6 +196,7 @@ class Bullwhip(Archetype):
 
     def build_baseline(self, ctx: BuildContext, state: WorldState) -> None:
         """Calendar of weeks, SKUs, retailers and the POS demand (tier 0)."""
+        self.enable_standard_working_capital(ctx, state, vendor_ap=False)  # base working-capital defaults: prepaid expenses (AP already comes from the purchasing / cost sub-ledger)
         p, cal = state.params, state.calendar
         rng = ctx.rng.spawn("baseline")
         g = rng.generator
@@ -563,7 +565,7 @@ class Bullwhip(Archetype):
     def _books(self, ctx: BuildContext, state: WorldState) -> None:
         p, cal = state.params, state.calendar
         E = state.extras
-        L = Ledger()
+        L = self.fresh_ledger(state)
         state.ledger = L
         gran = GL_BATCH[p["difficulty"]]
         months = E["months"]
@@ -621,7 +623,8 @@ class Bullwhip(Archetype):
         # warehousing (2%/month of month-end inventory value), opex, payroll, depreciation, interest, tax
         snaps = state.frames["inventory_snapshots"]
         sv = snaps.assign(v=snaps["on_hand_units"] * snaps["unit_cost_cents"], mo=snaps["snapshot_date"].dt.strftime("%Y-%m")).groupby("mo")["v"].mean()
-        opex_m = cents(R / 12 * max(0.05, p["gm"] - p["op_margin"] - 0.03))
+        opex_base = cents(R / 12 * max(0.05, p["gm"] - p["op_margin"] - 0.03))
+        nz = self.period_noise(ctx, state)  # review C2: seasonal + idiosyncratic quarter noise
         P8 = state.periods[-1]
         p8_end = cal.bounds(P8)[1]
         prev = {"pay": 0, "accr": 0}
@@ -632,6 +635,7 @@ class Bullwhip(Archetype):
                 add(ms + dt.timedelta(days=9), 1, lambda d, a=prev["accr"]: L.pay_ap(d, a, payable_account="2100", memo="Accrued expenses paid", source="opex"))
             if ms.month in (1, 4, 7, 10) and m > 0:
                 add(ms + dt.timedelta(days=14), 1, lambda d: L.pay_tax(d, -L.closing_balances()["2400"]))
+            opex_m = cents(opex_base * nz.ox(ms))
             hold = cents(float(sv.get(f"{ms:%Y-%m}", sv.iloc[0])) * p["holding_pct_month"])
             payroll = {"6000": cents(opex_m * 0.25), "6200": cents(opex_m * 0.2), "5010": cents(opex_m * 0.15)}
             accr = {"6400": hold + cents(opex_m * 0.15), "6000": cents(opex_m * 0.1), "6200": opex_m - sum(payroll.values()) - cents(opex_m * 0.25)}

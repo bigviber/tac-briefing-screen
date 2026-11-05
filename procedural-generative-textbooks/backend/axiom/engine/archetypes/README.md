@@ -21,8 +21,12 @@
    - `build_operations`, `build_ground_truth(ctx, state, con)` (metrics computed from the data via `metric(...)`,
      each with `pillar`; reference SQL via `run_reference_query(con, name, sql, signature=[...], metric_keys=[...],
      checks=fn)` - it runs on the dirty DuckDB, so dedupe/trim in the SQL), `build_dossier_seed`, `levers`,
-     `simulation_model` (`{"kpis", "lever_effects", "anomaly_drag", "resolved_if"}`; each effect sets exactly one
-     of `elasticity` / `delta_per_unit`, the other key omitted; `resolved_if` values are floats meaning `>=`).
+     `simulation_model` (`{"kpis", "lever_effects", "anomaly_drag", "resolved_if"}` plus optional `bounds` / `shocks`;
+     each effect sets exactly one of `elasticity` / `delta_per_unit`, the other key omitted). A `resolved_if` value is a
+     number (`>=`) or `at_most(x)` (`{"op": "<=", "value": x}`) when the root-cause fix is a reduction; all conditions
+     must hold (Module 3 has no OR-groups); the status quo must not resolve and the lever ranges must allow it. The base
+     adds name-based default `bounds` (amounts / counts / days >= 0, rates and utilizations in [0, 1], margins in
+     [-1, 1]; earnings, flows and cash stay signed); archetype bounds win.
 3. Use one child stream per concern (`ctx.rng.spawn("baseline")`, ...). No wall clock, no unseeded randomness,
    no Python `hash()`.
 4. Verify: `python -m axiom.engine.procedural_world verify --archetype <key> --seed 7` (byte-identical
@@ -33,6 +37,33 @@ Conventions to rely on: integer cents everywhere (`cents()` rounds half away fro
 residual to the last bucket); no closing entries (IS accounts accumulate, BS shows current earnings in retained
 earnings); CFS is derived from every non-cash BS account (`CFS_MAP`), so new event families need no CFS code;
 `DatabaseSpec.path` is logical (`cases/<case_id>/company.duckdb`), resolve with `procedural_world.resolve_db_path`.
+
+## Realism defaults from the base (review 2026-11)
+
+- **Company profile** (`base.company_profile`): stage from `industry.stage_mix` (restrict with the class attribute
+  `stage_options`; > $5M revenue is never `seed`), FYE from {12-31: 0.7, 06-30 / 09-30 / 03-31: 0.1 each} (statements
+  stay on calendar quarters), founding year from the stage's age band bounded by `founded_floor(business_model)`,
+  headcount = TTM revenue / revenue per employee (SaaS from `saas.headcount_per_1m_arr`, others from
+  `REVENUE_PER_EMPLOYEE_USD`; floor 8). Descriptions use `cap_first`, never `str.capitalize` (it lower-cases "B2B").
+  The company's name stem is excluded from every `rng.company_name` draw during the build (archetypes with their own
+  name pools check `rng.excluded_name_stems()`).
+- **Working capital** (`self.enable_standard_working_capital(ctx, state, vendor_ap=..., prepaid=True)` in
+  `build_baseline`, before posting): the monthly `pay_ap(payable_account="2100")` settlement is split into vendor AP
+  (30-45%, paid on `fin.<ind>.dpo_days` terms), a prepaid draw-down and cash (`finance.WorkingCapitalPolicy`). Do not
+  enable `vendor_ap` when an AP sub-ledger ties to 2000. Archetypes that re-create the ledger use
+  `self.fresh_ledger(state)` so the policy carries over. Revenue billed in advance but credited to revenue on
+  invoicing gets quarter-end auto-reversing deferrals from `post_deferred_revenue_trueups` (source
+  `revenue_deferral`); billing-basis revenue ties declare `exclude_sources=(DEFERRAL_SOURCE,)`.
+- **Balance-sheet completeness** (required invariant `bs_caption_present[...]`): every `line_items.json` balance-sheet
+  caption of the industry with p50 > 2% of assets must be non-zero in some period, unless `BS_CAPTION_RULES` exempts
+  it generically (cash, totals, goodwill, leases, debt, lending books, customer deposits) or the archetype declares
+  `bs_caption_exemptions = {"[industry:]regex": "reason"}`.
+- **Noise** (`self.period_noise(ctx, state)`): seasonal profile by industry x idiosyncratic quarterly noise (`vol(d)`,
+  `gm(d)` additive GM shift, `ox(d)` opex multiplier, `bookings(d)`); one `noise` stream per world.
+- **Principal dirt**: after the ground truth is built, `add_principal_dirt` tops transactional tables up to 3 rules
+  (`unit_mixed`, `orphan_fk`, case / whitespace / nulls) on columns no ground-truth query, reference SQL or reference
+  Python names, rewrites the DB and replays every ground-truth query; a table whose extra dirt changed any result
+  loses it again.
 
 ## Notes and gotchas
 

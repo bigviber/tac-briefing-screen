@@ -25,7 +25,7 @@ Model
   (``reason='out_of_stock_after_order'``) and refunded 1-5 days later - the card fee is not returned
   (5050 leakage); the rest are fulfilled late from an expedited purchase (expedite freight in 5030).
   Oversold buyers open tickets; churn uplift is costed with the ``kpi_assumptions`` table.
-* GL: card checkout ``Dr 1000 net, Dr 5050 fee; Cr 4000`` (weekly batches); shipment ``Dr 5000;
+* GL: card checkout ``Dr 1000 net (Dr 1100 for checkouts of a month's last two days, settled T+2), Dr 5050 fee; Cr 4000`` (weekly batches); shipment ``Dr 5000;
   Cr 1220`` and freight ``Dr 5030; Cr 2100``; receipts ``Dr 1220; Cr 2000`` paid after 30 days;
   cancellations ``Dr 4100; Cr 2450`` then refunds ``Dr 2450; Cr 1000``.
 * Ties: physical inventory (receipts - shipments) == 1220, open purchases == 2000, cancellations
@@ -55,6 +55,7 @@ import pandas as pd
 
 from axiom.engine.archetypes import register
 from axiom.engine.archetypes.base import (
+    cap_first,
     Archetype,
     BuildContext,
     WorldState,
@@ -88,12 +89,12 @@ CATEGORIES = ("Apparel lots", "Electronics returns", "Home goods", "Toys", "Beau
 REGIONS_US = ("Northeast", "Southeast", "Midwest", "Southwest", "West")
 INTL = ("SG", "AU", "JP", "KR", "HK")
 FLAWED_MERMAID = """flowchart LR
-  B[Buyer] --> CDN[Availability cache TTL {ttl}]
+  B[Buyer] --> CDN["Availability cache TTL {ttl}"]
   CDN --> U[Checkout Service]
   U -->|"1. read available_qty"| RR[(Read Replica, async)]
   U -->|"2. INSERT order; UPDATE inventory SET reserved = reserved + qty (no condition)"| PR[(Primary)]
   PR -. "async replication (150 ms; seconds under flash load)" .-> RR
-  AN[Nightly Analytics Job{olap}] -->|"heavy OLAP scans"| RR
+  AN["Nightly Analytics Job{olap}"] -->|"heavy OLAP scans"| RR
   classDef bad fill:#3b1d1d,stroke:#ff5555,color:#fff
   class U,AN bad"""
 FIXED_MERMAID = """flowchart LR
@@ -104,7 +105,7 @@ FIXED_MERMAID = """flowchart LR
   CAT[Catalogue / browse] --> RR
   PR -. CDC .-> WH[(Analytics warehouse)]
   AN[Nightly Analytics Job] --> WH
-  LB[Checkout rate limiter / queue during flash sales] --> U"""
+  LB["Checkout rate limiter / queue during flash sales"] --> U"""
 
 
 def _secs(ts: pd.Series | pd.DatetimeIndex | np.ndarray, epoch: pd.Timestamp) -> np.ndarray:
@@ -151,6 +152,7 @@ class ReplicaLag(Archetype):
     summary = ("Flash sales are a hit, but a growing share of orders is cancelled for stock that was never there; "
                "the warehouse is blamed, refunds and expedite costs pile up.")
     root_cause_terms = ("read replica", "stale read", "replication lag", "conditional update")
+    stage_options = ("seed", "growth")  # the narrative is a growth story
 
     # ------------------------------------------------------------------ params
 
@@ -204,7 +206,7 @@ class ReplicaLag(Archetype):
         # fixed rows: telemetry + GL + purchase orders + limited-lot orders (4 rows each) + small tables
         fixed = difficulty_pick(difficulty, 6200, 10500, 30500)
         p["n_orders"] = int(max(600, (budget * 0.9 - fixed) / 4.4))
-        p["description"] = (f"{p['business_model'].capitalize()}; weekly limited drops and flash sales drive growth. "
+        p["description"] = (f"{cap_first(p['business_model'])}; weekly limited drops and flash sales drive growth. "
                             "Read replicas were added last year to keep the site up under flash-sale traffic.")
         return p
 
@@ -212,6 +214,7 @@ class ReplicaLag(Archetype):
 
     def build_baseline(self, ctx: BuildContext, state: WorldState) -> None:
         """Catalogue, customers, normal orders, monthly replenishment and the flash / drop calendar."""
+        self.enable_standard_working_capital(ctx, state, vendor_ap=False)  # base working-capital defaults: prepaid expenses (AP already comes from the purchasing / cost sub-ledger)
         p, cal = state.params, state.calendar
         rng = ctx.rng.spawn("baseline")
         g = rng.generator
@@ -660,10 +663,19 @@ class ReplicaLag(Archetype):
         cs = cents(0.6 * (cash0 + ppe - accdep))
         L.open_books(cal.opening_date, {"1000": cash0, "1500": ppe, "1510": -accdep, "3000": -cs, "3100": -(cash0 + ppe - accdep - cs)})
         events: list[tuple[dt.date, int, Any]] = []
-        sb = orders.assign(b=batch_end_dates(orders["placed_at"], gran)).groupby("b", sort=True).agg(a=("total_cents", "sum"), f=("fee_cents", "sum"), n=("order_id", "size"))
+        ob = orders.assign(b=batch_end_dates(orders["placed_at"], gran))
+        # in transit at a month end: checkouts of the last two days of the month (keeps GL rows flat at daily batching)
+        month_end_batch = ob["b"].dt.day >= ob["b"].dt.days_in_month - 1
+        ob["tr"] = np.where(month_end_batch & (ob["placed_at"] >= ob["b"] - pd.Timedelta(days=1)), ob["total_cents"] - ob["fee_cents"], 0)
+        sb = ob.groupby("b", sort=True).agg(a=("total_cents", "sum"), f=("fee_cents", "sum"), n=("order_id", "size"), tr=("tr", "sum"))
         for b, r in sb.iterrows():
             dim = {"batch": f"checkout:{b.date()}", "rows": str(int(r.n))}
-            events.append((b.date(), 3, lambda d, a=int(r.a), f=int(r.f), dm=dim: L.sell_for_cash(d, a, fee_cents=f, memo="Card checkout (batch)", dim=dm)))
+            # the acquirer settles T+2: checkouts of the batch's last two days are a card settlement receivable (review P0 #3)
+            events.append((b.date(), 3, lambda d, a=int(r.a), f=int(r.f), t=int(r.tr), dm=dim: L.entry(
+                d, [("1000", a - f - t, 0, dm), ("1100", t, 0, dm), ("5050", f, 0, dm), ("4000", 0, a, dm)], "Card checkout (batch)", "sales")))
+            if r.tr:
+                events.append(((b + pd.Timedelta(days=2)).date(), 3, lambda d, t=int(r.tr), dm=dim: L.collect_cash(
+                    d, t, memo="Card settlement funds received", source="settlement_funds", dim=dm)))
         rb = po.assign(b=batch_end_dates(po["received_at"], gran)).groupby("b", sort=True).agg(a=("amount_cents", "sum"), n=("po_id", "size"))
         for b, r in rb.iterrows():
             events.append((b.date(), 2, lambda d, a=int(r.a), dm={"batch": f"receipts:{b.date()}", "rows": str(int(r.n))}: L.purchase_inventory(d, a, memo="Inventory receipts (batch)", dim=dm)))
@@ -700,7 +712,7 @@ class ReplicaLag(Archetype):
             me = (pd.Timestamp(ms) + pd.offsets.MonthEnd(0)).date()
             keys = [f"{pd.Timestamp(months[j]):%Y-%m}" for j in range(max(0, m - 2), m + 1)]
             run_rate = float(np.mean([rev_m.get(k, 0) for k in keys])) or R / 12
-            opex = cents(run_rate * max(0.08, gm_net - p["op_margin"]))
+            opex = cents(run_rate * max(0.08, gm_net - p["op_margin"]) * self.period_noise(ctx, state).ox(ms))  # review C2: opex noise
             payroll = cents(opex * 0.6)
             other = opex - payroll
             support = int(tk_m.get(f"{ms:%Y-%m}", 0)) * p["support_cost_cents"]

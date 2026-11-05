@@ -40,12 +40,12 @@ Documented simplifications
   (``ln Q ~ ln pocket index + trend + ln competitor category index + category FE``), excluding the
   eight weeks of partial adjustment after the increase.
 
-Simulation (reduced form, KPIs = P8 quarter): ``price_cut_shopper_pct`` and ``price_change_loyal_pct``
+Simulation (reduced form, KPIs = P8 quarter): ``price_change_shopper_pct`` (signed; a cut is negative) and ``price_change_loyal_pct``
 move segment units by their elasticities (half in the quarter, half the next: partial adjustment)
 and revenue / contribution accordingly; ``discount_cap_pts`` (tighter rep authority) raises the
 pocket price of the shoppers (and costs some volume); ``fence_feature`` enables segmented pricing at a
 cost of ~0.75% of revenue; ``match_competitor`` recovers 60% of the competitor-driven volume loss at a
-margin cost. ``resolved_if``: fence + a shopper price cut toward the Lerner optimum.
+margin cost. ``resolved_if``: fence + a shopper price cut toward the Lerner optimum (``price_change_shopper_pct <= -threshold``).
 """
 
 from __future__ import annotations
@@ -62,6 +62,8 @@ import pandas as pd
 from axiom.engine import benchmark_keys as bk
 from axiom.engine.archetypes import register
 from axiom.engine.archetypes.base import (
+    at_most,
+    cap_first,
     Archetype,
     BuildContext,
     WorldState,
@@ -164,7 +166,7 @@ class PricingElasticity(Archetype):
         gl_rows = difficulty_pick(difficulty, 2600, 2900, 11000)
         p["target_lines"] = int(max(1500, (budget * 0.9 - gl_rows - 2200) / 1.55))
         p["n_skus"] = difficulty_pick(difficulty, 24, 40, 60)
-        p["description"] = (f"{p['business_model'].capitalize()}; {len(p['segments'])} customer segments buy through the same price list, "
+        p["description"] = (f"{cap_first(p['business_model'])}; {len(p['segments'])} customer segments buy through the same price list, "
                             "with account reps authorised to discount.")
         return p
 
@@ -211,6 +213,7 @@ class PricingElasticity(Archetype):
 
     def build_baseline(self, ctx: BuildContext, state: WorldState) -> None:
         """Weeks, SKUs (categories, base list prices), customers by segment and segment-category preferences."""
+        self.enable_standard_working_capital(ctx, state, vendor_ap=False)  # base working-capital defaults: prepaid expenses (AP already comes from the purchasing / cost sub-ledger)
         p, cal = state.params, state.calendar
         rng = ctx.rng.spawn("baseline")
         g = rng.generator
@@ -524,7 +527,7 @@ class PricingElasticity(Archetype):
     def _books(self, ctx: BuildContext, state: WorldState) -> None:
         p, cal = state.params, state.calendar
         E, F = state.extras, state.frames
-        L = Ledger()
+        L = self.fresh_ledger(state)
         state.ledger = L
         gran = GL_BATCH[p["difficulty"]]
         months = E["months"]
@@ -587,7 +590,8 @@ class PricingElasticity(Archetype):
         mk = F["marketing_spend"]
         mk_m = mk.groupby(mk["week_start"].dt.strftime("%Y-%m"))["spend_cents"].sum()
         fr_m = od.groupby(od["order_ts"].dt.strftime("%Y-%m"))["freight_cents"].sum()
-        opex_m = cents(R / 12 * max(0.05, p["gm"] - p["op_margin"] - p["freight_pct"] - 0.025))
+        opex_base = cents(R / 12 * max(0.05, p["gm"] - p["op_margin"] - p["freight_pct"] - 0.025))
+        nz = self.period_noise(ctx, state)  # review C2: seasonal + idiosyncratic quarter noise
         prev = {"pay": 0, "accr": 0}
         for m, ms in enumerate(months):
             me = (pd.Timestamp(ms) + pd.offsets.MonthEnd(0)).date()
@@ -597,6 +601,7 @@ class PricingElasticity(Archetype):
             if ms.month in (1, 4, 7, 10) and m > 0:
                 add(ms + dt.timedelta(days=14), 1, lambda d: L.pay_tax(d, -L.closing_balances()["2400"]))
             mkt = int(mk_m.get(f"{ms:%Y-%m}", 0))
+            opex_m = cents(opex_base * nz.ox(ms))
             payroll = {"6000": cents(opex_m * 0.35), "6200": cents(opex_m * 0.25), "5010": cents(opex_m * 0.1)}
             accr = {"6000": mkt, "6200": cents(opex_m * 0.15), "6400": opex_m - sum(payroll.values()) - cents(opex_m * 0.15)}
             add(me, 7, lambda d, s_=payroll: L.payroll(d, s_, memo="Payroll (sales reps, G&A, warehouse)"))
@@ -1100,10 +1105,10 @@ GROUP BY 1 ORDER BY 1"""
     # ------------------------------------------------------------------ simulation
 
     def levers(self, ctx: BuildContext, state: WorldState) -> list[Lever]:
-        """Five levers (segment price levers coded as increases toward the fix); defaults = status quo."""
+        """Five levers; the shopper price lever is a signed change (the fix is a cut, ``<=``); defaults = status quo."""
         return [
-            Lever(key="price_cut_shopper_pct", label="Price cut for price shoppers (fenced)", min=0, max=20, default=0, unit="%",
-                  effect="Shopper units rise by their elasticity (half this quarter, half next)."),
+            Lever(key="price_change_shopper_pct", label="Price change for price shoppers (fenced)", min=-20, max=10, default=0, unit="%",
+                  effect="Shopper units move by their elasticity (half this quarter, half next): a cut raises them."),
             Lever(key="price_change_loyal_pct", label="Price change for loyal accounts", min=-10, max=20, default=0, unit="%",
                   effect="Loyal accounts are inelastic: revenue and contribution rise with price."),
             Lever(key="discount_cap_tightening_pts", label="Tighten rep discount authority", min=0, max=10, default=0, unit="pts",
@@ -1133,18 +1138,18 @@ GROUP BY 1 ORDER BY 1"""
         effects: list[dict[str, Any]] = []
         for lag in (0, 1):  # partial adjustment: half the volume response this quarter, half next
             effects += [
-                {"lever": "price_cut_shopper_pct", "kpi": "units_price_shopper", "delta_per_unit": 0.5 * (-e_s) * u_s / 100, "lag_periods": lag},
-                {"lever": "price_cut_shopper_pct", "kpi": "contribution_cents", "delta_per_unit": 0.5 * (-e_s) * u_s / 100 * (p_s - c_s), "lag_periods": lag},
-                {"lever": "price_cut_shopper_pct", "kpi": "revenue_cents", "delta_per_unit": 0.5 * (-e_s) * u_s / 100 * p_s, "lag_periods": lag},
+                {"lever": "price_change_shopper_pct", "kpi": "units_price_shopper", "delta_per_unit": 0.5 * e_s * u_s / 100, "lag_periods": lag},
+                {"lever": "price_change_shopper_pct", "kpi": "contribution_cents", "delta_per_unit": 0.5 * e_s * u_s / 100 * (p_s - c_s), "lag_periods": lag},
+                {"lever": "price_change_shopper_pct", "kpi": "revenue_cents", "delta_per_unit": 0.5 * e_s * u_s / 100 * p_s, "lag_periods": lag},
                 {"lever": "price_change_loyal_pct", "kpi": "units_loyal_account", "delta_per_unit": 0.5 * e_l * u_l / 100, "lag_periods": lag},
                 {"lever": "price_change_loyal_pct", "kpi": "contribution_cents", "delta_per_unit": 0.5 * e_l * u_l / 100 * (p_l - c_l), "lag_periods": lag},
                 {"lever": "price_change_loyal_pct", "kpi": "revenue_cents", "delta_per_unit": 0.5 * e_l * u_l / 100 * p_l, "lag_periods": lag},
                 {"lever": "discount_cap_tightening_pts", "kpi": "units_price_shopper", "delta_per_unit": 0.5 * e_s * u_s / 100, "lag_periods": lag},
             ]
         effects += [  # immediate price effects on the existing volume
-            {"lever": "price_cut_shopper_pct", "kpi": "pocket_price_shopper_cents", "delta_per_unit": -p_s / 100, "lag_periods": 0},
-            {"lever": "price_cut_shopper_pct", "kpi": "contribution_cents", "delta_per_unit": -u_s * p_s / 100, "lag_periods": 0},
-            {"lever": "price_cut_shopper_pct", "kpi": "revenue_cents", "delta_per_unit": -u_s * p_s / 100, "lag_periods": 0},
+            {"lever": "price_change_shopper_pct", "kpi": "pocket_price_shopper_cents", "delta_per_unit": p_s / 100, "lag_periods": 0},
+            {"lever": "price_change_shopper_pct", "kpi": "contribution_cents", "delta_per_unit": u_s * p_s / 100, "lag_periods": 0},
+            {"lever": "price_change_shopper_pct", "kpi": "revenue_cents", "delta_per_unit": u_s * p_s / 100, "lag_periods": 0},
             {"lever": "price_change_loyal_pct", "kpi": "contribution_cents", "delta_per_unit": u_l * p_l / 100, "lag_periods": 0},
             {"lever": "price_change_loyal_pct", "kpi": "revenue_cents", "delta_per_unit": u_l * p_l / 100, "lag_periods": 0},
             {"lever": "discount_cap_tightening_pts", "kpi": "discount_rate_shopper", "delta_per_unit": -0.01, "lag_periods": 0},
@@ -1164,7 +1169,7 @@ GROUP BY 1 ORDER BY 1"""
                 "contribution_cents": f["contribution_change"] / 2 * 0.5,
                 "discount_rate_shopper": max(0.0, (kq[P8]["discount_rate"] - kq[P[5]]["discount_rate"]) / 2)}
         return {"kpis": kpis, "lever_effects": effects, "anomaly_drag": drag,
-                "resolved_if": {"fence_feature": 1.0, "price_cut_shopper_pct": threshold},
+                "resolved_if": {"fence_feature": 1.0, "price_change_shopper_pct": at_most(-threshold)},
                 "bounds": {"units_price_shopper": [0.0, None], "units_loyal_account": [0.0, None], "discount_rate_shopper": [0.0, 0.6],
                            "gross_margin": [0.0, 1.0]},
                 "max_quarters": 4}

@@ -27,7 +27,8 @@ Mechanics (every invariant and sub-ledger tie holds)
   asset keeps growing although the post-P5 customer life is much shorter.
 * **A3 deferred revenue mix**: fewer annual prepayments -> deferred revenue (2200) growth and CFO
   slow before revenue does.
-* Billing: anniversary billing in advance (monthly or annual), card auto-pay (failed first attempts
+* Billing: anniversary billing in advance (monthly or annual); monthly plans on card auto-pay, annual contracts
+  invoiced on net-30 terms (paid 18-48 days later, so AR exists); failed first card attempts
   retried; involuntary churners' final invoice is voided). Revenue is recognized daily over the
   service period (integer cent allocation per invoice), commissions are a sub-ledger, so the AR,
   deferred revenue, revenue and commission-asset ties hold exactly.
@@ -63,6 +64,7 @@ import pandas as pd
 from axiom.engine import benchmark_keys as bk
 from axiom.engine.archetypes import register
 from axiom.engine.archetypes.base import (
+    cap_first,
     Archetype,
     BuildContext,
     WorldState,
@@ -88,7 +90,7 @@ from axiom.engine.operations import (
     sbg_survival,
     unit_economics,
 )
-from axiom.engine.rng import SeededRNG
+from axiom.engine.rng import SeededRNG, excluded_name_stems
 from axiom.models import (
     Anomaly,
     Cohort,
@@ -138,6 +140,9 @@ class CohortCollapse(Archetype):
     summary = ("Logo growth is at a record and the board deck says churn is stable at ~2%, yet MRR growth is stalling and the "
                "commission asset keeps growing. What is happening to the customers acquired in the last year?")
     root_cause_terms = ("cohort-level retention", "cause marker", "commission capitalization life", "projection")
+    bs_caption_exemptions = {"ecommerce:inventor": "subscription boxes are packed and shipped by a fulfilment partner billed per box "
+                                                     "(cost of revenue); the brand holds no stock in this model"}
+    stage_options = ("growth",)  # the narrative is a growth story
 
     # ------------------------------------------------------------------ params
 
@@ -203,7 +208,7 @@ class CohortCollapse(Archetype):
         budget = ROW_BUDGET[difficulty]
         gl_rows = difficulty_pick(difficulty, 2400, 2700, 10500)
         p["target_active"] = int(max(150, (budget * difficulty_pick(difficulty, 0.86, 0.88, 0.86) - gl_rows - 300) / 31.0))
-        p["description"] = (f"{p['business_model'].capitalize()}; growth is funded by a ramp in paid acquisition and sales commissions "
+        p["description"] = (f"{cap_first(p['business_model'])}; growth is funded by a ramp in paid acquisition and sales commissions "
                             "are capitalized under ASC 340-40.")
         return p
 
@@ -211,6 +216,7 @@ class CohortCollapse(Archetype):
 
     def build_baseline(self, ctx: BuildContext, state: WorldState) -> None:
         """Acquisition plan (legacy installed base + window), customer attributes and healthy lifetimes."""
+        self.enable_standard_working_capital(ctx, state, vendor_ap=True)  # base working-capital defaults: vendor AP for part of the accrued-expense run and prepaid expenses
         p, cal = state.params, state.calendar
         rng = ctx.rng.spawn("baseline")
         g = rng.generator
@@ -382,7 +388,11 @@ class CohortCollapse(Archetype):
         v_ps = _add_months(signup.to_numpy()[inv_ci], T[inv_ci])
         v_ok = (v_ps >= np.datetime64(start0)) & (v_ps <= np.datetime64(end_ts))
         inv_ci, v_ps = inv_ci[v_ok], v_ps[v_ok]
-        paid_at = inv_date + pd.to_timedelta(np.where(fail, g.uniform(3, 8, len(ps)), g.uniform(0.0, 0.2, len(ps))), unit="D")
+        delay = np.where(fail, g.uniform(3, 8, len(ps)), g.uniform(0.0, 0.2, len(ps)))
+        # annual contracts are invoiced on net-30 terms (ACH / wire), so receivables exist (review P0 #3); own stream
+        terms = ctx.rng.spawn("annual_terms").generator.uniform(18, 48, len(ps))
+        delay = np.where((per_len == 12) & ~fail, terms, delay)
+        paid_at = inv_date + pd.to_timedelta(delay, unit="D")
         paid = (paid_at <= end_ts).to_numpy()
         inv = pd.DataFrame({
             "_c": ci, "_k": kk, "customer_idx": ci, "invoice_date": inv_date, "period_start": inv_date, "period_end": pd.Series(pe),
@@ -535,7 +545,7 @@ class CohortCollapse(Archetype):
     def _books(self, ctx: BuildContext, state: WorldState) -> None:
         p, cal = state.params, state.calendar
         E = state.extras
-        L = Ledger()
+        L = self.fresh_ledger(state)
         state.ledger = L
         gran = GL_BATCH[p["difficulty"]]
         months = E["months"]
@@ -604,10 +614,10 @@ class CohortCollapse(Archetype):
             fees = cents(run * fee_rate)
             add(me, 6, lambda d, a=fees: L.entry(d, [("5050", a, 0, {}), ("1000", 0, a, {})], "Card processing fees", "fees"))
             spend = int(mk.get(f"{ms:%Y-%m}", 0))
-            hosting = cents(run * max(0.05, 1 - p["gm"] - 0.06 - fee_rate))
+            hosting = cents(run * max(0.05, 1 - p["gm"] - self.period_noise(ctx, state).gm(ms) - 0.06 - fee_rate))  # review C2: GM noise
             support = cents(run * 0.06)
-            rd = cents(R / 12 * p["rd_pct"] * (1.004 ** m))
-            ga = cents(R / 12 * p["ga_pct"] * (1.004 ** m))
+            rd = cents(R / 12 * p["rd_pct"] * (1.004 ** m) * self.period_noise(ctx, state).ox(ms))
+            ga = cents(R / 12 * p["ga_pct"] * (1.004 ** m) * self.period_noise(ctx, state).ox(ms))
             sales = cents(E["cac_target"] * p["sales_payroll_share"] * float(E["acq_expected"][LEGACY_MONTHS + m]))
             payroll = {"5010": support, "6000": sales, "6100": cents(rd * 0.85), "6200": cents(ga * 0.6)}
             accr = {"5000": hosting, "6000": spend, "6100": rd - cents(rd * 0.85), "6200": ga - cents(ga * 0.6), "6400": cents(R / 12 * 0.02)}
@@ -1333,7 +1343,11 @@ def _sbg_curve(fit: dict[str, Any], horizon: int) -> np.ndarray:
 def rng_name(g: np.random.Generator) -> str:
     stems = ("Acme", "Bluebird", "Cobalt", "Driftwood", "Ember", "Fjord", "Granite", "Harbor", "Ivy", "Juniper", "Kestrel", "Lumen", "Maple",
              "Northwind", "Orchid", "Pioneer", "Quarry", "Redwood", "Summit", "Tidal", "Upland", "Vertex", "Willow", "Yarrow", "Zephyr")
-    return str(stems[int(g.integers(0, len(stems)))])
+    i = int(g.integers(0, len(stems)))
+    banned = excluded_name_stems()  # never the company's own stem (review P2 #19); no extra draw
+    while stems[i] in banned:
+        i = (i + 1) % len(stems)
+    return str(stems[i])
 
 
 def _month_floor(ts: np.ndarray) -> np.ndarray:

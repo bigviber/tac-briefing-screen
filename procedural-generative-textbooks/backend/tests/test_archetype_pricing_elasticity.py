@@ -107,10 +107,10 @@ def test_simulation_segment_response(worlds: dict) -> None:
     world, _ = worlds[("practitioner", 7)]
     levers = world.ground_truth.decision_levers
     k0 = world.simulation.model["kpis"]
-    q1, info = simulate_transition(world.simulation, levers, {"price_cut_shopper_pct": 10, "fence_feature": 1})
+    q1, info = simulate_transition(world.simulation, levers, {"price_change_shopper_pct": -10, "fence_feature": 1})
     assert info["resolved"]
     sim2 = world.simulation.model_copy(update={"history": [q1]})
-    q2, _ = simulate_transition(sim2, levers, {"price_cut_shopper_pct": 10, "fence_feature": 1})
+    q2, _ = simulate_transition(sim2, levers, {"price_change_shopper_pct": -10, "fence_feature": 1})
     assert q1.kpis["units_price_shopper"] > k0["units_price_shopper"] and q2.kpis["units_price_shopper"] > q1.kpis["units_price_shopper"]  # partial adjustment
     ql, _ = simulate_transition(world.simulation, levers, {"price_change_loyal_pct": 10})
     assert ql.kpis["contribution_cents"] > k0["contribution_cents"] + world.simulation.model["anomaly_drag"]["contribution_cents"]

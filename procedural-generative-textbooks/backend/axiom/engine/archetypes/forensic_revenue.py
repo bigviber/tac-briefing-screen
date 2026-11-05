@@ -73,6 +73,7 @@ import pandas as pd
 from axiom.engine import benchmark_keys as bk
 from axiom.engine.archetypes import register
 from axiom.engine.archetypes.base import (
+    cap_first,
     Archetype,
     BuildContext,
     WorldState,
@@ -236,7 +237,7 @@ class ForensicRevenue(Archetype):
         gl_rows = difficulty_pick(difficulty, 3300, 3400, 11500)
         fixed = gl_rows + p["n_products"] * 31 + p["n_suppliers"] * 62 + p["n_direct"] + 400
         p["n_orders"] = int(max(600, (budget * difficulty_pick(difficulty, 0.92, 0.92, 0.87) - fixed) / 5.9))
-        p["description"] = (f"{p['business_model'].capitalize()}; roughly {(1 - p['direct_share']) * 100:.0f}% of revenue goes through "
+        p["description"] = (f"{cap_first(p['business_model'])}; roughly {(1 - p['direct_share']) * 100:.0f}% of revenue goes through "
                             f"{p['n_distributors']} distributors on net-{p['wholesale_terms']} terms.")
         return p
 
@@ -244,6 +245,7 @@ class ForensicRevenue(Archetype):
 
     def build_baseline(self, ctx: BuildContext, state: WorldState) -> None:
         """Customers, suppliers, products and the baseline (healthy) order book for all 30 months."""
+        self.enable_standard_working_capital(ctx, state, vendor_ap=False)  # base working-capital defaults: prepaid expenses (AP already comes from the purchasing / cost sub-ledger)
         p, cal = state.params, state.calendar
         rng = ctx.rng.spawn("baseline")
         g = rng.generator
@@ -824,7 +826,7 @@ class ForensicRevenue(Archetype):
             run_rate = float(rev_m[max(0, m - 2): m + 1].mean()) if m > 0 else float(rev_m[0])
             # opex sized so the baseline operating margin lands near ``op_margin`` after freight, card fees, returns and D&A
             opex = cents(run_rate * (p["gm"] - p["freight_pct"] - CARD_FEE * p["direct_share"] - 0.6 * p["return_rate_base"]
-                                     - 0.55 * p["capex_pct"] - p["op_margin"]))
+                                     - 0.55 * p["capex_pct"] - p["op_margin"]) * self.period_noise(ctx, state).ox(ms))  # review C2: opex noise
             payroll = cents(opex * 0.62)
             other = opex - payroll
             pr = dict(zip(PAYROLL_SPLIT, split_cents(payroll, list(PAYROLL_SPLIT.values())), strict=True))

@@ -191,12 +191,13 @@ class WorldService:
                 if item.is_file():
                     shutil.move(str(item), str(final / item.name))
         db_final = final / "company.duckdb"
-        try:
-            world.database.path = db_final.relative_to(self.services.settings.data_dir).as_posix()
-        except ValueError:
-            world.database.path = str(db_final)
         world_final = final / "world.json"
-        self._write_world(world, world_final)
+        # QA F2: keep the generator's world.json byte-identical (generated_at blank, logical database.path); the
+        # generation timestamp lives in meta.json and in the API response only.
+        if not world_final.is_file():
+            self._write_world(world, world_final)
+        else:
+            self._write_meta(world, final)
         return world_final, db_final
 
     def generate(self, req: GenerateCaseRequest) -> CasePublicView:
@@ -244,17 +245,43 @@ class WorldService:
             if hit is not None and hit[0] == mtime:
                 return hit[1].model_copy(deep=True)
         world = CaseWorld.model_validate_json(path.read_text(encoding="utf-8"))
+        if not world.generated_at:
+            try:
+                stamp = json.loads((path.parent / "meta.json").read_text(encoding="utf-8")).get("generated_at", "")
+                world = world.model_copy(update={"generated_at": str(stamp or "")})
+            except (OSError, ValueError, AttributeError):
+                pass
         with self._cache_lock:
             self._cache[case_id] = (mtime, world)
         return world.model_copy(deep=True)
 
     @staticmethod
-    def _write_world(world: CaseWorld, path: Path) -> None:
-        """Atomic write of ``world.json``."""
+    def _write_meta(world: CaseWorld, folder: Path) -> None:
+        """Record ``generated_at`` in ``meta.json`` (merged into an existing sidecar; never overwrites a stamp)."""
+        meta_path = folder / "meta.json"
+        try:
+            meta = json.loads(meta_path.read_text(encoding="utf-8"))
+            if not isinstance(meta, dict):
+                meta = {}
+        except (OSError, ValueError):
+            meta = {}
+        if meta.get("generated_at") or not world.generated_at:
+            return
+        meta.setdefault("case_id", world.case_id)
+        meta["generated_at"] = world.generated_at
+        tmp = meta_path.with_name(f".{meta_path.name}.{uuid.uuid4().hex[:8]}.tmp")
+        tmp.write_text(json.dumps(meta, indent=1), encoding="utf-8")
+        os.replace(tmp, meta_path)
+
+    @classmethod
+    def _write_world(cls, world: CaseWorld, path: Path) -> None:
+        """Atomic write of ``world.json`` in the generator's canonical form (``generated_at`` blank, ``indent=1``, as
+        ``procedural_world.world_json_bytes``); the timestamp goes to ``meta.json``."""
         path.parent.mkdir(parents=True, exist_ok=True)
         tmp = path.with_name(f".{path.name}.{uuid.uuid4().hex[:8]}.tmp")
-        tmp.write_text(world.model_dump_json(indent=None), encoding="utf-8")
+        tmp.write_bytes(world.model_copy(update={"generated_at": ""}).model_dump_json(indent=1).encode("utf-8"))
         os.replace(tmp, path)
+        cls._write_meta(world, path.parent)
 
     def save_simulation(self, case_id: str, simulation: SimulationState) -> None:
         """Write ``simulation`` back into the case's ``world.json`` (per-case lock)."""

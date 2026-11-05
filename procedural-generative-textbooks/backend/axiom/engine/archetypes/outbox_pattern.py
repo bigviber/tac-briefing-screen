@@ -95,19 +95,19 @@ INDUSTRY_STORY = {
     "3pl": ("Shipping-label and tracking API for e-commerce brands, billed per label", "labels", "3pl"),
 }
 FLAWED_MERMAID = """flowchart LR
-  A[Product Service / usage-service] -->|"1. INSERT usage_events (commit)"| DB[(Postgres)]
+  A["Product Service / usage-service"] -->|"1. INSERT usage_events (commit)"| DB[(Postgres)]
   A -->|"2. publish(event) - separate call, no outbox"| K[(Kafka)]
-  K --> C[Rating Consumer] --> RU[(rated_usage)] --> B[Monthly Billing Job] --> I[Invoices -> GL 4020]
+  K --> C[Rating Consumer] --> RU[(rated_usage)] --> B[Monthly Billing Job] --> I["Invoices -> GL 4020"]
   DB -.->|"never compared"| RU
-  D[Deploys: SIGTERM -> flush counters -> SIGKILL] -.-> A
+  D["Deploys: SIGTERM -> flush counters -> SIGKILL"] -.-> A
   classDef bad fill:#3b1d1d,stroke:#ff5555,color:#fff
   class A bad"""
 FIXED_MERMAID = """flowchart LR
   A[usage-service] -->|"BEGIN; INSERT usage_events; INSERT outbox(event_id, payload); COMMIT"| DB[(Postgres)]
-  R[Outbox relay: polling or CDC / Debezium] -->|"read committed outbox rows"| DB
+  R["Outbox relay: polling or CDC / Debezium"] -->|"read committed outbox rows"| DB
   R -->|"publish (at-least-once), mark published_at"| K[(Kafka)]
-  K --> C[Rating Consumer: idempotent, UNIQUE(event_id)] --> RU[(rated_usage)] --> B[Billing Job] --> I[Invoices]
-  REC[Daily reconciliation: usage_events vs rated_usage] --> DB
+  K --> C["Rating Consumer: idempotent, UNIQUE(event_id)"] --> RU[(rated_usage)] --> B[Billing Job] --> I[Invoices]
+  REC["Daily reconciliation: usage_events vs rated_usage"] --> DB
   REC --> RU"""
 
 
@@ -133,6 +133,8 @@ class OutboxPattern(Archetype):
     summary = ("Gross margin slipped after billing moved onto an event pipeline; infrastructure cost tracks real usage "
                "but some metered usage never reaches the invoices.")
     root_cause_terms = ("dual write", "outbox", "lost events", "deploy")
+    bs_caption_exemptions = {"deferred revenue": "usage and the platform fee are invoiced monthly in arrears (invoice dated at the "
+                                                  "end of the service month), so nothing is billed in advance"}
 
     # ------------------------------------------------------------------ params
 
@@ -184,6 +186,7 @@ class OutboxPattern(Archetype):
 
     def build_baseline(self, ctx: BuildContext, state: WorldState) -> None:
         """Customers, plans, contracts, deploys, incidents and the metered usage stream."""
+        self.enable_standard_working_capital(ctx, state, vendor_ap=False)  # base working-capital defaults: prepaid expenses (AP already comes from the purchasing / cost sub-ledger)
         p, cal = state.params, state.calendar
         rng = ctx.rng.spawn("baseline")
         g = rng.generator
@@ -608,7 +611,7 @@ class OutboxPattern(Archetype):
         for m, ms in enumerate(months):
             me = (pd.Timestamp(ms) + pd.offsets.MonthEnd(0)).date()
             run_rate = float(rev_m[max(0, m - 2): m + 1].mean()) or R / 12
-            opex = cents(run_rate * max(0.15, p["gm"] - p["op_margin"]))
+            opex = cents(run_rate * max(0.15, p["gm"] - p["op_margin"]) * self.period_noise(ctx, state).ox(ms))  # review C2: opex noise
             payroll = cents(opex * 0.65)
             other = opex - payroll
             host, fixed = int(infra["compute_cost_cents"].iloc[m]), int(infra["fixed_cost_cents"].iloc[m])

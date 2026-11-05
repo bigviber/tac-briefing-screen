@@ -242,6 +242,7 @@ class MaSynergies(Archetype):
 
     def build_baseline(self, ctx: BuildContext, state: WorldState) -> None:
         """Acquirer and target subscription books (no deal effects yet)."""
+        self.enable_standard_working_capital(ctx, state, vendor_ap=True)  # base working-capital defaults: vendor AP for part of the accrued-expense run and prepaid expenses
         p, cal = state.params, state.calendar
         rng = ctx.rng.spawn("baseline")
         g = rng.generator
@@ -529,8 +530,8 @@ class MaSynergies(Archetype):
             if rec_t:
                 events.append((me, 4, lambda d, a=rec_t: L.recognize_deferred(d, a, memo="Subscription revenue recognised (target)", dim={"entity": "target"})))
             run = float(a_rec_m[max(0, m - 2): m + 1].mean())
-            cogs = cents(run * (1 - p["gm"]))
-            opex = cents(run * a_opex_pct)
+            cogs = cents(run * (1 - p["gm"] - self.period_noise(ctx, state).gm(ms)))  # review C2: quarterly GM / opex noise
+            opex = cents(run * a_opex_pct * self.period_noise(ctx, state).ox(ms))
             if post:
                 q = (m - close_m) // 3
                 tq = t_quarter.loc[per]

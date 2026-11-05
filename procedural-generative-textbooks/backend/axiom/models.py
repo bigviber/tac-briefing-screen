@@ -289,7 +289,7 @@ class FinancialStatements(_World):
     income: list[IncomeStatement] = Field(default_factory=list)
     balance: list[BalanceSheet] = Field(default_factory=list)
     cash_flow: list[CashFlowStatement] = Field(default_factory=list)
-    ratios: dict[str, dict[str, float]] = Field(default_factory=dict)
+    ratios: dict[str, dict[str, float | None]] = Field(default_factory=dict)  # None: undefined (n/m), e.g. no interest expense
 
 
 class InvariantCheck(_World):
@@ -298,6 +298,7 @@ class InvariantCheck(_World):
     name: str
     passed: bool
     detail: str = ""
+    required: bool = True  # False: warning-level check (reported, never fails the build)
 
 
 class FinanceState(_World):
