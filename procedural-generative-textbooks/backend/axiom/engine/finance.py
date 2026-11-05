@@ -718,7 +718,11 @@ class Ledger:
         return total
 
     def entries_frame(self) -> tuple[pd.DataFrame, pd.DataFrame]:
-        """``(gl_journal, gl_lines)`` DataFrames mirroring the journal row-for-row (money in cents)."""
+        """``(gl_journal, gl_lines)`` DataFrames mirroring the journal row-for-row (money in cents).
+
+        Typed ``dimension_<key>`` columns are extracted for ``customer_id``, ``product_id``, ``department``,
+        ``invoice_id`` and ``sku`` (NULL when the line has no such dimension); ``dimensions`` keeps every
+        dimension as ``key=value;...`` (sorted by key)."""
         j_rows = [(e.id, e.date, e.period, e.source, e.memo) for e in self.entries]
         journal = pd.DataFrame(j_rows, columns=["entry_id", "entry_date", "period", "source", "memo"])
         journal["entry_date"] = pd.to_datetime(journal["entry_date"])
@@ -729,9 +733,11 @@ class Ledger:
                 n += 1
                 dim = ln.dimension
                 l_rows.append((n, e.id, ln.account, ln.debit_cents, ln.credit_cents, dim.get("customer_id"), dim.get("product_id"),
-                               dim.get("department"), ";".join(f"{k}={v}" for k, v in sorted(dim.items())) or None))
+                               dim.get("department"), dim.get("invoice_id"), dim.get("sku"),
+                               ";".join(f"{k}={v}" for k, v in sorted(dim.items())) or None))
         lines = pd.DataFrame(l_rows, columns=["line_id", "entry_id", "account_code", "debit_cents", "credit_cents",
-                                              "dimension_customer_id", "dimension_product_id", "dimension_department", "dimensions"])
+                                              "dimension_customer_id", "dimension_product_id", "dimension_department",
+                                              "dimension_invoice_id", "dimension_sku", "dimensions"])
         return journal, lines
 
 

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 import time
 from pathlib import Path
 
@@ -15,23 +16,65 @@ from axiom.engine.market_research import get_default_pool
 from axiom.engine.procedural_world import generate_world, load_world, make_case_id, resolve_db_path, world_json_bytes
 from axiom.models import CaseWorld
 
-ARCHETYPES = sorted(ARCHETYPE_REGISTRY)
+
+def _selected_archetypes() -> list[str]:
+    """Registry keys, restricted by ``AXIOM_TEST_ARCHETYPES="a,b"`` when set (unknown keys are an error)."""
+    raw = os.environ.get("AXIOM_TEST_ARCHETYPES", "").strip()
+    if not raw:
+        return sorted(ARCHETYPE_REGISTRY)
+    wanted = [k.strip() for k in raw.split(",") if k.strip()]
+    unknown = sorted(set(wanted) - set(ARCHETYPE_REGISTRY))
+    if unknown:
+        raise pytest.UsageError(f"AXIOM_TEST_ARCHETYPES names unknown archetypes {unknown}; known: {sorted(ARCHETYPE_REGISTRY)}")
+    return sorted(set(wanted))
+
+
+# NumPy >= 2.5 deprecates generic-unit timedeltas (bare ints added to datetime64); generation must stay clean.
+pytestmark = pytest.mark.filterwarnings("error:The 'generic' unit for NumPy timedelta:DeprecationWarning")
+
+ARCHETYPES = _selected_archetypes()
 DIFFICULTIES = ("foundation", "practitioner", "principal")
 SEEDS = (1, 7, 2024)
 
 
+class WorldGenerationError(RuntimeError):
+    """A cached (archetype, difficulty, seed) generation failed earlier in this module."""
+
+
+class WorldCache(dict):
+    """``cache[(archetype, difficulty, seed)] -> (world, folder)``, generated lazily on first access and
+    memoised for the module. A failed generation is memoised too, so only the tests that ask for that
+    world fail (each re-raises it) while every other archetype's tests run normally."""
+
+    def __init__(self, root: Path) -> None:
+        super().__init__()
+        self.root = root
+        self.pool = get_default_pool()
+        self.errors: dict[tuple[str, str, int], BaseException] = {}
+
+    def __missing__(self, key: tuple[str, str, int]) -> tuple[CaseWorld, Path]:
+        if key in self.errors:
+            raise WorldGenerationError(f"generation of {key} failed earlier in this module") from self.errors[key]
+        a, d, s = key
+        folder = self.root / f"{a}-{d}-{s}"
+        try:
+            value = (generate_world(a, s, difficulty=d, out_dir=folder, pool=self.pool), folder)
+        except Exception as exc:
+            self.errors[key] = exc
+            raise
+        self[key] = value
+        return value
+
+
 @pytest.fixture(scope="module")
-def worlds(tmp_path_factory: pytest.TempPathFactory) -> dict[tuple[str, str, int], tuple[CaseWorld, Path]]:
-    """Generate each (archetype, difficulty, seed) once for the whole module."""
-    pool = get_default_pool()
-    root = tmp_path_factory.mktemp("worlds")
-    out: dict[tuple[str, str, int], tuple[CaseWorld, Path]] = {}
-    for a in ARCHETYPES:
-        for d in DIFFICULTIES:
-            for s in SEEDS:
-                folder = root / f"{a}-{d}-{s}"
-                out[(a, d, s)] = (generate_world(a, s, difficulty=d, out_dir=folder, pool=pool), folder)
-    return out
+def worlds(tmp_path_factory: pytest.TempPathFactory) -> WorldCache:
+    """Per-(archetype, difficulty, seed) world cache shared by the module (lazy, failure-isolated)."""
+    return WorldCache(tmp_path_factory.mktemp("worlds"))
+
+
+def _require(archetype: str) -> None:
+    if archetype not in ARCHETYPES:
+        pytest.skip(f"{archetype} not in AXIOM_TEST_ARCHETYPES")
 
 
 def test_registry_and_catalog() -> None:
@@ -124,6 +167,7 @@ def test_practitioner_generation_speed(tmp_path: Path, archetype: str) -> None:
 
 
 def test_working_capital_story_holds(worlds: dict) -> None:
+    _require("working_capital_crunch")
     for s in SEEDS:
         world, _ = worlds[("working_capital_crunch", "practitioner", s)]
         r = world.finance.statements.ratios
@@ -137,6 +181,7 @@ def test_working_capital_story_holds(worlds: dict) -> None:
 
 
 def test_webhook_story_holds(worlds: dict) -> None:
+    _require("idempotent_webhooks")
     for d in DIFFICULTIES:
         world, folder = worlds[("idempotent_webhooks", d, 7)]
         m = {x.key: x.value for x in world.ground_truth.expected_metrics}
@@ -152,22 +197,23 @@ def test_sql_signature_detects_constructs() -> None:
     assert sig[:3] == ["over(", "partition by", "row_number("] and len(sig) == 5
 
 
-def test_simulation_model_runs_in_quarter_simulator(worlds: dict) -> None:
+@pytest.mark.parametrize("archetype", ARCHETYPES)
+def test_simulation_model_runs_in_quarter_simulator(worlds: dict, archetype: str) -> None:
     """Integration with Module 3's simulator when it is importable (it is built concurrently)."""
     try:
         from axiom.engine.pedagogy import simulate_transition
     except Exception as exc:  # pragma: no cover - depends on Module 3 state
         pytest.skip(f"pedagogy not importable: {exc}")
-    for a in ARCHETYPES:
-        world, _ = worlds[(a, "practitioner", 1)]
-        levers = world.ground_truth.decision_levers
-        decisions = {lv.key: lv.max for lv in levers}
-        q, info = simulate_transition(world.simulation, levers, decisions)
-        assert info["resolved"] and set(world.simulation.model["kpis"]) <= set(q.kpis)
-        json.dumps(q.model_dump(mode="json"))
+    world, _ = worlds[(archetype, "practitioner", 1)]
+    levers = world.ground_truth.decision_levers
+    decisions = {lv.key: lv.max for lv in levers}
+    q, info = simulate_transition(world.simulation, levers, decisions)
+    assert info["resolved"] and set(world.simulation.model["kpis"]) <= set(q.kpis)
+    json.dumps(q.model_dump(mode="json"))
 
 
 def test_load_world_from_cases_dir(tmp_path: Path) -> None:
+    _require("idempotent_webhooks")
     world = generate_world("idempotent_webhooks", 3, difficulty="foundation", out_dir=tmp_path / make_case_id("idempotent_webhooks", 3, "foundation"))
     loaded = load_world(world.case_id, cases_dir=tmp_path)
     assert loaded == world and loaded.generated_at == world.generated_at

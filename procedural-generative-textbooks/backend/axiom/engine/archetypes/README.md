@@ -33,3 +33,34 @@ Conventions to rely on: integer cents everywhere (`cents()` rounds half away fro
 residual to the last bucket); no closing entries (IS accounts accumulate, BS shows current earnings in retained
 earnings); CFS is derived from every non-cash BS account (`CFS_MAP`), so new event families need no CFS code;
 `DatabaseSpec.path` is logical (`cases/<case_id>/company.duckdb`), resolve with `procedural_world.resolve_db_path`.
+
+## Notes and gotchas
+
+- **Row budget per difficulty.** Size volumes from `datagen.ROW_BUDGET` (target: foundation 10,000, practitioner
+  25,000, principal 50,000 rows) and `row_scale(difficulty)` (0.2 / 0.5 / 1.0). `TableBuilder.check_budget` enforces
+  `ROW_HARD_CAP` (13,000 / 32,000 / 50,000) over **every** materialised table, including `gl_journal`, `gl_lines`,
+  `gl_accounts` and the rows `dup_keys` dirt adds; `period_calendar` counts too. GL tables grow with `GL_BATCH`
+  (weekly / weekly / daily), so per-document GL lines (e.g. one AR line per invoice) must come out of the budget.
+- **`tz_mixed` writes whole-second text.** The rule renders the column as `VARCHAR` `YYYY-MM-DD HH:MM:SS+HH:MM`
+  (about half `+00:00`, the rest shifted to a local offset): sub-second precision is dropped. Generate the clean
+  timestamps at whole seconds (or floor them before computing expectations) so the clean frame and the dirty DB
+  agree; reference SQL normalises with `CAST(col AS TIMESTAMPTZ) AT TIME ZONE 'UTC'` (needs `pytz` in the Python
+  environment for DuckDB to return TIMESTAMPTZ values).
+- **`gl_lines` dimensions.** `Ledger.entries_frame` emits typed `dimension_customer_id`, `dimension_product_id`,
+  `dimension_department`, `dimension_invoice_id` and `dimension_sku` (NULL when absent) plus `dimensions`
+  (`key=value;...`, sorted). Prefer the typed columns in reference SQL; other ids (payment, memo, batch) are only in
+  `dimensions` (`regexp_extract(dimensions, 'payment_id=([^;]+)', 1)`). Omit empty dimension values rather than
+  writing `""`.
+- **Simulation `lever_effects`: one key per effect.** Each effect sets exactly one of `elasticity` /
+  `delta_per_unit` and **omits** the other key (never `null`): the quarter simulator branches on
+  `"elasticity" in effect`, and `validate_simulation_model` rejects effects with both or neither. `lag_periods` is
+  an `int`; `lever` / `kpi` must exist in the levers and `kpis`.
+- **`sbg_fit`** (`operations.py`) is bounded (`alpha, beta` in `[1e-3, 1e3]`, L-BFGS-B in log space) and warning
+  free; near-geometric data returns `geometric_limit=True` with `alpha + beta = 1e3` and the geometric MLE as
+  `theta_mean`. No local `warnings` / `np.errstate` wrapper is needed.
+- **Testing one archetype.** `tests/test_archetypes.py` generates each `(archetype, difficulty, seed)` lazily and
+  caches it per module, so a broken archetype only fails its own tests. Restrict the run with
+  `AXIOM_TEST_ARCHETYPES="a,b"` (comma-separated registry keys; unknown keys are a usage error), e.g.
+  `AXIOM_TEST_ARCHETYPES=working_capital_crunch python -m pytest -q tests/test_archetypes.py`. The module turns
+  NumPy's generic-unit timedelta `DeprecationWarning` into an error: add explicit units (`pd.to_timedelta(x, unit="D")`,
+  `np.timedelta64(n, "h")`), never bare integers, to datetime64 values.

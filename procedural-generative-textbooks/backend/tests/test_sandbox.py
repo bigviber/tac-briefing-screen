@@ -115,6 +115,22 @@ def test_column_types_and_json_safe_cells(sql: SQLSandbox) -> None:
     assert y["rows"][0][2] == "2024-05-01T10:00:00"
 
 
+def test_timestamptz_cells(sql: SQLSandbox) -> None:
+    """TIMESTAMPTZ results (the ``tz_mixed`` dirt fix: ``CAST(col AS TIMESTAMPTZ)``) need ``pytz`` in DuckDB's
+    Python conversion; without it every such query errors with "Required module 'pytz' failed to import"."""
+    import datetime as dt
+
+    out = sql.run("SELECT CAST('2024-03-31 23:30:00-05:00' AS TIMESTAMPTZ) AS t, "
+                  "CAST('2024-03-31 23:30:00-05:00' AS TIMESTAMPTZ) AT TIME ZONE 'UTC' AS u FROM y LIMIT 1")
+    assert out["error"] is None, out["error"]
+    assert out["column_types"] == ["TIMESTAMP WITH TIME ZONE", "TIMESTAMP"]
+    t, u = out["rows"][0]
+    assert dt.datetime.fromisoformat(t) == dt.datetime(2024, 4, 1, 4, 30, tzinfo=dt.timezone.utc)  # same instant, any session TZ
+    assert u == "2024-04-01T04:30:00"
+    ref = sql.run_reference("SELECT CAST('2024-06-30 22:00:00+02:00' AS TIMESTAMPTZ) AS t")
+    assert dt.datetime.fromisoformat(ref["first_row"]["t"]) == dt.datetime(2024, 6, 30, 20, 0, tzinfo=dt.timezone.utc)
+
+
 def test_show_describe_pragma(sql: SQLSandbox) -> None:
     assert sorted(r[0] for r in sql.run("SHOW TABLES")["rows"]) == ["x", "y"]
     assert sql.run("DESCRIBE x")["row_count"] == 5

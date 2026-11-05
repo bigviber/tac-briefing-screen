@@ -54,7 +54,6 @@ from __future__ import annotations
 import datetime as dt
 import logging
 import math
-import warnings
 from typing import Any
 
 import duckdb
@@ -832,8 +831,8 @@ class CohortCollapse(Archetype):
         f["n_pre"], f["n_post"] = n_pre, n_post
         f["hazard_pre"] = self._hazard_mle(state, 3, cs - 1)
         f["hazard_post"] = self._hazard_mle(state, cs, n_m - 1)
-        f["sbg_pre"] = _safe_sbg_fit(n_pre)
-        f["sbg_post"] = _safe_sbg_fit(n_post)
+        f["sbg_pre"] = sbg_fit(n_pre)
+        f["sbg_post"] = sbg_fit(n_post)
         # blended (lost MRR / opening MRR) monthly churn and the board's quarterly logo-churn KPI
         blended, headline = {}, {}
         for qi, per in enumerate(P):
@@ -1321,23 +1320,14 @@ FROM gl_lines l JOIN gl_journal j USING (entry_id) GROUP BY 1 ORDER BY 1"""
                 "max_quarters": 4, "cause_lever": lever}
 
 
-def _safe_sbg_fit(survivors: np.ndarray) -> dict[str, float]:
-    """``operations.sbg_fit`` with numpy/scipy overflow warnings silenced (the optimiser explores huge alpha/beta when the
-    data is close to geometric; the limit is handled in :func:`_sbg_curve`)."""
-    with warnings.catch_warnings(), np.errstate(all="ignore"):
-        warnings.simplefilter("ignore", RuntimeWarning)
-        fit = sbg_fit(survivors)
-    return {k: float(v) for k, v in fit.items()}
-
-
-def _sbg_curve(fit: dict[str, float], horizon: int) -> np.ndarray:
-    """Survival ``S(0..horizon)``; when alpha/beta diverge (no heterogeneity) use the geometric limit ``(1-theta)^t``."""
+def _sbg_curve(fit: dict[str, Any], horizon: int) -> np.ndarray:
+    """Survival ``S(0..horizon)``; near-geometric fits (``operations.sbg_fit`` returns ``geometric_limit`` on the
+    ``alpha + beta = 1e3`` ray) use the geometric limit ``(1-theta)^t``."""
     a, b = fit["alpha"], fit["beta"]
     if not (np.isfinite(a) and np.isfinite(b)) or a + b > 500:
         theta = a / (a + b) if np.isfinite(a) and np.isfinite(b) and a + b > 0 else 0.02
         return (1 - theta) ** np.arange(horizon + 1, dtype=float)
-    with np.errstate(all="ignore"):
-        return sbg_survival(a, b, horizon)
+    return sbg_survival(a, b, horizon)
 
 
 def rng_name(g: np.random.Generator) -> str:

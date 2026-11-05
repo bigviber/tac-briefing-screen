@@ -442,6 +442,8 @@ class TableBuilder:
                        foreign_keys=[("entry_id", "gl_journal", "entry_id"), ("account_code", "gl_accounts", "account_code")],
                        column_types={"line_id": "BIGINT", "debit_cents": "BIGINT", "credit_cents": "BIGINT"},
                        descriptions={"debit_cents": "debit amount in cents", "credit_cents": "credit amount in cents",
+                                     "dimension_invoice_id": "invoice id dimension of the line (NULL if none)",
+                                     "dimension_sku": "SKU dimension of the line (NULL if none)",
                                      "dimensions": "all line dimensions as key=value;... (batch ids, row counts)"},
                        description="General-ledger lines; signed balance = SUM(debit_cents - credit_cents).")
 

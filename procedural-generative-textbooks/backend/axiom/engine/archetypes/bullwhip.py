@@ -36,7 +36,7 @@ Mechanics: the amplification is generated endogenously by the ordering policies 
 Documented simplifications
 * ``pos_sales`` is the syndicated feed aggregated per SKU-week (the per-retailer series drive the
   simulation); ``orders`` are retailer-SKU-week order lines.
-* Supplier lead time is 2 weeks (benchmark band ~14-25 days): with ``L + 1 = 3`` the Chen bound holds for the
+* Supplier lead time is 2 weeks (benchmark band ~10-16 days, p25-p45 of the order-to-ship lead time): with ``L + 1 = 3`` the Chen bound holds for the
   realized (non-negative, MOQ-rounded) orders at every ``p`` in {2,3,4}; at L = 3 and p = 2 truncation pushes some
   realized ratios below the bound. The generator also checks the bound in its re-draw loop.
 * Retailers review weekly (biweekly retailer batching alone would push tier-2 ratios past 50).
@@ -161,7 +161,7 @@ class Bullwhip(Archetype):
             "n_skus": S,
             "n_retailers": R,
             "cv_d": float(rng.uniform(0.10, 0.20)),
-            "lead_weeks": 2,  # benchmark band ~14-25 days; 2 weeks keeps the Chen bound valid for p in {2,3,4} (see docstring)
+            "lead_weeks": 2,  # benchmark band ~10-16 days (p25-p45); 2 weeks keeps the Chen bound valid for p in {2,3,4} (see docstring)
             "lead_days_benchmark": lead_days,
             "z": z,
             "retailer_z": float(rng.uniform(1.0, 1.65)),

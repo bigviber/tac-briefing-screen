@@ -15,8 +15,10 @@ Mechanics
   net amount.
 * The GL is posted in batches (``GL_BATCH``) but the AR control-account lines are **per document**:
   every ``gl_lines`` row on account 1100 carries the document ids in ``dimensions``
-  (``invoice_id=...;payment_id=...;memo_id=...``) and the customer in ``dimension_customer_id``, so
-  the sub-ledger can be tied to the GL line by line (``regexp_extract(dimensions, 'invoice_id=([^;]+)', 1)``).
+  (``invoice_id=...;payment_id=...;memo_id=...``), the invoice in ``dimension_invoice_id`` and the
+  customer in ``dimension_customer_id``, so the sub-ledger can be tied to the GL line by line (the
+  reference SQL uses the typed ``dimension_invoice_id``; ``regexp_extract(dimensions, 'invoice_id=([^;]+)', 1)``
+  is the equivalent alternative and the only route for ``payment_id`` / ``memo_id`` / ``writeoff_id``).
 * Monthly close: hosting COGS, payroll, opex, depreciation, allowance provision (``allowance_pct``
   of GL AR), tax; FX gains/losses to 7200 (principal).
 
@@ -47,8 +49,8 @@ Documented simplifications
 * Industries saas / ecommerce / fintech_marketplace share the same B2B monthly-invoicing model
   (``saas_billing`` schema); revenue account 4000 (saas) or 4020 (others).
 * ``reversed_entry_unreversed_subledger`` is not generated; ``invoice_lines`` is omitted (row budget).
-* ``gl_lines`` has no dedicated ``dimension_invoice_id`` column (shared datagen schema); the ids live
-  in ``gl_lines.dimensions``.
+* ``gl_lines`` has typed ``dimension_invoice_id`` (shared datagen schema); payment / memo / write-off
+  ids live only in ``gl_lines.dimensions``.
 * Quarter simulation (reduced form): KPIs are P8 levels; ``post_adjusting_entries`` clears suspense and
   the GL-side items; ``fix_ingestion_idempotency`` stops new duplicates; ``remittance_matching_rule``
   (0 none / 1 amount+customer / 2 ML) cuts unapplied cash 45% per step; ``allowance_true_up_pct`` adds
@@ -852,7 +854,7 @@ FROM payments WHERE invoice_id IS NULL GROUP BY 1 ORDER BY 1"""
         sql_unapp_gl = """
 WITH gl AS (
   SELECT regexp_extract(l.dimensions, 'payment_id=([^;]+)', 1) AS payment_id,
-         NULLIF(regexp_extract(l.dimensions, 'invoice_id=([^;]+)', 1), '') AS gl_invoice_id, l.credit_cents
+         l.dimension_invoice_id AS gl_invoice_id, l.credit_cents
   FROM gl_lines l WHERE l.account_code = '1100' AND l.dimensions LIKE '%payment_id=%')
 SELECT p.payment_id, p.customer_id, p.amount_cents, gl.credit_cents AS gl_credit_cents
 FROM payments p JOIN gl USING (payment_id)
@@ -888,17 +890,17 @@ WHERE gl.writeoff_id IS NULL ORDER BY w.writeoff_id"""
             sql_cut = """
 WITH inv AS (SELECT * FROM invoices QUALIFY ROW_NUMBER() OVER (PARTITION BY invoice_id ORDER BY ingest_id) = 1),
 gl AS (
-  SELECT regexp_extract(l.dimensions, 'invoice_id=([^;]+)', 1) AS invoice_id, j.entry_date, j.period AS gl_period
+  SELECT l.dimension_invoice_id AS invoice_id, j.entry_date, j.period AS gl_period
   FROM gl_lines l JOIN gl_journal j USING (entry_id)
   WHERE l.account_code = '1100' AND l.debit_cents > 0)
 SELECT i.invoice_id, i.invoice_date, period_of(i.invoice_date) AS invoice_period, gl.entry_date, gl.gl_period, i.amount_cents
 FROM inv i JOIN gl USING (invoice_id)
-WHERE date_trunc('quarter', i.invoice_date) <> date_trunc('quarter', gl.entry_date) ORDER BY i.invoice_date"""
+WHERE date_trunc('quarter', i.invoice_date) <> date_trunc('quarter', gl.entry_date) ORDER BY i.invoice_date, i.invoice_id"""
             q_cut = run_reference_query(con, "invoice_period_vs_gl_period", sql_cut, signature=["qualify", "with", "join", "date_trunc("], metric_keys=["cutoff_items_cents"],
                                         checks=lambda df: {"shifted_invoices": int(len(df))})
             sql_cut2 = """
 WITH inv AS (SELECT * FROM invoices QUALIFY ROW_NUMBER() OVER (PARTITION BY invoice_id ORDER BY ingest_id) = 1),
-gl AS (SELECT DISTINCT regexp_extract(dimensions, 'invoice_id=([^;]+)', 1) AS invoice_id FROM gl_lines WHERE account_code = '1100' AND debit_cents > 0)
+gl AS (SELECT DISTINCT dimension_invoice_id AS invoice_id FROM gl_lines WHERE account_code = '1100' AND debit_cents > 0)
 SELECT period_of(i.invoice_date) AS period, COUNT(*) AS invoices_not_in_gl, SUM(i.amount_cents) AS amount_cents
 FROM inv i LEFT JOIN gl USING (invoice_id) WHERE gl.invoice_id IS NULL GROUP BY 1 ORDER BY 1"""
             q_cut2 = run_reference_query(con, "invoices_missing_from_gl", sql_cut2, signature=["qualify", "left join", "group by", "distinct"], metric_keys=["cutoff_items_cents"],
@@ -907,7 +909,7 @@ FROM inv i LEFT JOIN gl USING (invoice_id) WHERE gl.invoice_id IS NULL GROUP BY 
         if fx:
             sql_fx = """
 WITH rates AS (SELECT currency, date_trunc('month', rate_date) AS mo, AVG(usd_per_unit) AS avg_rate FROM fx_rates GROUP BY 1, 2),
-gl AS (SELECT regexp_extract(dimensions, 'invoice_id=([^;]+)', 1) AS invoice_id, debit_cents AS gl_usd_cents
+gl AS (SELECT dimension_invoice_id AS invoice_id, debit_cents AS gl_usd_cents
        FROM gl_lines WHERE account_code = '1100' AND debit_cents > 0)
 SELECT i.invoice_id, i.currency, i.amount_cents AS amount_minor_units, ROUND(i.amount_cents * r.avg_rate) AS subledger_usd_cents, gl.gl_usd_cents,
        ROUND(i.amount_cents * r.avg_rate) - gl.gl_usd_cents AS difference_cents
@@ -970,11 +972,13 @@ WHERE ingest_id = 1 GROUP BY 1 ORDER BY 1"""
                         "inv = pd.read_sql('SELECT * FROM invoices', con).sort_values('ingest_id').drop_duplicates('invoice_id')\n"
                         "pay = pd.read_sql(\"SELECT *, CAST(CAST(paid_at AS TIMESTAMPTZ) AT TIME ZONE 'UTC' AS DATE) AS value_date FROM payments\", con)\n"
                         "gl = pd.read_sql(\"SELECT l.*, j.entry_date, j.period FROM gl_lines l JOIN gl_journal j USING (entry_id) WHERE account_code = '1100'\", con)\n"
-                        "gl['invoice_id'] = gl.dimensions.str.extract(r'invoice_id=([^;]+)')\n"
+                        "gl['invoice_id'] = gl.dimension_invoice_id  # or gl.dimensions.str.extract(r'invoice_id=([^;]+)')\n"
                         "# reconciling items: duplicates, unapplied cash, suspense items, cutoff, FX -> must net to GL - sub-ledger\n"],
                 memo_bullets=[
                     "The sub-ledger to GL tie-out is a roll-forward: opening + invoiced - collected - credits - write-offs = closing, per period.",
                     "Deduplicate on invoice_id keeping the lowest ingest_id (ROW_NUMBER / QUALIFY), not DISTINCT; fix the loader's idempotency.",
+                    "Tie GL 1100 lines to documents on gl_lines.dimension_invoice_id (equivalently regexp_extract(dimensions, "
+                    "'invoice_id=([^;]+)', 1)); payment / memo / write-off ids live in gl_lines.dimensions.",
                     "Unapplied cash: apply by amount + customer; until then the aging overstates past-due balances.",
                     "Suspense is a symptom: post the interface items to AR, then fix the interface mapping.",
                     "Normalise payment timestamps to UTC before bucketing by quarter; cutoff items belong to the period of the invoice date.",

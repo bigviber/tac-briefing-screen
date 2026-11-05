@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 import duckdb
 import pytest
 
+from axiom.engine.archetypes.base import run_reference_query
 from axiom.engine.market_research import get_default_pool
 from axiom.engine.procedural_world import generate_world, resolve_db_path
 from axiom.models import CaseWorld
@@ -162,3 +164,37 @@ def test_aging_from_clean_open_items(worlds: dict) -> None:
         # open (positive) items of the deduplicated sub-ledger; credit balances from memos after payment are excluded
         assert aging >= m["subledger_ar_deduped_cents"] * 0.98
         assert m["aging_bucket_90_plus_p8_cents"] > 0 and m["aging_bucket_0_30_p8_cents"] > m["aging_bucket_90_plus_p8_cents"]
+
+
+_TYPED_INVOICE = re.compile(r"\b(?:(\w+)\.)?dimension_invoice_id\b")
+
+
+def _regexp_variant(sql: str) -> str:
+    """The pre-typed-column formulation: extract the invoice id from ``gl_lines.dimensions``."""
+    return _TYPED_INVOICE.sub(lambda m: f"NULLIF(regexp_extract({m.group(1) + '.' if m.group(1) else ''}dimensions, "
+                                        f"'invoice_id=([^;]+)', 1), '')", sql)
+
+
+def test_typed_invoice_dimension_matches_regexp_extract(worlds: dict) -> None:
+    """``gl_lines.dimension_invoice_id`` is a drop-in for parsing ``dimensions``: every reference query that
+    uses the typed column returns exactly its recorded ``expected`` under the regexp formulation too."""
+    checked = 0
+    for (d, s), (world, folder) in worlds.items():
+        assert any("regexp_extract(dimensions, 'invoice_id=" in b for b in world.ground_truth.reference_solution.memo_bullets)
+        con = duckdb.connect(str(resolve_db_path(world, folder)), read_only=True)
+        try:
+            typed_null = con.execute("SELECT COUNT(*) FROM gl_lines WHERE dimension_invoice_id IS DISTINCT FROM "
+                                     "NULLIF(regexp_extract(dimensions, 'invoice_id=([^;]+)', 1), '')").fetchone()[0]
+            assert typed_null == 0
+            for q in {q.name: q for a in world.ground_truth.anomalies for q in a.reference_sql}.values():
+                if "dimension_invoice_id" not in q.sql:
+                    continue
+                assert "invoice_id=(" not in q.sql
+                alt = run_reference_query(con, q.name, _regexp_variant(q.sql), signature=q.expected["signature"],
+                                          metric_keys=q.expected["metric_keys"]).expected
+                for k in ("columns", "row_count", "rows"):
+                    assert alt[k] == q.expected[k], (d, s, q.name, k)
+                checked += 1
+        finally:
+            con.close()
+    assert checked >= 9 + 6 * 2 + 3 * 1  # unapplied (all) + cutoff x2 (practitioner+) + fx (principal)

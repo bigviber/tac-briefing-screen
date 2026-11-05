@@ -21,7 +21,14 @@ The archetype spec (``docs/research/archetypes.md``) names benchmarks with *logi
    candidate qualifies only if *all* metric tokens occur among its key tokens; best = fewest extra
    tokens, then industry-specific over ``any``, then key order.
 5. **fallback** - :data:`FALLBACKS`, conservative defaults with ``source="fallback default"``;
-   a warning is logged once per (key, industry).
+   a warning is logged once per (key, industry). Appendix A keys still on this rung have no
+   corpus counterpart: ``interest_rate`` (the corpus only has ``interest_coverage``; no
+   ``fin.any.*`` or corporate-borrowing benchmark), ``cash_pct_revenue`` outside SaaS (only
+   ``fin.saas.cash_pct_revenue`` exists, p50 50% - not transferable), ``rd_pct_revenue`` for
+   ecommerce / 3pl / retail, fintech ``allowance_pct_ar``, the air-freight lead-time CV,
+   ``elasticity_industrial``, e-commerce cohort retention m1/m3/m6, ``any.wacc``,
+   ``any.terminal_growth`` and ``forensic.channel_stuffing_magnitude``. The FALLBACKS entries of
+   aliased metrics (e.g. ``supplier_lead_time_days``) stay as a safety net for a partial corpus.
 
 Logical keys may start with an industry code, ``<ind>`` (replaced by ``industry``),
 ``operations`` (cross-industry, i.e. ``ops``), ``forensic`` or ``any``; a bare metric
@@ -89,6 +96,9 @@ ALIASES: dict[tuple[str, str], str] = {
     ("3pl", "lead_time_parcel_days_cv"): "ops.lead_time_cv.parcel",
     ("3pl", "lead_time_ltl_days_cv"): "ops.lead_time_cv.ltl",
     ("3pl", "lead_time_ocean_days_cv"): "ops.lead_time_cv.ocean",
+    # Road-freight proxy: the corpus has no FTL CV; FTL has no consolidation stops, so the LTL CV is a
+    # conservative (upper-end) stand-in. Air CV has no comparable corpus key and stays a fallback.
+    ("3pl", "lead_time_ftl_days_cv"): "ops.lead_time_cv.ltl",
     ("3pl", "otif"): "ops.otif.cpg_to_big_box",
     ("3pl", "fill_rate"): "ops.fill_rate.line",
     ("3pl", "pick_rate_lines_per_hour"): "ops.warehouse.lines_picked_per_labor_hour",
@@ -101,6 +111,15 @@ ALIASES: dict[tuple[str, str], str] = {
     ("ops", "cohort_retention_subscription_m3"): "ops.retention.subscription_b2c.m3",
     ("ops", "cohort_retention_subscription_m6"): "ops.retention.subscription_b2c.m6",
     ("ops", "cohort_retention_subscription_m12"): "ops.retention.subscription_b2c.m12",
+    # 12-month cumulative repeat rate of DTC cohorts (same figure the m12 fallback was set from: p50 22.5%).
+    # m1 / m3 / m6 have no all-category corpus figure (only per-category 90-day repeat) and stay fallbacks.
+    ("ops", "cohort_retention_ecommerce_m12"): "ops.retention.ecommerce_dtc.repeat_rate_12m",
+    # The corpus has no supplier / inbound lead-time benchmark (operations.json searched for supplier,
+    # inbound, procurement, purchasing). The supplier's order-to-ship lead time is a manufacturing lead
+    # time, so ``ops.manufacturing_lead_time_days`` (p25-p50 10-18 days) is used. The 3PL FTL transit time
+    # (``ops.lead_time_days.ftl``, p50 2.5 days) was rejected: it measures only the truck leg and would
+    # put the bullwhip supplier benchmark an order of magnitude below the quoted 2-week lead.
+    ("ops", "supplier_lead_time_days"): "ops.manufacturing_lead_time_days",
     ("fintech_marketplace", "take_rate"): "fin.fintech_marketplace.take_rate",
     ("fintech_marketplace", "chargeback_rate"): "ops.fintech.chargeback_rate",
     ("fintech_marketplace", "dispute_win_rate"): "ops.fintech.dispute_win_rate",

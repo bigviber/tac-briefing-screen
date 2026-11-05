@@ -74,6 +74,39 @@ def test_sbg_fit_recovers_parameters() -> None:
     assert s[0] == 1.0 and np.all(np.diff(s) < 0)
 
 
+def test_sbg_fit_near_geometric_is_bounded_and_warning_free() -> None:
+    """Homogeneous churn (geometric survivors): the unbounded MLE runs to alpha, beta -> inf; the shared
+    fitter stays inside its bounds, emits no warnings and keeps the mean churn of the geometric MLE."""
+    import warnings
+
+    from axiom.engine.operations import SBG_PARAM_BOUNDS
+
+    lo, hi = SBG_PARAM_BOUNDS
+    cases = [np.round(1000 * 0.97 ** np.arange(13)).astype(int),  # exactly geometric, 3% churn
+             np.round(250 * 0.9 ** np.arange(7)).astype(int)]
+    g = SeededRNG(3).generator
+    cases.append(sbg_survivor_counts(np.minimum(g.geometric(0.025, 4000) - 1, 12), 12))  # sampled, theta = 2.5%
+    for i, surv in enumerate(cases):
+        with warnings.catch_warnings():
+            warnings.simplefilter("error")
+            with np.errstate(all="raise"):
+                fit = sbg_fit(surv)
+        a, b = fit["alpha"], fit["beta"]
+        assert np.isfinite(a) and np.isfinite(b) and np.isfinite(fit["neg_log_likelihood"])
+        assert lo <= a <= hi and lo <= b <= hi
+        theta = (surv[0] - surv[-1]) / surv[:-1].sum()  # geometric MLE
+        if i == 0:  # geometric to rounding: the fallback keeps the geometric MLE's mean churn
+            assert fit["geometric_limit"] is True
+            assert fit["theta_mean"] == pytest.approx(theta, rel=1e-9)
+        assert fit["theta_mean"] == pytest.approx(theta, rel=0.05)
+        proj = sbg_survival(a, b, 36)
+        assert np.all(np.isfinite(proj)) and np.all((proj >= 0) & (proj <= 1)) and np.all(np.diff(proj) <= 0)
+        assert proj[len(surv) - 1] == pytest.approx(surv[-1] / surv[0], rel=0.05)
+    # heterogeneous data stays an interior fit
+    het = sbg_fit(sbg_survivor_counts(sbg_generate_lifetimes(SeededRNG(11), 0.8, 3.0, 5000, 24), 24))
+    assert het["geometric_limit"] is False and lo < het["alpha"] < hi and lo < het["beta"] < hi
+
+
 def test_simple_retention_curve() -> None:
     r = simple_retention_curve(0.3, 0.9, 4)
     assert r == pytest.approx([1.0, 0.7, 0.63, 0.567, 0.5103])

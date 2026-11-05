@@ -163,28 +163,68 @@ def sbg_survivor_counts(lifetimes: ArrayLike, horizon: int) -> NDArray[np.int64]
     return np.array([(lt >= t).sum() for t in range(horizon + 1)], dtype=np.int64)
 
 
-def sbg_fit(survivors: ArrayLike) -> dict[str, float]:
+SBG_PARAM_BOUNDS: tuple[float, float] = (1e-3, 1e3)
+
+
+def sbg_fit(survivors: ArrayLike, *, bounds: tuple[float, float] = SBG_PARAM_BOUNDS) -> dict[str, Any]:
     """Maximum-likelihood ``(alpha, beta)`` from survivor counts ``n_0..n_T`` (scipy; ground-truth
-    builder only). ``LL = sum_t (n_{t-1}-n_t) log P(T=t) + n_T log S(T)``."""
+    builder only). ``LL = sum_t (n_{t-1}-n_t) log P(T=t) + n_T log S(T)``.
+
+    The fit runs in log space with L-BFGS-B (analytic gradient, ``alpha, beta`` in ``bounds``) from three
+    fixed starts, entirely through ``betaln`` / ``digamma`` so it never overflows or warns. Near-geometric
+    data (no churn heterogeneity) has its likelihood maximum at ``alpha, beta -> inf`` with
+    ``alpha/(alpha+beta) -> theta``; when the bounded optimum sits on the upper bound (or does not beat the
+    geometric likelihood) the fit falls back to the geometric MLE ``theta = sum lost / sum exposure`` and
+    returns the finite pair on the ``alpha + beta = upper`` ray with that mean churn
+    (``geometric_limit = True``). Returns ``alpha``, ``beta``, ``neg_log_likelihood``, ``theta_mean``
+    (``alpha/(alpha+beta)``) and ``geometric_limit``."""
     from scipy import optimize
 
     n = np.asarray(survivors, dtype=float)
+    lo, hi = float(bounds[0]), float(bounds[1])
     horizon = len(n) - 1
+    if horizon < 1 or n[0] <= 0:
+        raise ValueError("sbg_fit needs survivor counts n_0..n_T with T >= 1 and n_0 > 0")
     lost = n[:-1] - n[1:]
+    t = np.arange(1, horizon + 1, dtype=float)
+    dg = special.digamma
 
-    def nll(x: NDArray[np.float64]) -> float:
-        a, b = np.exp(x)
-        p = sbg_pmf(a, b, horizon)
-        s = sbg_survival(a, b, horizon)[-1]
-        return -float(np.sum(lost * np.log(np.maximum(p, 1e-300))) + n[-1] * math.log(max(s, 1e-300)))
+    def nll_grad(x: NDArray[np.float64]) -> tuple[float, NDArray[np.float64]]:
+        a, b = float(np.exp(x[0])), float(np.exp(x[1]))
+        base = special.betaln(a, b)
+        log_p = special.betaln(a + 1, b + t - 1) - base
+        log_s = special.betaln(a, b + horizon) - base
+        ll = float(np.dot(lost, log_p) + n[-1] * log_s)
+        d_ab = dg(a + b)
+        dp_a = dg(a + 1) - dg(a + b + t) - dg(a) + d_ab
+        dp_b = dg(b + t - 1) - dg(a + b + t) - dg(b) + d_ab
+        ds_a = d_ab - dg(a + b + horizon)
+        ds_b = dg(b + horizon) - dg(a + b + horizon) - dg(b) + d_ab
+        ga = float(np.dot(lost, dp_a) + n[-1] * ds_a)
+        gb = float(np.dot(lost, dp_b) + n[-1] * ds_b)
+        return -ll, -np.array([ga * a, gb * b])  # chain rule for the log parameters
 
+    log_bounds = [(math.log(lo), math.log(hi))] * 2
     best = None
     for x0 in ((0.0, 0.0), (math.log(0.5), math.log(3.0)), (math.log(2.0), math.log(10.0))):
-        res = optimize.minimize(nll, np.array(x0), method="Nelder-Mead", options={"xatol": 1e-8, "fatol": 1e-8, "maxiter": 4000})
+        res = optimize.minimize(nll_grad, np.array(x0), jac=True, method="L-BFGS-B", bounds=log_bounds,
+                                options={"ftol": 1e-13, "gtol": 1e-9, "maxiter": 2000})
         if best is None or res.fun < best.fun:
             best = res
-    a, b = np.exp(best.x)  # type: ignore[union-attr]
-    return {"alpha": float(a), "beta": float(b), "neg_log_likelihood": float(best.fun)}  # type: ignore[union-attr]
+    assert best is not None
+    a, b = (float(v) for v in np.exp(best.x))
+    nll = float(best.fun)
+    # geometric (homogeneous churn) MLE: theta = lost / exposure
+    exposure = float(n[:-1].sum())
+    theta = min(max(float(lost.sum()) / exposure, 1e-12), 1.0 - 1e-12)
+    geo_nll = -float(lost.sum() * math.log(theta) + (exposure - lost.sum()) * math.log1p(-theta))
+    at_upper = max(best.x) >= math.log(hi) - 1e-6
+    geometric = bool(at_upper or nll >= geo_nll - 1e-9)
+    if geometric:
+        a = min(max(theta * hi, lo), hi)
+        b = min(max((1.0 - theta) * hi, lo), hi)
+        nll = float(nll_grad(np.log([a, b]))[0])
+    return {"alpha": a, "beta": b, "neg_log_likelihood": nll, "theta_mean": a / (a + b), "geometric_limit": geometric}
 
 
 def simple_retention_curve(c_early: float, s: float, horizon: int) -> list[float]:
